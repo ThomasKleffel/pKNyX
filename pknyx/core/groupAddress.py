@@ -65,7 +65,7 @@ GroupAddressValueError: group address out of range
 3
 >>> groupAddr.outputFormat = 2
 >>> groupAddr.address
-'1/515
+'1/515'
 >>> groupAddr.main
 1
 >>> groupAddr.middle

@@ -44,7 +44,7 @@ Priority is used for bus frame priority.
 Usage
 =====
 
-from priority import Priority
+>>> from priority import Priority
 >>> p = Priority('dummy')
 PriorityValueError: priority level 'dummy' not in ('system', 'normal', 'urgent', 'low')
 >>> p = Priority(15)

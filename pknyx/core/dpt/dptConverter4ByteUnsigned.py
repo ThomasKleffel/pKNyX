@@ -60,6 +60,8 @@ class DPTConverter4ByteUnsigned(DPTConverterBase):
 
      - 4 Byte Unsigned: UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
      - U: Bytes [0:4294967295]
+
+    .
     """
     DPT_Generic = DPT("12.xxx", "Generic", (0, 4294967295))
 

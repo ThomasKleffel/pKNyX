@@ -75,7 +75,7 @@ From recipe ASPN N°496761
 @license: PSF license v2
 """
 
-__revision__ = "$Id: orderedDict.py 2264 2010-02-11 08:47:09Z fma $"
+__revision__ = "$Id$"
 
 from UserDict import DictMixin
 

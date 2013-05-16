@@ -61,7 +61,7 @@ class DPTConverter2ByteSigned(DPTConverterBase):
      - 2 Byte Signed: VVVVVVVV VVVVVVVV
      - V: Bytes [-32768:32767]
 
-    Bla
+    .
     """
     DPT_Generic = DPT("8.xxx", "Generic", (-32768, 32767))
 

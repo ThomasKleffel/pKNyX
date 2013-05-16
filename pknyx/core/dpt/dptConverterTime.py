@@ -64,6 +64,8 @@ class DPTConverterTime(DPTConverterBase):
      - M: Minute [0:59]
      - S: Second [0:59]
      - r: reserved (0)
+
+    .
     """
     DPT_Generic = DPT("10.xxx", "Generic", (0, 16777215))
 

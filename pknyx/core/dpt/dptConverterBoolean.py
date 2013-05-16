@@ -88,6 +88,8 @@ class DPTConverterBoolean(DPTConverterBase):
 
      - 1 Byte: 00000000B
      - B: Binary [0, 1]
+
+    .
     """
     DPT_Generic = DPT("1.xxx", "Generic", (0, 1))
 

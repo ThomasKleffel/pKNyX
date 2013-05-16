@@ -67,6 +67,8 @@ class DPTConverter8BitSigned(DPTConverterBase):
 
      - 1 Byte: VVVVVVVV
      - V: Byte [-128:127]
+
+    .
     """
     DPT_Generic = DPT("6.xxx", "Generic", (-128, 127))
 

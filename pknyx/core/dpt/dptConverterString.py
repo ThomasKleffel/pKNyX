@@ -75,6 +75,8 @@ class DPTConverterString(DPTConverterBase):
 
      - 14 Byte: AAAAAAAA ... AAAAAAAA
      - A: Char [0:255]
+
+    .
     """
     DPT_Generic = DPT("16.xxx", "Generic", (0, 5192296858534827628530496329220095))
 

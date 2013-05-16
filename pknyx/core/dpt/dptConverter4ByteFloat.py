@@ -64,6 +64,8 @@ class DPTConverter4ByteFloat(DPTConverterBase):
      - S: Sign [0, 1]
      - E: Exponent [0:255]
      - F: Fraction [0:8388607]
+
+    .
     """
     DPT_Generic = DPT("14.xxx", "Generic", (-3.4028234663852886e+38, 3.4028234663852886e+38))
     #DPT_Generic = DPT("14.xxx", "Generic", (-340282346638528859811704183484516925440, 340282346638528859811704183484516925440))

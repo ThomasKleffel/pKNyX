@@ -78,6 +78,8 @@ class DPTConverterDate(DPTConverterBase):
      - M: Month [1:12]
      - Y: Year [0:99]
      - r: reserved (0)
+
+    .
     """
     DPT_Generic = DPT("11.xxx", "Generic", (0, 16777215))
 

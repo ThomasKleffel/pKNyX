@@ -60,8 +60,6 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTConverter2ByteFloat(DPTConverterBase):
     """ DPT converter class for 2-Byte-Float (F16) KNX Datapoint Type
 
-    G{classtree}
-
      - 2 Byte Float: SEEEEMMM MMMMMMMM
      - S: Sign [0, 1]
      - E: Exponent [0:15]

@@ -80,8 +80,6 @@ class DPTIDValueError(PKNyXValueError):
 class DPTID(object):
     """ Datapoint Type ID class
 
-    G{classtree}
-
     @ivar _id: Datapoint Type ID
     @type _id: str
     """

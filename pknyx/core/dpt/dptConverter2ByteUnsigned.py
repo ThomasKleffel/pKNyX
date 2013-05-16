@@ -58,10 +58,8 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTConverter2ByteUnsigned(DPTConverterBase):
     """ DPT converter class for 2-Byte-Unsigned (U16) KNX Datapoint Type
 
-    G{classtree}
-
-     - 2 Byte Unsigned: UUUUUUUU UUUUUUUU
-     - U: Bytes [0:65535]
+      - 2 Byte Unsigned: UUUUUUUU UUUUUUUU
+      - U: Bytes [0:65535]
     """
     DPT_Generic = DPT("7.xxx", "Generic", (0, 65535))
 

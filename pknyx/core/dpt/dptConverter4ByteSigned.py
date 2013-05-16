@@ -58,8 +58,6 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTConverter4ByteSigned(DPTConverterBase):
     """ DPT converter class for 4-Byte-Signed (V32) KNX Datapoint Type
 
-    G{classtree}
-
      - 4 Byte Signed: VVVVVVVV VVVVVVVV VVVVVVVV VVVVVVVV
      - V: Bytes [-2147483648:2147483647]
     """

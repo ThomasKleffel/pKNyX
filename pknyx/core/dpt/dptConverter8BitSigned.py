@@ -65,8 +65,6 @@ def twos_comp(val, bits):
 class DPTConverter8BitSigned(DPTConverterBase):
     """ DPT converter class for 8-Bit-Signed (V8) KNX Datapoint Type
 
-    G{classtree}
-
      - 1 Byte: VVVVVVVV
      - V: Byte [-128:127]
     """

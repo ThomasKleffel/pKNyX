@@ -131,8 +131,6 @@ class DPTValueError(PKNyXValueError):
 class DPT(object):
     """ Datapoint Type hanlding class
 
-    G{classtree}
-
     Manage Datapoint Type informations and behavior.
 
     @ivar _id: Datapoint Type ID

@@ -86,8 +86,6 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTConverterBoolean(DPTConverterBase):
     """ DPT converter class for 1-Bit (B1) KNX Datapoint Type
 
-    G{classtree}
-
      - 1 Byte: 00000000B
      - B: Binary [0, 1]
     """

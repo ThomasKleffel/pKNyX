@@ -97,8 +97,6 @@ class GroupAddressValueError(PKNyXValueError):
 class GroupAddress(KnxAddress):
     """ Group address hanlding class
 
-    G{classtree}
-
     @ivar _outputFormat: format level output representation, in (2, 3).
     @type _outputFormat: int
     """

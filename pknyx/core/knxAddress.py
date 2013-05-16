@@ -76,8 +76,6 @@ class KnxAddressValueError(PKNyXValueError):
 class KnxAddress(object):
     """ KNX address hanlding class
 
-    G{classtree}
-
     @ivar _raw: knx raw address
     @type _raw: int
     """

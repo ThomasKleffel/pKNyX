@@ -61,8 +61,6 @@ class DPTConverterValueError(PKNyXValueError):
 class DPTConverterBase(object):
     """ Base DPT converter class
 
-    G{classtree}
-
     Manage conversion between KNX encoded data and python types.
 
     Each converter class can handles all DPTs of a same main type.

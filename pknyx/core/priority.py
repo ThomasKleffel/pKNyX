@@ -75,8 +75,6 @@ class PriorityValueError(PKNyXValueError):
 
 class Priority(object):
     """ Priority handling class
-
-    G{classtree}
     """
     CONV_TABLE = {'system': 0x00, 'normal': 0x01, 'urgent': 0x02, 'low': 0x03,
                   0x00: 'system', 0x01: 'normal', 0x02: 'urgent', 0x03: 'low'

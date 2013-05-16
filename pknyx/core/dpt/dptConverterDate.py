@@ -73,8 +73,6 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTConverterDate(DPTConverterBase):
     """ DPT converter class for Date (r3U5r4U4r1U7) KNX Datapoint Type
 
-    G{classtree}
-
      - 3 Byte: rrrDDDDD rrrrMMMM rYYYYYYY
      - D: Day [1:31]
      - M: Month [1:12]

@@ -83,8 +83,6 @@ class IndividualAddressValueError(PKNyXValueError):
 
 class IndividualAddress(KnxAddress):
     """ Individual address hanlding class
-
-    G{classtree}
     """
     def __init__(self, address):
         """ Create an individual address

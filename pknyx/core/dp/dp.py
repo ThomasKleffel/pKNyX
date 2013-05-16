@@ -87,8 +87,6 @@ class DPValueError(PKNyXValueError):
 class DP(object):
     """ Datapoint handling class
 
-    G{classtree}
-
     @ivar _name: name of the Datapoint
     @type _name: str
 

@@ -58,8 +58,6 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTConverterTime(DPTConverterBase):
     """ DPT converter class for Time (N3U5r2U6r2U6) KNX Datapoint Type
 
-    G{classtree}
-
      - 3 Byte: NNNHHHHH rrMMMMMM rrSSSSSS
      - N: Week day [0:7]
      - H: Hour [0:23]

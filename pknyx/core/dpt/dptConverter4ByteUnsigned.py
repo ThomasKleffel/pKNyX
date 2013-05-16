@@ -58,8 +58,6 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTConverter4ByteUnsigned(DPTConverterBase):
     """ DPT converter class for 4-Byte-Unsigned (U32) KNX Datapoint Type
 
-    G{classtree}
-
      - 4 Byte Unsigned: UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
      - U: Bytes [0:4294967295]
     """

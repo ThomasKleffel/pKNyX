@@ -58,8 +58,6 @@ from pknyx.core.dpt.dptConverterBoolean import DPTConverterBoolean
 class DPTConverter3BitControl(DPTConverterBase):
     """ DPT converter class for 3-Bit-Control (B1U3) KNX Datapoint Type
 
-    G{classtree}
-
     This is a composite converter.
 
      - 1 Byte: 0000CSSSS

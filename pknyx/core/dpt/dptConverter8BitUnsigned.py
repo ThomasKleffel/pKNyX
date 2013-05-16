@@ -58,8 +58,6 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTConverter8BitUnsigned(DPTConverterBase):
     """ DPT converter class for 8-Bit-Unsigned (U8) KNX Datapoint Type
 
-    G{classtree}
-
      - 1 Byte: UUUUUUUU
      - U: Byte [0:255]
     """

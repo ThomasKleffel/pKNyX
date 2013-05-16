@@ -74,8 +74,6 @@ dptConverterFactory = None
 class DPTConverterFactoryObject(object):
     """Datapoint Type converter factory class
 
-    G{classtree}
-
     Maintains available KNX Datapoint Type main numbers and creates associated DPT converters.
 
     It stores all available, registered DPT main numbers with the corresponding converter and an optional description of

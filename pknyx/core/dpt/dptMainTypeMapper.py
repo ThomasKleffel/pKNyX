@@ -56,8 +56,6 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTMainTypeMapper(object):
     """ Datapoint Type main type mapper class
 
-    G{classtree}
-
     Maps a Datapoint Type main part to a corresponding converter class doing the DPT conversion.
 
     @ivar _dptId: Datapoint Type ID

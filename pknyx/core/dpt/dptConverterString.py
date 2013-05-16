@@ -73,8 +73,6 @@ from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueE
 class DPTConverterString(DPTConverterBase):
     """ DPT converter class for String (A112) KNX Datapoint Type
 
-    G{classtree}
-
      - 14 Byte: AAAAAAAA ... AAAAAAAA
      - A: Char [0:255]
     """

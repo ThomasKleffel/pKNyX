@@ -126,11 +126,11 @@ class GroupAddress(KnxAddress):
             if len(address) == 2:
                 if not 0 <= address[0] <= 0x1f or not 0 <= address[1] <= 0x7ff:
                     raise GroupAddressValueError("group address out of range")
-                address = address[0] << 11 | address[1]
+                raw = address[0] << 11 | address[1]
             elif len(address) == 3:
                 if not 0 <= address[0] <= 0x1f or not 0 <= address[1] <= 0x7 or not 0 <= address[2] <= 0xff:
                     raise GroupAddressValueError("group address out of range")
-                address = address[0] << 11 | address[1] << 8 | address[2]
+                raw = address[0] << 11 | address[1] << 8 | address[2]
             else:
                 raise GroupAddressValueError("invalid group address")
         except TypeError:
@@ -141,7 +141,7 @@ class GroupAddress(KnxAddress):
             raise GroupAddressValueError("outputFormat %d must be 2 or 3" % outputFormat)
         self._outputFormat = outputFormat
 
-        super(GroupAddress, self).__init__(address)
+        super(GroupAddress, self).__init__(raw)
 
     def __repr__(self):
         s = "<GroupAddress(\"%s\")>" % self.address

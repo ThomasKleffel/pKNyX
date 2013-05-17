@@ -78,6 +78,7 @@ class KnxAddress(object):
 
     @ivar _raw: knx raw address
     @type _raw: int
+    @todo: use buffer protocole (bytearray)?
     """
     def __init__(self, raw):
         """ Create a generic address

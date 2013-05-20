@@ -2,27 +2,6 @@
 
 """ Python KNX framework
 
-pKNyX is high level KNX framework written entirely in python. It goal is to build
-in a very simple and efficient way applications to extend capabilities of a
-KNX installation, by adding rules and/or virtual devices, and thus create a smart
-processor for KNX home automation.
-
-This project is moslty a (partial) port of the great java library, Calimero, but
-add high level tools to be more user-friendly.
-
-It is also inspired from the following projects:
-
- - linknx
- - eibd
- - eibnetmux
- - PywireGate
- - OpenHAB
-
-The main target of pKNyX is an ALIX board running OpenWRT, but can run on any system
-when python is available. It does not require any compilation.
-
-For more informations, see pKNyx web site et U{http://www.pknyx.org}
-
 License
 =======
 

@@ -33,7 +33,7 @@ Datapoint management
 Implements
 ==========
 
- - B{DP}
+ - B{Datapoint}
 
 Documentation
 =============
@@ -47,10 +47,29 @@ L{DPT}. This information exchange is done through messages, which are
 sent with a L{Priority} associated with the respective datapoint. Every datapoint
 object has its own DPT and priority.
 
+The "flags" parameter is similar to the ETS flags. The value of each flag is represented by a letter:
+ - c: Communication (allow the object to interact with the KNX bus)
+ - r: Read (allow the object to answer to a read request from another participant)
+ - w: Write (update the object's internal value with the one received in write telegram if they are different)
+ - t : Transmit (allow the object to transmit it's value on the bus if it's modified internally by a rule or via XML protocol)
+ - u : Update (update the object's internal value with the one received in "read response" telegram if they are different)
+ - f : Force (force the object value to be transmitted on the bus, even if it didn't change).
+       In the recent versions you can use s : Stateless flag alternatively which means exactly the same
+       (object does not update it's state so linknx should always send it's value to the bus
+ - i : Init (useless for the moment. Will perhaps replace the parameter init="request" in the future)
+
+Each letter appearing inside the value of this parameter means the corresponding flag is set.
+If "flags" is not specified, the default value is "cwtu" (Communication, Write, Transmit and Update).
+
+The default set of flags is good for most normal objects like switches where the value kept internally by linknx is
+corresponding to real object state. Another set of flags can be for example "crwtf" (or "crwts") for objects that
+should send it's value to the KNX bus even if linknx maintains the same value. This is usefull for scenes.
+Setting scene value to 'on' should send this value to KNX every time action is triggered to make the scene happen.
+
 Usage
 =====
 
->>> from dp import DP
+>>> from dp import Datapoint as DP
 >>> dp = DP("test", "1/2/3", "1.xxx")
 >>> dp
 <DP("test", <GroupAddress("1/2/3")>, <DPTID("1.xxx")>, <Priority(low)>, stateBased="True")>
@@ -84,7 +103,7 @@ class DPValueError(PKNyXValueError):
     """
 
 
-class DP(object):
+class Datapoint(object):
     """ Datapoint handling class
 
     @ivar _name: name of the Datapoint
@@ -99,7 +118,7 @@ class DP(object):
     @ivar _priority: bus message priority
     @type _priority: L{Priority}
 
-    @ivar _stateBased: True if DP is state-based
+    @ivar _stateBased: True if Datapoint is state-based
     @type _stateBased: bool
     """
     def __init__(self, name, mainGroupAddress, dptId, priority=Priority(), stateBased=True):
@@ -117,12 +136,12 @@ class DP(object):
         @param priority: bus message priority
         @type priority: L{Priority} or str
 
-        @param stateBased: True if DP is state-based
+        @param stateBased: True if Datapoint is state-based
         @type stateBased: bool
         """
-        super(DP, self).__init__()
+        super(Datapoint, self).__init__()
 
-        #Logger().debug("DP.__init__(): name=%s, mainGroupAddress=%s, dptId=%r, priority=%s, stateBased=%s" % \
+        #Logger().debug("Datapoint.__init__(): name=%s, mainGroupAddress=%s, dptId=%r, priority=%s, stateBased=%s" % \
                        #(name, mainGroupAddress, dptId, priority, stateBased))
 
         self._name = name
@@ -138,13 +157,13 @@ class DP(object):
         self._stateBased = stateBased
 
     def __repr__(self):
-        s = "<DP(\"%s\", %s, %s, %s, stateBased=\"%s\")>" % \
+        s = "<Datapoint(\"%s\", %s, %s, %s, stateBased=\"%s\")>" % \
              (self._name, repr(self._mainGroupAddress), repr(self._dptId), repr(self._priority), self._stateBased)
         return s
 
     @property
     def name(self):
-        """ return the DP name
+        """ return the Datapoint name
         """
         return self._name
 
@@ -162,7 +181,7 @@ class DP(object):
 
     #@dptId.setter
     #def dptId(self, dptId):
-        #""" Change the DP DPT ID
+        #""" Change the Datapoint DPT ID
         #"""
         #if not isinstance(dptId, DPTID):
             #dptId = DPTID(dptId)
@@ -170,13 +189,13 @@ class DP(object):
 
     @property
     def priority(self):
-        """ return the DP priority
+        """ return the Datapoint priority
         """
         return self._priority
 
     #@priority.setter
     #def priority(str, level):
-        #""" Change the DP priority
+        #""" Change the Datapoint priority
         #"""
         #if not isinstance(priority, Priority):
             #priority = Priority(priority)
@@ -184,7 +203,7 @@ class DP(object):
 
     @property
     def stateBased(self):
-        """ return the DP behaviour
+        """ return the Datapoint behaviour
         """
         return self._stateBased
 

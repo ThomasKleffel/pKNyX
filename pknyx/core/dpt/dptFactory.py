@@ -52,23 +52,23 @@ from pknyx.common.loggingServices import Logger
 from pknyx.common.helpers import reprStr
 from pknyx.core.dpt.dptId import DPTID
 from pknyx.core.dpt.dptMainTypeMapper import DPTMainTypeMapper
-from pknyx.core.dpt.dptConverterBoolean import DPTBoolean              #  1.xxx
-from pknyx.core.dpt.dptConverter3BitControl import DPT3BitControl      #  3.xxx
-#from pknyx.core.dpt.dptConverterCharacter import DPTCharacter          #  4.xxx
-from pknyx.core.dpt.dptConverter8BitUnsigned import DPT8BitUnsigned    #  5.xxx
-from pknyx.core.dpt.dptConverter8BitSigned import DPT8BitSigned        #  6.xxx
-from pknyx.core.dpt.dptConverter2ByteUnsigned import DPT2ByteUnsigned  #  7.xxx
-from pknyx.core.dpt.dptConverter2ByteSigned import DPT2ByteSigned      #  8.xxx
-from pknyx.core.dpt.dptConverter2ByteFloat import DPT2ByteFloat        #  9.xxx
-from pknyx.core.dpt.dptConverterTime import DPTTime                    # 10.xxx
-from pknyx.core.dpt.dptConverterDate import DPTDate                    # 11.xxx
-from pknyx.core.dpt.dptConverter4ByteUnsigned import DPT4ByteUnsigned  # 12.xxx
-from pknyx.core.dpt.dptConverter4ByteSigned import DPT4ByteSigned      # 13.xxx
-from pknyx.core.dpt.dptConverter4ByteFloat import DPT4ByteFloat        # 14.xxx
-from pknyx.core.dpt.dptConverterString import DPTString                # 16.xxx
-#from pknyx.core.dpt.dptConverterDateTime import DPTDateTime            # 19.xxx
+from pknyx.core.dpt.dptBoolean import DPTBoolean              #  1.xxx
+from pknyx.core.dpt.dpt3BitControl import DPT3BitControl      #  3.xxx
+#from pknyx.core.dpt.dptCharacter import DPTCharacter          #  4.xxx
+from pknyx.core.dpt.dpt8BitUnsigned import DPT8BitUnsigned    #  5.xxx
+from pknyx.core.dpt.dpt8BitSigned import DPT8BitSigned        #  6.xxx
+from pknyx.core.dpt.dpt2ByteUnsigned import DPT2ByteUnsigned  #  7.xxx
+from pknyx.core.dpt.dpt2ByteSigned import DPT2ByteSigned      #  8.xxx
+from pknyx.core.dpt.dpt2ByteFloat import DPT2ByteFloat        #  9.xxx
+from pknyx.core.dpt.dptTime import DPTTime                    # 10.xxx
+from pknyx.core.dpt.dptDate import DPTDate                    # 11.xxx
+from pknyx.core.dpt.dpt4ByteUnsigned import DPT4ByteUnsigned  # 12.xxx
+from pknyx.core.dpt.dpt4ByteSigned import DPT4ByteSigned      # 13.xxx
+from pknyx.core.dpt.dpt4ByteFloat import DPT4ByteFloat        # 14.xxx
+from pknyx.core.dpt.dptString import DPTString                # 16.xxx
+#from pknyx.core.dpt.dptDateTime import DPTDateTime            # 19.xxx
 
-dptConverterFactory = None
+dptFactory = None
 
 
 class DPTFactoryObject(object):
@@ -170,15 +170,15 @@ class DPTFactoryObject(object):
 
 
 def DPTFactory():
-    """ Create or return the global dptConverterFactory object
+    """ Create or return the global dptFactory object
 
     Sort of Singleton/Borg pattern.
     """
-    global dptConverterFactory
-    if dptConverterFactory is None:
-        dptConverterFactory = DPTFactoryObject()
+    global dptFactory
+    if dptFactory is None:
+        dptFactory = DPTFactoryObject()
 
-    return dptConverterFactory
+    return dptFactory
 
 
 if __name__ == '__main__':

@@ -124,7 +124,7 @@ class DPTMainTypeMapper(object):
 if __name__ == '__main__':
     import unittest
 
-    from pknyx.core.dpt.dptConverterBoolean import DPTBoolean
+    from pknyx.core.dpt.dptBoolean import DPTBoolean
 
     # Mute logger
     Logger().setLevel('error')

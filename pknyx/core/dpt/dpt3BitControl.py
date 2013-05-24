@@ -51,7 +51,7 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
-from pknyx.core.dpt.dptConverterBoolean import DPTBoolean
+from pknyx.core.dpt.dptBoolean import DPTBoolean
 
 
 class DPT3BitControl(DPT):

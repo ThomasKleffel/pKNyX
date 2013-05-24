@@ -108,6 +108,8 @@ class Priority(object):
         s = "<Priority(\'%s\')>" % self.strLevel
         return s
 
+    #def __cmp__(self, other):
+
     @property
     def level(self):
         return self._level

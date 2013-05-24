@@ -70,19 +70,17 @@ Usage
 =====
 
 >>> from dp import Datapoint as DP
->>> dp = DP("test", "1/2/3", "1.xxx")
+>>> dp = DP("test")
 >>> dp
-<DP("test", <GroupAddress("1/2/3")>, <DPTID("1.xxx")>, <Priority(low)>, stateBased="True")>
+<Datapoint("test", <DPTID("1.xxx")>, flags="cwtu", Priority(low)>)>
 >>> dp.main
 'test'
->>> dp.mainGroupAddress
-<GroupAddress("1/2/3")>
 >>> dp.dptId
 <DPTID("1.xxx")>
+>>> dp.flags
+'cwtu'
 >>> dp.priority
 <Priority(low)>
->>> dp.stateBased
-True
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -93,8 +91,9 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.groupAddress import GroupAddress
+from pknyx.core.dpt.dptConverterFactory import DPTConverterFactory
 from pknyx.core.dpt.dpt import DPTID
+#from pknyx.core.knxFlags import KnxFlags
 from pknyx.core.priority import Priority
 
 
@@ -109,56 +108,52 @@ class Datapoint(object):
     @ivar _name: name of the Datapoint
     @type _name: str
 
-    @ivar _mainGroupAddress: main group address identifiying this Datapoint
-    @type _mainGroupAddress: L{GroupAddress}
-
-    @ivar _dptId: Datapoint Type ID
-    @type _dptId: L{DPTID}
+    @ivar _flags: bus message flags
+    @type _flags: str (or KnxFlags?)
 
     @ivar _priority: bus message priority
     @type _priority: L{Priority}
 
-    @ivar _stateBased: True if Datapoint is state-based
-    @type _stateBased: bool
+    @ivar _dptHandler: DPT handler associated with this Datapoint
+    @param _dptHandler: L{DPTHandlerBase}
     """
-    def __init__(self, name, mainGroupAddress, dptId, priority=Priority(), stateBased=True):
+    def __init__(self, name, dptId=DPTID(), flags="cwtu", priority=Priority()):
         """
 
         @param name: name of the Datapoint
         @type name: str
 
-        @param mainGroupAddress: main group address identifiying this Datapoint
-        @type mainGroupAddress: L{GroupAddress} or str
-
         @param dptId: Datapoint Type ID
-        @type dptId: L{DPTID} or str
+        @type dptId: str L{DPTID}
+
+        @param flags: bus message flags
+        @type flags: str (or KnxFlags?)
 
         @param priority: bus message priority
-        @type priority: L{Priority} or str
-
-        @param stateBased: True if Datapoint is state-based
-        @type stateBased: bool
+        @type priority: str or L{Priority}
         """
         super(Datapoint, self).__init__()
 
-        #Logger().debug("Datapoint.__init__(): name=%s, mainGroupAddress=%s, dptId=%r, priority=%s, stateBased=%s" % \
-                       #(name, mainGroupAddress, dptId, priority, stateBased))
+        #Logger().debug("Datapoint.__init__(): name=%s, dptId=%r, flags=%r, priority=%s" % \
+                       #(name, dptId, flags, priority, stateBased))
 
         self._name = name
-        if not isinstance(mainGroupAddress, GroupAddress):
-            mainGroupAddress = GroupAddress(mainGroupAddress)
         self._mainGroupAddress = mainGroupAddress
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         self._dptId = dptId
+        #if not isinstance(flags, KnxFlags):
+            #flags = KnxFlags(dptId)
+        self._flags = flags
         if not isinstance(priority, Priority):
             priority = Priority(priority)
         self._priority = priority
-        self._stateBased = stateBased
+
+        self._dptHandler = DPTConverterFactory.create(dptId)
 
     def __repr__(self):
-        s = "<Datapoint(\"%s\", %s, %s, %s, stateBased=\"%s\")>" % \
-             (self._name, repr(self._mainGroupAddress), repr(self._dptId), repr(self._priority), self._stateBased)
+        s = "<Datapoint(\"%s\", %s, flags=\"%s\", %s)>" % \
+             (self._name, repr(self._dptId), self._flags, repr(self._priority))
         return s
 
     @property
@@ -166,12 +161,6 @@ class Datapoint(object):
         """ return the Datapoint name
         """
         return self._name
-
-    @property
-    def mainGroupAddress(self):
-        """ return the main group address
-        """
-        return self._mainGroupAddress
 
     @property
     def dptId(self):
@@ -186,6 +175,19 @@ class Datapoint(object):
         #if not isinstance(dptId, DPTID):
             #dptId = DPTID(dptId)
         #self._dptId = dptId
+        self._dpt.
+
+    @property
+    def flags(self):
+        """ return the Datapoint flags
+        """
+        return self._flags
+
+    @flags.setter
+    def flags(self, flags):
+        """ set the Datapoint flags
+        """
+        self._flags = flags
 
     @property
     def priority(self):
@@ -202,10 +204,12 @@ class Datapoint(object):
         #self._priority = priority
 
     @property
-    def stateBased(self):
-        """ return the Datapoint behaviour
-        """
-        return self._stateBased
+    def value(self):
+        return self._dpt.value
+
+    @value.setter
+    def value(self, value):
+        self.dpt.value = value
 
 
 if __name__ == '__main__':

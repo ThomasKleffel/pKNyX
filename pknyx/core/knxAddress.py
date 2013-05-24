@@ -106,6 +106,10 @@ class KnxAddress(object):
         return s
 
     @property
+    def address(self):
+        raise NotImplementedError
+
+    @property
     def raw(self):
         """ return the raw address
         """

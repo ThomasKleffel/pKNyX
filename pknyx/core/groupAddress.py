@@ -53,7 +53,7 @@ GroupAddressValueError: group address out of range
 <GroupAddress("1/2/3")>
 >>> groupAddr.raw
 2563
->>> groupAddr.outputFormat
+>>> groupAddr.outFormatLevel
 3
 >>> groupAddr.address
 '1/2/3'
@@ -63,7 +63,7 @@ GroupAddressValueError: group address out of range
 2
 >>> groupAddr.sub
 3
->>> groupAddr.outputFormat = 2
+>>> groupAddr.outFormatLevel = 2
 >>> groupAddr.address
 '1/515'
 >>> groupAddr.main
@@ -72,8 +72,8 @@ GroupAddressValueError: group address out of range
 0
 >>> groupAddr.sub
 515
->>> groupAddr.outputFormat = 4
-GroupAddressValueError: outputFormat 4 must be 2 or 3
+>>> groupAddr.outFormatLevel = 4
+GroupAddressValueError: outFormatLevel 4 must be 2 or 3
 >>> groupAddr.frame
 '\n\x03'
 
@@ -97,19 +97,19 @@ class GroupAddressValueError(PKNyXValueError):
 class GroupAddress(KnxAddress):
     """ Group address hanlding class
 
-    @ivar _outputFormat: format level output representation, in (2, 3).
-    @type _outputFormat: int
+    @ivar _outFormatLevel: output format level representation, in (2, 3).
+    @type _outFormatLevel: int
     """
-    def __init__(self, address, outputFormat=3):
+    def __init__(self, address, outFormatLevel=3):
         """ Create a group address
 
         @param address: group address
         @type address: str or tuple of int
 
-        @param outputFormat: format level representation, in (2, 3)
-                             Note that the format is only used for output; the address can always be entered as
-                             level 2 or level 3, whatever the value of outputFormat is.
-        @type outputFormat: int
+        @param outFormatLevel: output format level representation, in (2, 3)
+                               Note that the format is only used for output; the address can always be entered as
+                               level 2 or level 3, whatever the value of outFormatLevel is.
+        @type outFormatLevel: int
 
         @raise GroupAddressValueError:
         """
@@ -137,9 +137,9 @@ class GroupAddress(KnxAddress):
             Logger().exception("GroupAddress.__init__()", debug=True)
             raise GroupAddressValueError("invalid group address")
 
-        if outputFormat not in (2, 3):
-            raise GroupAddressValueError("outputFormat %d must be 2 or 3" % outputFormat)
-        self._outputFormat = outputFormat
+        if outFormatLevel not in (2, 3):
+            raise GroupAddressValueError("outFormatLevel %d must be 2 or 3" % outFormatLevel)
+        self._outFormatLevel = outFormatLevel
 
         super(GroupAddress, self).__init__(raw)
 
@@ -151,7 +151,7 @@ class GroupAddress(KnxAddress):
     def address(self):
         address = []
         address.append("%d" % self.main)
-        if self._outputFormat == 3:
+        if self._outFormatLevel == 3:
             address.append("%d" % self.middle)
         address.append("%d" % self.sub)
 
@@ -163,27 +163,27 @@ class GroupAddress(KnxAddress):
 
     @property
     def middle(self):
-        if self._outputFormat == 2:
+        if self._outFormatLevel == 2:
             return 0
-        elif self._outputFormat == 3:
+        elif self._outFormatLevel == 3:
             return self._raw >> 8 & 0x07
 
     @property
     def sub(self):
-        if self._outputFormat == 2:
+        if self._outFormatLevel == 2:
             return self._raw & 0x07ff
-        elif self._outputFormat == 3:
+        elif self._outFormatLevel == 3:
             return self._raw & 0x0ff
 
     @property
-    def outputFormat(self):
-        return self._outputFormat
+    def outFormatLevel(self):
+        return self._outFormatLevel
 
-    @outputFormat.setter
-    def outputFormat(self, outputFormat):
-        if outputFormat not in (2, 3):
-            raise GroupAddressValueError("outputFormat %d must be 2 or 3" % outputFormat)
-        self._outputFormat = outputFormat
+    @outFormatLevel.setter
+    def outFormatLevel(self, level):
+        if level not in (2, 3):
+            raise GroupAddressValueError("outFormatLevel %d must be 2 or 3" % level)
+        self._outFormatLevel = level
 
 
 if __name__ == '__main__':
@@ -264,10 +264,10 @@ if __name__ == '__main__':
             self.assertEqual(self.ad4.address, "1/0/2")
 
         def test_address2(self):
-            self.ad1.outputFormat = 2
-            self.ad2.outputFormat = 2
-            self.ad3.outputFormat = 2
-            self.ad4.outputFormat = 2
+            self.ad1.outFormatLevel = 2
+            self.ad2.outFormatLevel = 2
+            self.ad3.outFormatLevel = 2
+            self.ad4.outFormatLevel = 2
             self.assertEqual(self.ad1.address, "1/515")
             self.assertEqual(self.ad2.address, "1/2")
             self.assertEqual(self.ad3.address, "1/515")
@@ -286,10 +286,10 @@ if __name__ == '__main__':
             self.assertEqual(self.ad4.middle, 0)
 
         def test_middle2(self):
-            self.ad1.outputFormat = 2
-            self.ad2.outputFormat = 2
-            self.ad3.outputFormat = 2
-            self.ad4.outputFormat = 2
+            self.ad1.outFormatLevel = 2
+            self.ad2.outFormatLevel = 2
+            self.ad3.outFormatLevel = 2
+            self.ad4.outFormatLevel = 2
             self.assertEqual(self.ad1.middle, 0)
             self.assertEqual(self.ad2.middle, 0)
             self.assertEqual(self.ad3.middle, 0)
@@ -302,21 +302,21 @@ if __name__ == '__main__':
             self.assertEqual(self.ad4.sub, 2)
 
         def test_sub2(self):
-            self.ad1.outputFormat = 2
-            self.ad2.outputFormat = 2
-            self.ad3.outputFormat = 2
-            self.ad4.outputFormat = 2
+            self.ad1.outFormatLevel = 2
+            self.ad2.outFormatLevel = 2
+            self.ad3.outFormatLevel = 2
+            self.ad4.outFormatLevel = 2
             self.assertEqual(self.ad1.sub, 515)
             self.assertEqual(self.ad2.sub, 2)
             self.assertEqual(self.ad3.sub, 515)
             self.assertEqual(self.ad4.sub, 2)
 
-        def test_outputFormat(self):
-            self.assertEqual(self.ad1.outputFormat, 3)
+        def test_outFormatLevel(self):
+            self.assertEqual(self.ad1.outFormatLevel, 3)
             with self.assertRaises(GroupAddressValueError):
-                self.ad1.outputFormat = 1
+                self.ad1.outFormatLevel = 1
             with self.assertRaises(GroupAddressValueError):
-                self.ad1.outputFormat = 4
+                self.ad1.outFormatLevel = 4
 
 
     unittest.main()

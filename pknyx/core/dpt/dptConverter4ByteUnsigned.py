@@ -33,12 +33,12 @@ Datapoint Types management
 Implements
 ==========
 
- - B{DPTConverter4ByteUnsigned}
+ - B{DPT4ByteUnsigned}
 
 Usage
 =====
 
-see L{DPTConverterBoolean}
+see L{DPTBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -51,49 +51,48 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT
-from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueError
+from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
 
 
-class DPTConverter4ByteUnsigned(DPTConverterBase):
-    """ DPT converter class for 4-Byte-Unsigned (U32) KNX Datapoint Type
+class DPT4ByteUnsigned(DPT):
+    """ DPT class for 4-Byte-Unsigned (U32) KNX Datapoint Type
 
      - 4 Byte Unsigned: UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
      - U: Bytes [0:4294967295]
 
     .
     """
-    DPT_Generic = DPT("12.xxx", "Generic", (0, 4294967295))
+    DPT_Generic = DPT_("12.xxx", "Generic", (0, 4294967295))
 
-    DPT_Value_4_Ucount = DPT("12.001", "Unsigned count", (0, 4294967295), "pulses")
+    DPT_Value_4_Ucount = DPT_("12.001", "Unsigned count", (0, 4294967295), "pulses")
 
     def _checkData(self, data):
         if not 0x00000000 <= data <= 0xffffffff:
-            raise DPTConverterValueError("data %s not in (0x00000000, 0xffffffff)" % hex(data))
+            raise DPTValueError("data %s not in (0x00000000, 0xffffffff)" % hex(data))
 
     def _checkValue(self, value):
-        if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
-            raise DPTConverterValueError("Value not in range %r" % repr(self._dpt.limits))
+        if not self._handler.limits[0] <= value <= self._handler.limits[1]:
+            raise DPTValueError("Value not in range %r" % repr(self._handler.limits))
 
     def _toValue(self):
         value = self._data
-        #Logger().debug("DPTConverter4ByteUnsigned._toValue(): value=%d" % value)
+        #Logger().debug("DPT4ByteUnsigned._toValue(): value=%d" % value)
         return value
 
     def _fromValue(self, value):
         data = value
-        #Logger().debug("DPTConverter4ByteUnsigned._fromValue(): data=%s" % hex(data))
+        #Logger().debug("DPT4ByteUnsigned._fromValue(): data=%s" % hex(data))
         self._data = data
 
     def _toStrValue(self):
         s = "%d" % self.value
 
         # Add unit
-        if self._displayUnit and self._dpt.unit is not None:
+        if self._displayUnit and self._handler.unit is not None:
             try:
-                s = "%s %s" % (s, self._dpt.unit)
+                s = "%s %s" % (s, self._handler.unit)
             except TypeError:
-                Logger().exception("DPTConverter4ByteUnsigned._toStrValue()", debug=True)
+                Logger().exception("DPT4ByteUnsigned._toStrValue()", debug=True)
         return s
 
     #def _fromStrValue(self, strValue):
@@ -111,7 +110,7 @@ if __name__ == '__main__':
     # Mute logger
     Logger().setLevel('error')
 
-    class DPTConverter4ByteUnsignedTestCase(unittest.TestCase):
+    class DPT4ByteUnsignedTestCase(unittest.TestCase):
 
         def setUp(self):
             self.testTable = (
@@ -119,7 +118,7 @@ if __name__ == '__main__':
                 (         1, 0x00000001, "\x00\x00\x00\x01"),
                 (4294967295, 0xffffffff, "\xff\xff\xff\xff"),
             )
-            self.conv = DPTConverter4ByteUnsigned("12.xxx")
+            self.conv = DPT4ByteUnsigned("12.xxx")
 
         def tearDown(self):
             pass
@@ -128,8 +127,8 @@ if __name__ == '__main__':
             #print self.conv.handledDPTIDs
 
         def test_checkValue(self):
-            with self.assertRaises(DPTConverterValueError):
-                self.conv._checkValue(self.conv._dpt.limits[1] + 1)
+            with self.assertRaises(DPTValueError):
+                self.conv._checkValue(self.conv._handler.limits[1] + 1)
 
         def test_toValue(self):
             for value, data, frame in self.testTable:

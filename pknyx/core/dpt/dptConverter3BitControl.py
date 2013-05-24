@@ -33,12 +33,12 @@ Datapoint Types management.
 Implements
 ==========
 
- - B{DPTConverter3BitControl}
+ - B{DPT3BitControl}
 
 Usage
 =====
 
-see L{DPTConverterBoolean}
+see L{DPTBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -50,72 +50,71 @@ __revision__ = "$Id$"
 import struct
 
 from pknyx.common.loggingServices import Logger
-from pknyx.core.dpt.dpt import DPT
-from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueError
-from pknyx.core.dpt.dptConverterBoolean import DPTConverterBoolean
+from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
+from pknyx.core.dpt.dptConverterBoolean import DPTBoolean
 
 
-class DPTConverter3BitControl(DPTConverterBase):
-    """ DPT converter class for 3-Bit-Control (B1U3) KNX Datapoint Type
+class DPT3BitControl(DPT):
+    """ DPT class for 3-Bit-Control (B1U3) KNX Datapoint Type
 
-    This is a composite converter.
+    This is a composite DPT.
 
      - 1 Byte: 0000CSSSS
      - C: Control bit [0, 1]
      - S: StepCode [0:7]
 
-    The _data param of this converter only handles the stepCode; the control bit is handled by the sub-converter.
+    The _data param of this DPT only handles the stepCode; the control bit is handled by the sub-DPT.
 
     @todo: create and use a DPTCompositeConverterBase?
 
-    @ivar _dptConverter: sub-converter
-    @type _dptConverter: L{DPTConverterBase<pknyx.core.dpt.dptConverterBase>}
+    @ivar _dpt: sub-DPT
+    @type _dpt: L{DPT}
     """
-    DPT_Generic = DPT("3.xxx", "Generic", (-7, 7))
+    DPT_Generic = DPT_("3.xxx", "Generic", (-7, 7))
 
-    DPT_Control_Dimming = DPT("3.007", "Dimming", (-7, 7))
-    DPT_Control_Blinds = DPT("3.008", "Blinds", (-7, 7))
+    DPT_Control_Dimming = DPT_("3.007", "Dimming", (-7, 7))
+    DPT_Control_Blinds = DPT_("3.008", "Blinds", (-7, 7))
 
     def __init__(self, dptId):
-        super(DPTConverter3BitControl, self).__init__(dptId)
+        super(DPT3BitControl, self).__init__(dptId)
 
         mainId, subId = dptId.split('.')
         dptId_ = "1.%s" % subId
-        self._dptConverter = DPTConverterBoolean(dptId_)
+        self._dpt = DPTBoolean(dptId_)
 
     def _checkData(self, data):
         if not 0x00 <= data <= 0x0f:
-            raise DPTConverterValueError("data %s not in (0x00, 0x0f)" % hex(data))
+            raise DPTValueError("data %s not in (0x00, 0x0f)" % hex(data))
 
     def _checkValue(self, value):
-        if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
-            raise DPTConverterValueError("value %d not in range %r" % (value, repr(self._dpt.limits)))
+        if not self._handler.limits[0] <= value <= self._handler.limits[1]:
+            raise DPTValueError("value %d not in range %r" % (value, repr(self._handler.limits)))
 
     def _toData(self):
 
-        # Combinate the control, which is stored in the sub-converter, and the stepCode, which is stored here.
-        ctrl = self._dptConverter.data
+        # Combinate the control, which is stored in the sub-DPT, and the stepCode, which is stored here.
+        ctrl = self._dpt.data
         stepCode = self._data
         data = ctrl << 3 | stepCode
         return data
 
     def _fromData(self, data):
 
-        # Split control and stepCode; store control in sub-converter, and stepCode here.
+        # Split control and stepCode; store control in sub-DPT, and stepCode here.
         ctrl = (data & 0x08) >> 3
-        self._dptConverter.data = ctrl
+        self._dpt.data = ctrl
         stepCode = data & 0x07
         self._data = stepCode
 
     def _toValue(self):
-        ctrl = self._dptConverter.data
+        ctrl = self._dpt.data
         stepCode = self._data
         value = stepCode if ctrl else -stepCode
         return value
 
     def _fromValue(self, value):
         ctrl = 1 if value > 0 else 0
-        self._dptConverter.data = ctrl
+        self._dpt.data = ctrl
         stepCode = abs(value) & 0x07
         self._data = stepCode
 
@@ -128,7 +127,7 @@ class DPTConverter3BitControl(DPTConverterBase):
         if stepCode == 0:
             s = "Break"
         else:
-            s = "%s:%d" % (self._dptConverter.strValue, stepCode)
+            s = "%s:%d" % (self._dpt.strValue, stepCode)
         return s
 
     #def _fromStrValue(self, strValue):
@@ -188,7 +187,7 @@ if __name__ == '__main__':
     # Mute logger
     Logger().setLevel('error')
 
-    class DPTConverter3BitControlTestCase(unittest.TestCase):
+    class DPT3BitControlTestCase(unittest.TestCase):
 
         def setUp(self):
             self.testTable = (
@@ -207,7 +206,7 @@ if __name__ == '__main__':
                 (6, 32),
                 (7, 64),
             )
-            self.conv = DPTConverter3BitControl("3.xxx")
+            self.conv = DPT3BitControl("3.xxx")
 
         def tearDown(self):
             pass
@@ -216,8 +215,8 @@ if __name__ == '__main__':
             #print self.conv.handledDPTIDs
 
         def test_checkValue(self):
-            with self.assertRaises(DPTConverterValueError):
-                self.conv._checkValue(self.conv._dpt.limits[1] + 1)
+            with self.assertRaises(DPTValueError):
+                self.conv._checkValue(self.conv._handler.limits[1] + 1)
 
         def test_toValue(self):
             for value, data, frame in self.testTable:

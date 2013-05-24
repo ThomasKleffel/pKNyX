@@ -33,12 +33,12 @@ Datapoint Types management.
 Implements
 ==========
 
- - B{DPTConverterDate}
+ - B{DPTDate}
 
 Usage
 =====
 
-see L{DPTConverterBoolean}
+see L{DPTBoolean}
 
 Note
 ====
@@ -53,7 +53,7 @@ Python time module does not encode century the same way:
  - if byte year >= 69, then real year is 20th century year
  - if byte year is < 69, then real year is 21th century year
 
-The DPTConverterDate class follows the python encoding.
+The DPTDate class follows the python encoding.
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -66,12 +66,11 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT
-from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueError
+from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
 
 
-class DPTConverterDate(DPTConverterBase):
-    """ DPT converter class for Date (r3U5r4U4r1U7) KNX Datapoint Type
+class DPTDate(DPT):
+    """ DPT class for Date (r3U5r4U4r1U7) KNX Datapoint Type
 
      - 3 Byte: rrrDDDDD rrrrMMMM rYYYYYYY
      - D: Day [1:31]
@@ -81,18 +80,18 @@ class DPTConverterDate(DPTConverterBase):
 
     .
     """
-    DPT_Generic = DPT("11.xxx", "Generic", (0, 16777215))
+    DPT_Generic = DPT_("11.xxx", "Generic", (0, 16777215))
 
-    DPT_Date = DPT("11.001", "Date", ((1, 1, 1969), (31, 12, 2068)))
+    DPT_Date = DPT_("11.001", "Date", ((1, 1, 1969), (31, 12, 2068)))
 
     def _checkData(self, data):
         if not 0x000000 <= data <= 0xffffff:
-            raise DPTConverterValueError("data %s not in (0x000000, 0xffffff)" % hex(data))
+            raise DPTValueError("data %s not in (0x000000, 0xffffff)" % hex(data))
 
     def _checkValue(self, value):
         for index in range(3):
-            if not self._dpt.limits[0][index] <= value[index] <= self._dpt.limits[1][index]:
-                raise DPTConverterValueError("value not in range %r" % repr(self._dpt.limits))
+            if not self._handler.limits[0][index] <= value[index] <= self._handler.limits[1][index]:
+                raise DPTValueError("value not in range %r" % repr(self._handler.limits))
 
     def _toValue(self):
         day = (self._data >> 16) & 0x1f
@@ -103,7 +102,7 @@ class DPTConverterDate(DPTConverterBase):
         else:
             year += 2000
         value = (day, month, year)
-        #Logger().debug("DPTConverterDate._toValue(): value=%d" % value)
+        #Logger().debug("DPTDate._toValue(): value=%d" % value)
         return value
 
     def _fromValue(self, value):
@@ -115,7 +114,7 @@ class DPTConverterDate(DPTConverterBase):
         else:
             year -= 1900
         data = day << 16 | month << 8 | year
-        #Logger().debug("DPTConverterDate._fromValue(): data=%s" % hex(data))
+        #Logger().debug("DPTDate._fromValue(): data=%s" % hex(data))
         self._data = data
 
     def _toStrValue(self):
@@ -154,7 +153,7 @@ if __name__ == '__main__':
     # Mute logger
     Logger().setLevel('error')
 
-    class DPTConverterDateTestCase(unittest.TestCase):
+    class DPTDateTestCase(unittest.TestCase):
 
         def setUp(self):
             self.testTable = (
@@ -163,7 +162,7 @@ if __name__ == '__main__':
                 (( 1,  1, 1969), 0x010145, "\x01\x01\x45"),
                 ((31, 12, 1999), 0x1f0c63, "\x1f\x0c\x63"),
             )
-            self.conv = DPTConverterDate("11.001")
+            self.conv = DPTDate("11.001")
 
         def tearDown(self):
             pass
@@ -172,18 +171,18 @@ if __name__ == '__main__':
             #print self.conv.handledDPTIDs
 
         def test_checkValue(self):
-            with self.assertRaises(DPTConverterValueError):
+            with self.assertRaises(DPTValueError):
                 self.conv._checkValue((0, 1, 1969))
-            with self.assertRaises(DPTConverterValueError):
+            with self.assertRaises(DPTValueError):
                 self.conv._checkValue((1, 0, 1969))
-            with self.assertRaises(DPTConverterValueError):
+            with self.assertRaises(DPTValueError):
                 self.conv._checkValue((1, 1, 1968))
 
-            with self.assertRaises(DPTConverterValueError):
+            with self.assertRaises(DPTValueError):
                 self.conv._checkValue((32, 12, 2068))
-            with self.assertRaises(DPTConverterValueError):
+            with self.assertRaises(DPTValueError):
                 self.conv._checkValue((31, 13, 2068))
-            with self.assertRaises(DPTConverterValueError):
+            with self.assertRaises(DPTValueError):
                 self.conv._checkValue((31, 12, 2069))
 
         def test_toValue(self):

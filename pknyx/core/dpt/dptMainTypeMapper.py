@@ -50,45 +50,46 @@ import re
 from pknyx.common.loggingServices import Logger
 from pknyx.common.helpers import reprStr
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueError
+from pknyx.core.dpt.dpt import DPT, DPTValueError
 
 
 class DPTMainTypeMapper(object):
     """ Datapoint Type main type mapper class
 
-    Maps a Datapoint Type main part to a corresponding converter class doing the DPT conversion.
+    Maps a Datapoint Type main part to a corresponding DPT class doing the DPT conversion.
 
     @ivar _dptId: Datapoint Type ID
     @type _dptId: DPTID
 
-    @ivar _converterClass: Datapoint Type converter class
-    @type _converterClass: L{DPTConverterBase}
+    @ivar _dptClass: Datapoint Type class
+    @type _dptClass: class
 
     @ivar _desc: description of the DPT
     @type _desc: str
     """
-    def __init__(self, dptId, converterClass, desc=""):
-        """ Creates a new Datapoint Type main type to converter mapper
+    def __init__(self, dptId, dptClass, desc=""):
+        """ Creates a new Datapoint Type main type to DPT mapper
 
         @param dptId: Datapoint Type ID
-                      This id must be in the generic form ("1.xxx")
-        @type dptId: int
+                      This id must be the generic form ("1.xxx")
+        @type dptId: str or L{DPTID}
 
-        @param converterClass: Datapoint Type converter class
-        @type converterClass: L{DPTConverterBase}
+        @param dptClass: Datapoint Type class
+        @type dptClass: class
 
         @param desc: description of the Datapoint Type main type mapper
         @type desc: str
 
-        @raise DPTConverterValueError:
+        @raise DPTValueError:
         """
         super(DPTMainTypeMapper, self).__init__()
 
-        if not issubclass(converterClass, DPTConverterBase):
-            raise DPTConverterValueError("converterClass %s not a sub-class of DPTConverterBase" % reprStr(converterClass))
-
-        self._dptId = DPTID(dptId)
-        self._converterClass = converterClass
+        if not issubclass(dptClass, DPT):
+            raise DPTValueError("dptClass %s not a sub-class of DPT" % reprStr(dptClass))
+        if not isinstance(dptId, DPTID):
+            dptId = DPTID(dptId)
+        self._dptId = dptId
+        self._dptClass = dptClass
         self._desc = desc
 
     @property
@@ -104,26 +105,26 @@ class DPTMainTypeMapper(object):
         return self._desc
 
     @property
-    def converterClass(self):
-        """ return the Datapoint Type converter class
+    def dptClass(self):
+        """ return the Datapoint Type class
         """
-        return self._converterClass
+        return self._dptClass
 
     def createConverter(self, dptId):
-        """ Create the Datapoint Type converter for the given dptId
+        """ Create the Datapoint Type for the given dptId
 
-        This method instanciates the converter using the stored converter class.
+        This method instanciates the DPT using the stored DPT class.
 
         @param dptId: Datapoint Type ID (full)
-        @type dptId: str
+        @type dptId: str or L{DPTID}
         """
-        return self._converterClass(dptId)
+        return self._dptClass(dptId)
 
 
 if __name__ == '__main__':
     import unittest
 
-    from pknyx.core.dpt.dptConverterBoolean import DPTConverterBoolean
+    from pknyx.core.dpt.dptConverterBoolean import DPTBoolean
 
     # Mute logger
     Logger().setLevel('error')
@@ -140,11 +141,11 @@ if __name__ == '__main__':
             pass
 
         def test_constructor(self):
-            #with self.assertRaises(DPTConverterValueError):
-                #DPTMainTypeMapper("1.001", DPTConverterBase, "Dummy")
-            with self.assertRaises(DPTConverterValueError):
+            #with self.assertRaises(DPTValueError):
+                #DPTMainTypeMapper("1.001", DPT, "Dummy")
+            with self.assertRaises(DPTValueError):
                 DPTMainTypeMapper("1.xxx", DummyClass, "Dummy")
-            DPTMainTypeMapper("1.xxx", DPTConverterBoolean, "Dummy")
+            DPTMainTypeMapper("1.xxx", DPTBoolean, "Dummy")
 
 
     unittest.main()

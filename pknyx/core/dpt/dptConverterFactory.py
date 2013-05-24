@@ -33,8 +33,8 @@ Datapoint Types management
 Implements
 ==========
 
- - B{DPTConverterFactoryObject}
- - B{DPTConverterFactory}
+ - B{DPTFactoryObject}
+ - B{DPTFactory}
 
 Usage
 =====
@@ -52,35 +52,35 @@ from pknyx.common.loggingServices import Logger
 from pknyx.common.helpers import reprStr
 from pknyx.core.dpt.dptId import DPTID
 from pknyx.core.dpt.dptMainTypeMapper import DPTMainTypeMapper
-from pknyx.core.dpt.dptConverterBoolean import DPTConverterBoolean              #  1.xxx
-from pknyx.core.dpt.dptConverter3BitControl import DPTConverter3BitControl      #  3.xxx
-#from pknyx.core.dpt.dptConverterCharacter import DPTConverterCharacter          #  4.xxx
-from pknyx.core.dpt.dptConverter8BitUnsigned import DPTConverter8BitUnsigned    #  5.xxx
-from pknyx.core.dpt.dptConverter8BitSigned import DPTConverter8BitSigned        #  6.xxx
-from pknyx.core.dpt.dptConverter2ByteUnsigned import DPTConverter2ByteUnsigned  #  7.xxx
-from pknyx.core.dpt.dptConverter2ByteSigned import DPTConverter2ByteSigned      #  8.xxx
-from pknyx.core.dpt.dptConverter2ByteFloat import DPTConverter2ByteFloat        #  9.xxx
-from pknyx.core.dpt.dptConverterTime import DPTConverterTime                    # 10.xxx
-from pknyx.core.dpt.dptConverterDate import DPTConverterDate                    # 11.xxx
-from pknyx.core.dpt.dptConverter4ByteUnsigned import DPTConverter4ByteUnsigned  # 12.xxx
-from pknyx.core.dpt.dptConverter4ByteSigned import DPTConverter4ByteSigned      # 13.xxx
-from pknyx.core.dpt.dptConverter4ByteFloat import DPTConverter4ByteFloat        # 14.xxx
-from pknyx.core.dpt.dptConverterString import DPTConverterString                # 16.xxx
-#from pknyx.core.dpt.dptConverterDateTime import DPTConverterDateTime            # 19.xxx
+from pknyx.core.dpt.dptConverterBoolean import DPTBoolean              #  1.xxx
+from pknyx.core.dpt.dptConverter3BitControl import DPT3BitControl      #  3.xxx
+#from pknyx.core.dpt.dptConverterCharacter import DPTCharacter          #  4.xxx
+from pknyx.core.dpt.dptConverter8BitUnsigned import DPT8BitUnsigned    #  5.xxx
+from pknyx.core.dpt.dptConverter8BitSigned import DPT8BitSigned        #  6.xxx
+from pknyx.core.dpt.dptConverter2ByteUnsigned import DPT2ByteUnsigned  #  7.xxx
+from pknyx.core.dpt.dptConverter2ByteSigned import DPT2ByteSigned      #  8.xxx
+from pknyx.core.dpt.dptConverter2ByteFloat import DPT2ByteFloat        #  9.xxx
+from pknyx.core.dpt.dptConverterTime import DPTTime                    # 10.xxx
+from pknyx.core.dpt.dptConverterDate import DPTDate                    # 11.xxx
+from pknyx.core.dpt.dptConverter4ByteUnsigned import DPT4ByteUnsigned  # 12.xxx
+from pknyx.core.dpt.dptConverter4ByteSigned import DPT4ByteSigned      # 13.xxx
+from pknyx.core.dpt.dptConverter4ByteFloat import DPT4ByteFloat        # 14.xxx
+from pknyx.core.dpt.dptConverterString import DPTString                # 16.xxx
+#from pknyx.core.dpt.dptConverterDateTime import DPTDateTime            # 19.xxx
 
 dptConverterFactory = None
 
 
-class DPTConverterFactoryObject(object):
-    """Datapoint Type converter factory class
+class DPTFactoryObject(object):
+    """Datapoint Type factory class
 
-    Maintains available KNX Datapoint Type main numbers and creates associated DPT converters.
+    Maintains available KNX Datapoint Type main numbers and creates associated DPTs.
 
-    It stores all available, registered DPT main numbers with the corresponding converter and an optional description of
+    It stores all available, registered DPT main numbers with the corresponding DPT and an optional description of
     the type.
     For more common used data types, the main types are declared as constants, although this doesn't necessarily indicate a
     translator is actually available.
-    All DPT converter implementations in this package are registered here and available by default. Converters might be
+    All DPT implementations in this package are registered here and available by default. Converters might be
     added or removed by the user.
 
     A Datapoint Type consists of a data type and a dimension. The data type is referred to through a main number, the
@@ -93,22 +93,22 @@ class DPTConverterFactoryObject(object):
     @ivar _handledMainDPTMappers: table containing all main Datapoint Type mappers
     @type _handledMainDPTMappers: dict
     """
-    TYPE_Boolean = DPTMainTypeMapper("1.xxx", DPTConverterBoolean, "Boolean (main type 1)")
-    TYPE_3BitControlled = DPTMainTypeMapper("3.xxx", DPTConverter3BitControl, "3-Bit-Control (main type 3)")
-    #TYPE_Character= DPTMainTypeMapper("4.xxx", DPTConverterCharacter, "Character (main type 4)")
-    TYPE_8BitUnsigned = DPTMainTypeMapper("5.xxx", DPTConverter8BitUnsigned, "8-Bit-Unsigned (main type 5)")
-    TYPE_8BitSigned = DPTMainTypeMapper("6.xxx", DPTConverter8BitSigned, "8-Bit-Signed (main type 6)")
-    TYPE_2ByteUnsigned = DPTMainTypeMapper("7.xxx", DPTConverter2ByteUnsigned, "2 Byte-Unsigned (main type 7)")
-    TYPE_2ByteSigned = DPTMainTypeMapper("8.xxx", DPTConverter2ByteSigned, "2 Byte-Signed (main type 8)")
-    TYPE_2ByteFloat = DPTMainTypeMapper("9.xxx", DPTConverter2ByteFloat, "2 Byte-Float (main type 9)")
-    TYPE_Time = DPTMainTypeMapper("10.xxx", DPTConverterTime, "Time (main type 10)")
-    TYPE_Date = DPTMainTypeMapper("11.xxx", DPTConverterDate, "Date (main type 11)")
-    TYPE_4ByteUnsigned = DPTMainTypeMapper("12.xxx", DPTConverter4ByteUnsigned, "4-Byte-Unsigned (main type 12)")
-    TYPE_4ByteSigned = DPTMainTypeMapper("13.xxx", DPTConverter4ByteSigned, "4-Byte-Signed (main type 13)")
-    TYPE_4ByteFloat = DPTMainTypeMapper("14.xxx", DPTConverter4ByteFloat, "4-Byte-Float (main type 14)")
-    TYPE_String = DPTMainTypeMapper("16.xxx", DPTConverterString, "String (main type 16)")
-    #TYPE_DateTime = DPTMainTypeMapper("19.xxx", DPTConverterDateTime, "DateTime (main type 19)")
-    #TYPE_HeatingMode = DPTMainTypeMapper("20.xxx", DPTConverterHeatingMode, "Heating mode (main type 20)")
+    TYPE_Boolean = DPTMainTypeMapper("1.xxx", DPTBoolean, "Boolean (main type 1)")
+    TYPE_3BitControlled = DPTMainTypeMapper("3.xxx", DPT3BitControl, "3-Bit-Control (main type 3)")
+    #TYPE_Character= DPTMainTypeMapper("4.xxx", DPTCharacter, "Character (main type 4)")
+    TYPE_8BitUnsigned = DPTMainTypeMapper("5.xxx", DPT8BitUnsigned, "8-Bit-Unsigned (main type 5)")
+    TYPE_8BitSigned = DPTMainTypeMapper("6.xxx", DPT8BitSigned, "8-Bit-Signed (main type 6)")
+    TYPE_2ByteUnsigned = DPTMainTypeMapper("7.xxx", DPT2ByteUnsigned, "2 Byte-Unsigned (main type 7)")
+    TYPE_2ByteSigned = DPTMainTypeMapper("8.xxx", DPT2ByteSigned, "2 Byte-Signed (main type 8)")
+    TYPE_2ByteFloat = DPTMainTypeMapper("9.xxx", DPT2ByteFloat, "2 Byte-Float (main type 9)")
+    TYPE_Time = DPTMainTypeMapper("10.xxx", DPTTime, "Time (main type 10)")
+    TYPE_Date = DPTMainTypeMapper("11.xxx", DPTDate, "Date (main type 11)")
+    TYPE_4ByteUnsigned = DPTMainTypeMapper("12.xxx", DPT4ByteUnsigned, "4-Byte-Unsigned (main type 12)")
+    TYPE_4ByteSigned = DPTMainTypeMapper("13.xxx", DPT4ByteSigned, "4-Byte-Signed (main type 13)")
+    TYPE_4ByteFloat = DPTMainTypeMapper("14.xxx", DPT4ByteFloat, "4-Byte-Float (main type 14)")
+    TYPE_String = DPTMainTypeMapper("16.xxx", DPTString, "String (main type 16)")
+    #TYPE_DateTime = DPTMainTypeMapper("19.xxx", DPTDateTime, "DateTime (main type 19)")
+    #TYPE_HeatingMode = DPTMainTypeMapper("20.xxx", DPTHeatingMode, "Heating mode (main type 20)")
 
     #linknx implements (@03/2013):
     #1.001: switching (on/off) (EIS1) - done
@@ -146,7 +146,7 @@ class DPTConverterFactoryObject(object):
     def __init__(self):
         """ Init the Datapoint Type convertor factory
         """
-        super(DPTConverterFactoryObject, self).__init__()
+        super(DPTFactoryObject, self).__init__()
 
     @property
     def handledMainDPTIDs(self):
@@ -157,25 +157,26 @@ class DPTConverterFactoryObject(object):
         return handleMainDPTIDs
 
     def create(self, dptId):
-        """ Create the Datapoint Type converter for the given dptId
+        """ Create the Datapoint Type for the given dptId
 
         The creation is delegated to the main type mapper.
 
         @param dptId: Datapoint Type ID
         @type dptId: str
         """
-        dptIdGeneric = DPTID(dptId).generic
-        return self._handledDPT[dptIdGeneric].createConverter(dptId)
+        if not isinstance(dptId, DPTID):
+            dptId = DPTID(dptId)
+        return self._handledDPT[dptId.generic].createConverter(dptId)
 
 
-def DPTConverterFactory():
+def DPTFactory():
     """ Create or return the global dptConverterFactory object
 
     Sort of Singleton/Borg pattern.
     """
     global dptConverterFactory
     if dptConverterFactory is None:
-        dptConverterFactory = DPTConverterFactoryObject()
+        dptConverterFactory = DPTFactoryObject()
 
     return dptConverterFactory
 
@@ -186,7 +187,7 @@ if __name__ == '__main__':
     # Mute logger
     Logger().setLevel('error')
 
-    class DPTConverterFactoryObjectTestCase(unittest.TestCase):
+    class DPTFactoryObjectTestCase(unittest.TestCase):
 
         def setUp(self):
             pass
@@ -195,6 +196,6 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print DPTConverterFactory().handledMainDPTIDs
+            #print DPTFactory().handledMainDPTIDs
 
     unittest.main()

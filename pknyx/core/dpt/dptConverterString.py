@@ -33,12 +33,12 @@ Datapoint Types management.
 Implements
 ==========
 
- - B{DPTConverterString}
+ - B{DPTString}
 
 Usage
 =====
 
-see L{DPTConverterBoolean}
+see L{DPTBoolean}
 
 Note
 ====
@@ -53,7 +53,7 @@ Python time module does not encode century the same way:
  - if byte year >= 69, then real year is 20th century year
  - if byte year is < 69, then real year is 21th century year
 
-The DPTConverterString class follows the python encoding.
+The DPTString class follows the python encoding.
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -66,42 +66,41 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT
-from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueError
+from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
 
 
-class DPTConverterString(DPTConverterBase):
-    """ DPT converter class for String (A112) KNX Datapoint Type
+class DPTString(DPT):
+    """ DPT class for String (A112) KNX Datapoint Type
 
      - 14 Byte: AAAAAAAA ... AAAAAAAA
      - A: Char [0:255]
 
     .
     """
-    DPT_Generic = DPT("16.xxx", "Generic", (0, 5192296858534827628530496329220095))
+    DPT_Generic = DPT_("16.xxx", "Generic", (0, 5192296858534827628530496329220095))
 
-    DPT_String_ASCII = DPT("16.000", "String", (14 * (0,), 14 * (127,)))
-    DPT_String_8859_1 = DPT("16.001", "String", (14 * (0,), 14 * (255,)))
+    DPT_String_ASCII = DPT_("16.000", "String", (14 * (0,), 14 * (127,)))
+    DPT_String_8859_1 = DPT_("16.001", "String", (14 * (0,), 14 * (255,)))
 
     def _checkData(self, data):
         if not 0x0000000000000000000000000000 <= data <= 0xffffffffffffffffffffffffffff:
-            raise DPTConverterValueError("data %s not in (0x0000000000000000000000000000, 0xffffffffffffffffffffffffffff)" % hex(data))
+            raise DPTValueError("data %s not in (0x0000000000000000000000000000, 0xffffffffffffffffffffffffffff)" % hex(data))
 
     def _checkValue(self, value):
         for index in range(14):
-            if not self._dpt.limits[0][index] <= value[index] <= self._dpt.limits[1][index]:
-                raise DPTConverterValueError("value not in range %r" % repr(self._dpt.limits))
+            if not self._handler.limits[0][index] <= value[index] <= self._handler.limits[1][index]:
+                raise DPTValueError("value not in range %r" % repr(self._handler.limits))
 
     def _toValue(self):
         value = tuple([int((self._data >> shift) & 0xff) for shift in range(104, -1, -8)])
-        #Logger().debug("DPTConverterString._toValue(): value=%d" % value)
+        #Logger().debug("DPTString._toValue(): value=%d" % value)
         return value
 
     def _fromValue(self, value):
         data = 0x00
         for shift in range(104, -1, -8):
             data |= value[13 - shift / 8] << shift
-        #Logger().debug("DPTConverterString._fromValue(): data=%s" % hex(data))
+        #Logger().debug("DPTString._fromValue(): data=%s" % hex(data))
         self._data = data
 
     def _toStrValue(self):
@@ -109,7 +108,7 @@ class DPTConverterString(DPTConverterBase):
         s = s.rstrip('\x00')  # Remove trailing null chars
         return s
 
-    def _fromStrValue(self, strDPT):
+    def _fromStrValue(self, strValue):
         strValue = strValue.ljust(14, '\x00')  # Complete with null chars
         value = [ord(c) for c in strValue]
         self.value = value
@@ -140,7 +139,7 @@ if __name__ == '__main__':
     # Mute logger
     Logger().setLevel('error')
 
-    class DPTConverterStringTestCase(unittest.TestCase):
+    class DPTStringTestCase(unittest.TestCase):
 
         def setUp(self):
             self.testTable = (
@@ -148,7 +147,7 @@ if __name__ == '__main__':
                 ((48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 0, 0, 0, 0), 0x3031323334353637383900000000, "0123456789\x00\x00\x00\x00"),
                 (14 * (255,),                                          0xffffffffffffffffffffffffffff, 14 * "\xff"),
             )
-            self.conv = DPTConverterString("16.001")
+            self.conv = DPTString("16.001")
 
         def tearDown(self):
             pass
@@ -157,7 +156,7 @@ if __name__ == '__main__':
             #print self.conv.handledDPTIDs
 
         #def test_checkValue(self):
-            #with self.assertRaises(DPTConverterValueError):
+            #with self.assertRaises(DPTValueError):
                 #self.conv._checkValue((0, 1, 1969))
 
         def test_toValue(self):

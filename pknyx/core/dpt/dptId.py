@@ -83,7 +83,7 @@ class DPTID(object):
     @ivar _id: Datapoint Type ID
     @type _id: str
     """
-    def __init__(self, dptId):
+    def __init__(self, dptId="1.xxx"):
         """ Create a new Datapoint Type ID from the given id
 
         @param dptId: Datapoint Type ID to create

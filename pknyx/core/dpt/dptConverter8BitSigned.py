@@ -33,12 +33,12 @@ Datapoint Types management.
 Implements
 ==========
 
- - B{DPTConverter8BitSigned}
+ - B{DPT8BitSigned}
 
 Usage
 =====
 
-see L{DPTConverterBoolean}
+see L{DPTBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -51,8 +51,7 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT
-from pknyx.core.dpt.dptConverterBase import DPTConverterBase, DPTConverterValueError
+from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
 
 
 def twos_comp(val, bits):
@@ -62,52 +61,52 @@ def twos_comp(val, bits):
     return val
 
 
-class DPTConverter8BitSigned(DPTConverterBase):
-    """ DPT converter class for 8-Bit-Signed (V8) KNX Datapoint Type
+class DPT8BitSigned(DPT):
+    """ DPT class for 8-Bit-Signed (V8) KNX Datapoint Type
 
      - 1 Byte: VVVVVVVV
      - V: Byte [-128:127]
 
     .
     """
-    DPT_Generic = DPT("6.xxx", "Generic", (-128, 127))
+    DPT_Generic = DPT_("6.xxx", "Generic", (-128, 127))
 
-    DPT_Percent_V8 = DPT("6.001", "Percent (8 bit)", (-128, 127), "%")
-    DPT_Value_1_Count = DPT("6.010", "Signed count", (-128, 127), "pulses")
+    DPT_Percent_V8 = DPT_("6.001", "Percent (8 bit)", (-128, 127), "%")
+    DPT_Value_1_Count = DPT_("6.010", "Signed count", (-128, 127), "pulses")
     #DPT_Status_Mode3 = DPT("6.020", "Status mode 3", (, ))
 
     def _checkData(self, data):
         if not 0x00 <= data <= 0xff:
-            raise DPTConverterValueError("data %s not in (0x00, 0xff)" % hex(data))
+            raise DPTValueError("data %s not in (0x00, 0xff)" % hex(data))
 
     def _checkValue(self, value):
-        if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
-            raise DPTConverterValueError("value not in range %r" % repr(self._dpt.limits))
+        if not self._handler.limits[0] <= value <= self._handler.limits[1]:
+            raise DPTValueError("value not in range %r" % repr(self._handler.limits))
 
     def _toValue(self):
         if self._data >= 0x80:
             value = -((self._data - 1) ^ 0xff)  # invert twos complement
         else:
             value = self._data
-        #Logger().debug("DPTConverter8BitSigned._toValue(): value=%d" % value)
+        #Logger().debug("DPT8BitSigned._toValue(): value=%d" % value)
         return value
 
     def _fromValue(self, value):
         if value < 0:
             value = (abs(value) ^ 0xff) + 1  # twos complement
         data = value
-        #Logger().debug("DPTConverter8BitSigned._fromValue(): data=%s" % hex(data))
+        #Logger().debug("DPT8BitSigned._fromValue(): data=%s" % hex(data))
         self._data = data
 
     def _toStrValue(self):
         s = "%d" % self.value
 
         # Add unit
-        if self._displayUnit and self._dpt.unit is not None:
+        if self._displayUnit and self._handler.unit is not None:
             try:
-                s = "%s %s" % (s, self._dpt.unit)
+                s = "%s %s" % (s, self._handler.unit)
             except TypeError:
-                Logger().exception("DPTConverter8BitSigned._toStrValue()", debug=True)
+                Logger().exception("DPT8BitSigned._toStrValue()", debug=True)
         return s
 
     #def _fromStrValue(self, strValue):
@@ -125,7 +124,7 @@ if __name__ == '__main__':
     # Mute logger
     Logger().setLevel('error')
 
-    class DPTConverter8BitSignedTestCase(unittest.TestCase):
+    class DPT8BitSignedTestCase(unittest.TestCase):
 
         def setUp(self):
             self.testTable = (
@@ -136,7 +135,7 @@ if __name__ == '__main__':
                 (   1, 0x01, "\x01"),
                 ( 127, 0x7f, "\x7f"),
             )
-            self.conv = DPTConverter8BitSigned("6.xxx")
+            self.conv = DPT8BitSigned("6.xxx")
 
         def tearDown(self):
             pass
@@ -145,8 +144,8 @@ if __name__ == '__main__':
             #print self.conv.handledDPTIDs
 
         def test_checkValue(self):
-            with self.assertRaises(DPTConverterValueError):
-                self.conv._checkValue(self.conv._dpt.limits[1] + 1)
+            with self.assertRaises(DPTValueError):
+                self.conv._checkValue(self.conv._handler.limits[1] + 1)
 
         def test_toValue(self):
             for value, data, frame in self.testTable:

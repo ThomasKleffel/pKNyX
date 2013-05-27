@@ -201,8 +201,8 @@ class DPT(object):
     The term B{data} refers to the KNX representation of the python type B{value}. It is stored in the object.
     The B{frame} is the 'data' as bytes (python str), which can be sent/received over the bus.
 
-    @ivar _handledDPT: table containing all DPT_ the DPT can handle (defined in sub-classes)
-    @type _handledDPT: dict
+    @ivar _knownHandlers: table containing all DPT_ the DPT can handle (defined in sub-classes)
+    @type _knownHandlers: dict
 
     @ivar _handler: current DPT_ object of the DPT
     @type _handler: L{DPT<pknyx.core.dpt>}
@@ -214,13 +214,13 @@ class DPT(object):
         """ Init the class with all available types for this DPT
 
         All class objects defined in sub-classes name B{DPT_xxx}, will be treated as DPT objects and added to the
-        B{_handledDPT} dict.
+        B{_knownHandlers} dict.
         """
         self = object.__new__(cls, *args, **kwargs)
-        cls._handledDPT = {}
+        cls._knownHandlers = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("DPT_"):
-                cls._handledDPT[value.id] = value
+                cls._knownHandlers[value.id] = value
 
         return self
 
@@ -237,7 +237,7 @@ class DPT(object):
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         try:
-            self._handler = self._handledDPT[dptId]
+            self._handler = self._knownHandlers[dptId]
         except KeyError:
             Logger().exception("DPT.__init__()", debug=True)
             raise DPTValueError("unhandled DPT ID (%s)" % dptId)
@@ -381,14 +381,14 @@ class DPT(object):
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         try:
-            self._handler = self._handledDPT[dptId]
+            self._handler = self._knownHandlers[dptId]
         except KeyError:
             Logger().exception("DPT.dpt", debug=True)
             raise DPTValueError("unhandled DPT ID (%s)" % dptId)
 
     @property
     def handledDPTIDs(self):
-        handledDPTIDs = self._handledDPT.keys()
+        handledDPTIDs = self._knownHandlers.keys()
         handledDPTIDs.sort()
         return handledDPTIDs
 

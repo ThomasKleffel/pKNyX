@@ -118,9 +118,9 @@ class DPTDate(DPT):
         self._data = data
 
     def _toStrValue(self):
-        day = value[0]
-        month = value[1]
-        year = value[2]
+        day = self.value[0]
+        month = self.value[1]
+        year = self.value[2]
         s = time.strftime("%Y-%m-%d", (year, month, day, 0, 0, 0, 0, 0, 0))
         return s
 

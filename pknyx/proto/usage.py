@@ -192,6 +192,7 @@ class VMC(Device):
         """
         """
         self.dp["temp_entree"].value = 0  # Add persistence feature!!!
+        # self.dp.temp_entree.value = 0
 
     #def bus(self, event):
         #"""

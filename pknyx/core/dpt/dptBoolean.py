@@ -38,32 +38,32 @@ Implements
 Usage
 =====
 
->>> from dptConverterBoolean import DPTBoolean
->>> dptConv = DPTBoolean("1.001")
->>> dptConv.value
+>>> from dptBoolean import DPTBoolean
+>>> dpt = DPTBoolean("1.001")
+>>> dpt.value
 ValueError: data not initialized
->>> dptConv.data = 0x01
->>> dptConv.data
+>>> dpt.data = 0x01
+>>> dpt.data
 1
->>> dptConv.value
+>>> dpt.value
 1
->>> dptConv.value = 0
->>> dptConv.data
+>>> dpt.value = 0
+>>> dpt.data
 0
->>> dptConv.frame
+>>> dpt.frame
 '\x00'
->>> dptConv.strValue
+>>> dpt.strValue
 'Off'
->>> dptConv.strValue = 'On'
->>> dptConv.value
+>>> dpt.strValue = 'On'
+>>> dpt.value
 1
->>> dptConv.data = 2
+>>> dpt.data = 2
 ValueError: data 0x2 not in (0x00, 0x01)
->>> dptConv.value = 3
+>>> dpt.value = 3
 ValueError: value 3 not in (0, 1)
->>> dptConv.strValue = 'Dummy'
+>>> dpt.strValue = 'Dummy'
 ValueError: DPT string Dummy not in ('Off', 'On')
->>> dptConv.handledDPTIDs
+>>> dpt.knownHandlers
 [<DPTID("1.xxx")>, <DPTID("1.001")>, <DPTID("1.002")>, <DPTID("1.003")>, <DPTID("1.004")>, <DPTID("1.005")>,
 <DPTID("1.006")>, <DPTID("1.007")>, <DPTID("1.008")>, <DPTID("1.009")>, <DPTID("1.010")>, <DPTID("1.011")>,
 <DPTID("1.012")>, <DPTID("1.013")>, <DPTID("1.014")>, <DPTID("1.015")>, <DPTID("1.016")>, <DPTID("1.017")>,
@@ -145,9 +145,10 @@ class DPTBoolean(DPT):
         self._data = data
 
     def _toStrValue(self):
-        return "%s" % self._handler.limits[self.value]
+        return str(self._handler.limits[self.value])
 
     def _fromStrValue(self, strValue):
+        if self._handler.ma
         self._data = self._handler.limits.index(strValue)
 
     def _toFrame(self):
@@ -176,7 +177,7 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPTIDs
+            #print self.dpt.knownHandlers
 
         def test_dpt(self):
             self.assertEqual(self.dpt.dpt, DPTBoolean.DPT_Generic)

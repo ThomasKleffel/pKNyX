@@ -144,7 +144,7 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPTIDs
+            #print self.dpt.knownHandlers
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):

@@ -387,10 +387,10 @@ class DPT(object):
             raise DPTValueError("unhandled DPT ID (%s)" % dptId)
 
     @property
-    def handledDPTIDs(self):
-        handledDPTIDs = self._knownHandlers.keys()
-        handledDPTIDs.sort()
-        return handledDPTIDs
+    def knownHandlers(self):
+        knownHandlers = self._knownHandlers.keys()
+        knownHandlers.sort()
+        return knownHandlers
 
     @property
     def data(self):

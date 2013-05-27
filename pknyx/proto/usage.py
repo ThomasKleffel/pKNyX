@@ -137,7 +137,7 @@ rules = RulesManager()
 
 #@schedule.every(minutes=1)
 @trigger.schedule.every(hour=1)
-@trigger.group(id="1/1/1").changed()
+#@trigger.group(id="1/1/1").changed()   <<<<<<<<< Does not work
 @trigger.system.start
 def heatingBathroomManagement(event):
     """ Simple heating management
@@ -165,19 +165,71 @@ rules.register(heatingBathroomManagement)
 ################################################################################
 
 from pknyx.api import Device, \
-                      Datapoint as DP
+                      ETS
 
 
 class VMC(Device):
     """ VMC virtual device
+
+    @todo: add parameters, for more generic devices (as real devices)
+    @todo: make as thread
+    @todo: should also react with time-based events, system events... -> decorator @trigger.xxx
     """
 
-    def _createDP(self):
-        self.dpTempSalon = DP("temp_salon", "9.001", flags="cwtu")
+    # Datapoints are created as class entities and automatically instancianted as real DP in constructor
+    # Their name must start with 'DP_' ; they will be stored in self.dp dict-like object.
+    # Ex: DP_1 = ("truc", "1.001", "cwtu", "low", 0) ... > self.dp["truc"]  <<<< special dict, with additionnal features
 
-    def update(self, event):
-        pass
+    DP_01 = ("temp_entree", "9.001", "cwtu", "low", 0)
+    DP_02 = {'name': "temp_sortie", dptId: "9.001", 'flags': "cwtu", 'priority': "low", 'initValue': 0}
+    DP_03 = dict(name="temp_repris", dptId="9.001", flags="cwtu", priority="low", initValue=0)
+
+    def init(self):
+        """
+        """
+
+    def initDP(self):
+        """
+        """
+        self.dp["temp_entree"].value = 0  # Add persistence feature!!!
+
+    #def bus(self, event):
+        #"""
+        #This method must be overloaded. It is called when an event occurs on the bus which changes GA
+        #linked with at least one DP of this device.
+        #"""
+        #print event.src
+        #print event.dest
+        #print event.value
+        #print event.priority
+        #print event.cEMI
+
+    @trigger.schedule.at()
+    @trigger.dp.change()
+    def notify(self, event):
+        """
+        """
+        print event.src
+        print event.dest
+        print event.value
+        print event.priority
+        print event.cEMI
+
+    def execute(self):
+        """
+        This method is called regularly by the thread. Do here whatever you need to do.
+        Stop thread if return True?
+        If not overloaded in the Device sub-class, the thread sleeps forever. Only callbacks, if any, will run.
+        """
 
 
-vmc = VMC("1.1.1")
-vmc.link("temp_1", "1/1/1")  # alt: vmc.dpTempSalon.link("1/1/1")
+vmc = VMC("1.2.3")
+#vmc.link("temp_entree", "1/1/1")  # allow wildcard and regexp?
+#vmc.dpTempSalon.link("1/1/1")
+#ETS.addLink(vmc.dpTempSalon, "1/1/1")
+ETS.link(vmc, "temp_entree", "1/1/1")
+ETS.link(vmc, "temp_entree", ("1/1/1", "1/1/2"))
+
+
+################################################################################
+

@@ -45,7 +45,7 @@ see L{DPTBoolean}
 @license: GPL
 """
 
-__revision__ = "$Id: dptDate.py 24 2013-05-24 13:16:05Z fma $"
+__revision__ = "$Id$"
 
 import struct
 

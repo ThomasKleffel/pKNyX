@@ -206,55 +206,55 @@ if __name__ == '__main__':
                 (6, 32),
                 (7, 64),
             )
-            self.conv = DPT3BitControl("3.xxx")
+            self.dpt = DPT3BitControl("3.xxx")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.conv.handledDPTIDs
+            #print self.dpt.handledDPTIDs
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue(self.conv._handler.limits[1] + 1)
+                self.dpt._checkValue(self.dpt._handler.limits[1] + 1)
 
         def test_toValue(self):
             for value, data, frame in self.testTable:
-                self.conv.data = data
-                value_ = self.conv.value
+                self.dpt.data = data
+                value_ = self.dpt.value
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %d, should be %d)" %
                                  (hex(data), value_, value))
 
         def test_fromValue(self):
             for value, data, frame in self.testTable:
-                self.conv.value = value
-                data_ = self.conv.data
+                self.dpt.value = value
+                data_ = self.dpt.data
                 self.assertEqual(data_, data, "Conversion failed (converted data for %d is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
         def test_toFrame(self):
             for value, data, frame in self.testTable:
-                self.conv.data = data
-                frame_ = self.conv.frame
+                self.dpt.data = data
+                frame_ = self.dpt.frame
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
         def test_fromFrame(self):
             for value, data, frame in self.testTable:
-                self.conv.frame = frame
-                data_ = self.conv.data
+                self.dpt.frame = frame
+                data_ = self.dpt.data
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 
         #def test_nbIntervalsToStepCode(self):
             #for stepCode, nbIntervals in self.stepCodeIntervalTable:
-                #nbIntervals_ = self.conv.stepCodeToNbIntervals(stepCode)
+                #nbIntervals_ = self.dpt.stepCodeToNbIntervals(stepCode)
                 #self.assertEqual(nbIntervals_, nbIntervals, "Conversion failed (computed nbIntervals for stepCode %d is %d, should be %d)" %
                                  #(stepCode, nbIntervals_, nbIntervals))
 
         #def test_stepCodeToNbIntervals(self):
             #for stepCode, nbIntervals in self.stepCodeIntervalTable:
-                #stepCode_ = self.conv.nbIntervalsToStepCode(nbIntervals)
+                #stepCode_ = self.dpt.nbIntervalsToStepCode(nbIntervals)
                 #self.assertEqual(stepCode_, stepCode, "Conversion failed (computed stepCode for %d intervals is %d, should be %d)" %
                                  #(nbIntervals, stepCode_, stepCode))
 

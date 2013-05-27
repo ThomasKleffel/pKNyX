@@ -160,58 +160,58 @@ if __name__ == '__main__':
                 ((1,  2,  3,  4), 0x220304, "\x22\x03\x04"),
                 ((7, 23, 59, 59), 0xf73b3b, "\xf7\x3b\x3b"),
             )
-            self.conv = DPTTime("10.001")
+            self.dpt = DPTTime("10.001")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.conv.handledDPTIDs
+            #print self.dpt.handledDPTIDs
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue((-1, 0, 0, 0))
+                self.dpt._checkValue((-1, 0, 0, 0))
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue((0, -1, 0, 0))
+                self.dpt._checkValue((0, -1, 0, 0))
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue((0, 0, -1, 0))
+                self.dpt._checkValue((0, 0, -1, 0))
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue((0, 0, 0, -1))
+                self.dpt._checkValue((0, 0, 0, -1))
 
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue((8, 23, 59, 59))
+                self.dpt._checkValue((8, 23, 59, 59))
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue((7, 24, 59, 59))
+                self.dpt._checkValue((7, 24, 59, 59))
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue((7, 23, 60, 59))
+                self.dpt._checkValue((7, 23, 60, 59))
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue((7, 23, 59, 60))
+                self.dpt._checkValue((7, 23, 59, 60))
 
         def test_toValue(self):
             for value, data, frame in self.testTable:
-                self.conv.data = data
-                value_ = self.conv.value
+                self.dpt.data = data
+                value_ = self.dpt.value
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %s, should be %s)" %
                                  (hex(data), value_, value))
 
         def test_fromValue(self):
             for value, data, frame in self.testTable:
-                self.conv.value = value
-                data_ = self.conv.data
+                self.dpt.value = value
+                data_ = self.dpt.data
                 self.assertEqual(data_, data, "Conversion failed (converted data for %s is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
         def test_toFrame(self):
             for value, data, frame in self.testTable:
-                self.conv.data = data
-                frame_ = self.conv.frame
+                self.dpt.data = data
+                frame_ = self.dpt.frame
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
         def test_fromFrame(self):
             for value, data, frame in self.testTable:
-                self.conv.frame = frame
-                data_ = self.conv.data
+                self.dpt.frame = frame
+                data_ = self.dpt.data
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

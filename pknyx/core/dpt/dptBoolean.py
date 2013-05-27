@@ -170,48 +170,48 @@ if __name__ == '__main__':
                 (0, 0x00, "\x00"),
                 (1, 0x01, "\x01")
             )
-            self.conv = DPTBoolean("1.xxx")
+            self.dpt = DPTBoolean("1.xxx")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.conv.handledDPTIDs
+            #print self.dpt.handledDPTIDs
 
         def test_dpt(self):
-            self.assertEqual(self.conv.dpt, DPTBoolean.DPT_Generic)
-            self.conv.dpt = "1.001"
-            self.assertEqual(self.conv.dpt, DPTBoolean.DPT_Switch)
+            self.assertEqual(self.dpt.dpt, DPTBoolean.DPT_Generic)
+            self.dpt.dpt = "1.001"
+            self.assertEqual(self.dpt.dpt, DPTBoolean.DPT_Switch)
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):
-                self.conv.value = self.conv._handler.limits[1] + 1
+                self.dpt.value = self.dpt._handler.limits[1] + 1
 
         def test_toValue(self):
             for value, data, frame in self.testTable:
-                self.conv.data = data
-                value_ = self.conv.value
+                self.dpt.data = data
+                value_ = self.dpt.value
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %d, should be %d)" %
                                  (hex(data), value_, value))
 
         def test_fromValue(self):
             for value, data, frame in self.testTable:
-                self.conv.value = value
-                data_ = self.conv.data
+                self.dpt.value = value
+                data_ = self.dpt.data
                 self.assertEqual(data_, data, "Conversion failed (converted data for %d is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
         def test_toFrame(self):
             for value, data, frame in self.testTable:
-                self.conv.data = data
-                frame_ = self.conv.frame
+                self.dpt.data = data
+                frame_ = self.dpt.frame
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
         def test_fromFrame(self):
             for value, data, frame in self.testTable:
-                self.conv.frame = frame
-                data_ = self.conv.data
+                self.dpt.frame = frame
+                data_ = self.dpt.data
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

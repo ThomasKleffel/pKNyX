@@ -152,43 +152,43 @@ if __name__ == '__main__':
                 (     1, 0x0001, "\x00\x01"),
                 ( 32767, 0x7fff, "\x7f\xff"),
             )
-            self.conv = DPT2ByteSigned("8.xxx")
+            self.dpt = DPT2ByteSigned("8.xxx")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.conv.handledDPTIDs
+            #print self.dpt.handledDPTIDs
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):
-                self.conv._checkValue(self.conv._handler.limits[1] + 1)
+                self.dpt._checkValue(self.dpt._handler.limits[1] + 1)
 
         def test_toValue(self):
             for value, data, frame in self.testTable:
-                self.conv.data = data
-                value_ = self.conv.value
+                self.dpt.data = data
+                value_ = self.dpt.value
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %d, should be %d)" %
                                  (hex(data), value_, value))
 
         def test_fromValue(self):
             for value, data, frame in self.testTable:
-                self.conv.value = value
-                data_ = self.conv.data
+                self.dpt.value = value
+                data_ = self.dpt.data
                 self.assertEqual(data_, data, "Conversion failed (converted data for %d is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
         def test_toFrame(self):
             for value, data, frame in self.testTable:
-                self.conv.data = data
-                frame_ = self.conv.frame
+                self.dpt.data = data
+                frame_ = self.dpt.frame
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
         def test_fromFrame(self):
             for value, data, frame in self.testTable:
-                self.conv.frame = frame
-                data_ = self.conv.data
+                self.dpt.frame = frame
+                data_ = self.dpt.data
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

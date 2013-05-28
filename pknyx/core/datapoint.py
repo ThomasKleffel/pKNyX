@@ -171,6 +171,12 @@ class Datapoint(object):
         """
         return self._name
 
+    @name.setter
+    def name(self, name):
+        """ change the Datapoint name
+        """
+        self._name = name
+
     @property
     def dptId(self):
         """ return the DPT ID
@@ -185,11 +191,11 @@ class Datapoint(object):
             dptId = DPTID(dptId)
         self._dptId = dptId
 
-    @property
-    def dpXlator(self):
-        """ return the DPT
-        """
-        return self._dptXlator
+    #@property
+    #def dpXlator(self):
+        #""" return the DPT
+        #"""
+        #return self._dptXlator
 
     @property
     def flags(self):
@@ -209,13 +215,13 @@ class Datapoint(object):
         """
         return self._priority
 
-    #@priority.setter
-    #def priority(str, level):
-        #""" Change the Datapoint priority
-        #"""
-        #if not isinstance(priority, Priority):
-            #priority = Priority(priority)
-        #self._priority = priority
+    @priority.setter
+    def priority(str, level):
+        """ Change the Datapoint priority
+        """
+        if not isinstance(priority, Priority):
+            priority = Priority(priority)
+        self._priority = priority
 
     @property
     def data(self):
@@ -230,7 +236,7 @@ class Datapoint(object):
     def value(self):
         if self._data is None:
             raise DPValueError("data not initialized")
-       return self._dptXlator.dataToValue(self._data)
+        return self._dptXlator.dataToValue(self._data)
 
     @value.setter
     def value(self, value):
@@ -252,7 +258,7 @@ class Datapoint(object):
 
     @frame.setter
     def frame(self, frame):
-        #self._dptXlator.checkFrame(frame)
+        self._dptXlator.checkFrame(frame)
         self._data = self._dptXlator.frameToData(frame)
 
 

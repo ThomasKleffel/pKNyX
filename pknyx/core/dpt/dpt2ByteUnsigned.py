@@ -81,13 +81,13 @@ class DPT2ByteUnsigned(DPT):
             raise DPTValueError("data %s not in (0x0000, 0xffff)" % hex(data))
 
     def _checkValue(self, value):
-        if not self._handler.limits[0] <= value <= self._handler.limits[1]:
-            raise DPTValueError("Value not in range %r" % repr(self._handler.limits))
+        if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
+            raise DPTValueError("Value not in range %r" % repr(self._dpt.limits))
 
     def _toValue(self):
-        if self._handler is self.DPT_TimePeriod10Msec:
+        if self._dpt is self.DPT_TimePeriod10Msec:
             value = self._data * 10.
-        elif self._handler is self.DPT_TimePeriod100Msec:
+        elif self._dpt is self.DPT_TimePeriod100Msec:
             value = self._data * 100.
         else:
             value = self._data
@@ -95,27 +95,14 @@ class DPT2ByteUnsigned(DPT):
         return value
 
     def _fromValue(self, value):
-        if self._handler is self.DPT_TimePeriod10Msec:
+        if self._dpt is self.DPT_TimePeriod10Msec:
             data = int(round(value / 10.))
-        elif self._handler is self.DPT_TimePeriod100Msec:
+        elif self._dpt is self.DPT_TimePeriod100Msec:
             data = int(round(value / 100.))
         else:
             data = value
         #Logger().debug("DPT2ByteUnsigned._fromValue(): data=%s" % hex(data))
         self._data = data
-
-    def _toStrValue(self):
-        s = "%d" % self.value
-
-        # Add unit
-        if self._displayUnit and self._handler.unit is not None:
-            try:
-                s = "%s %s" % (s, self._handler.unit)
-            except TypeError:
-                Logger().exception("DPT2ByteUnsigned._toStrValue()", debug=True)
-        return s
-
-    #def _fromStrValue(self, strValue):
 
     def _toFrame(self):
         return struct.pack(">H", self._data)
@@ -144,11 +131,11 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.knownHandlers
+            #print self.dpt.handledDPT
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):
-                self.dpt._checkValue(self.dpt._handler.limits[1] + 1)
+                self.dpt._checkValue(self.dpt._dpt.limits[1] + 1)
 
         def test_toValue(self):
             for value, data, frame in self.testTable:

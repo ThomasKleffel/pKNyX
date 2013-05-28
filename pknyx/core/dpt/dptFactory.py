@@ -203,7 +203,7 @@ class DPTFactoryObject(object):
         """ Init the class with all available main Types
 
         All class objects name B{TYPE_xxx}, will be treated as MainTypeMapper objects and added to the
-        B{_knownHandlers} dict.
+        B{_handledDPT} dict.
         """
         self = object.__new__(cls, *args, **kwargs)
         cls._handledMainDPTMappers = {}
@@ -236,7 +236,7 @@ class DPTFactoryObject(object):
         """
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
-        return self._knownHandlers[dptId.generic].createConverter(dptId)
+        return self._handledDPT[dptId.generic].createConverter(dptId)
 
 
 def DPTFactory():

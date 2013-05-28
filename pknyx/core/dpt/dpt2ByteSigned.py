@@ -79,19 +79,19 @@ class DPT2ByteSigned(DPT):
             raise DPTValueError("data %s not in (0x0000, 0xffff)" % hex(data))
 
     def _checkValue(self, value):
-        if not self._handler.limits[0] <= value <= self._handler.limits[1]:
-            raise DPTValueError("Value not in range %r" % repr(self._handler.limits))
+        if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
+            raise DPTValueError("Value not in range %r" % repr(self._dpt.limits))
 
     def _toValue(self):
         if self._data >= 0x8000:
             data = -((self._data - 1) ^ 0xffff)  # invert twos complement
         else:
             data = self._data
-        if self._handler is self.DPT_DeltaTime10Msec:
+        if self._dpt is self.DPT_DeltaTime10Msec:
             value = data * 10.
-        elif self._handler is self.DPT_DeltaTime100Msec:
+        elif self._dpt is self.DPT_DeltaTime100Msec:
             value =data * 100.
-        elif self._handler is self.DPT_Percent_V16:
+        elif self._dpt is self.DPT_Percent_V16:
             value = data / 100.
         else:
             value = data
@@ -101,38 +101,22 @@ class DPT2ByteSigned(DPT):
     def _fromValue(self, value):
         if value < 0:
             value = (abs(value) ^ 0xffff) + 1  # twos complement
-        if self._handler is self.DPT_DeltaTime10Msec:
+        if self._dpt is self.DPT_DeltaTime10Msec:
             data = int(round(value / 10.))
-        elif self._handler is self.DPT_DeltaTime100Msec:
+        elif self._dpt is self.DPT_DeltaTime100Msec:
             data = int(round(value / 100.))
-        elif self._handler is self.DPT_Percent_V16:
+        elif self._dpt is self.DPT_Percent_V16:
             data = int(round(value * 100.))
         else:
             data = value
         #Logger().debug("DPT2ByteSigned._fromValue(): data=%s" % hex(data))
         self._data = data
 
-    def _toStrValue(self):
-        if self._handler is self.DPT_Percent_V16:
-            s = "%.2f" % self.value
-        else:
-            s = "%d" % self.value
-
-        # Add unit
-        if self._displayUnit and self._handler.unit is not None:
-            try:
-                s = "%s %s" % (s, self._handler.unit)
-            except TypeError:
-                Logger().exception("DPT2ByteSigned._toStrValue()", debug=True)
-        return s
-
     def _toFrame(self):
         return struct.pack(">H", self._data)
 
     def _fromFrame(self, frame):
         self._data = struct.unpack(">H", frame)[0]
-
-    #def _fromStrValue(self, strValue):
 
 
 if __name__ == '__main__':
@@ -158,11 +142,11 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.knownHandlers
+            #print self.dpt.handledDPT
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):
-                self.dpt._checkValue(self.dpt._handler.limits[1] + 1)
+                self.dpt._checkValue(self.dpt._dpt.limits[1] + 1)
 
         def test_toValue(self):
             for value, data, frame in self.testTable:

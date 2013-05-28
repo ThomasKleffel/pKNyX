@@ -76,8 +76,8 @@ class DPTTime(DPT):
 
     def _checkValue(self, value):
         for index in range(4):
-            if not self._handler.limits[0][index] <= value[index] <= self._handler.limits[1][index]:
-                raise DPTValueError("value not in range %r" % repr(self._handler.limits))
+            if not self._dpt.limits[0][index] <= value[index] <= self._dpt.limits[1][index]:
+                raise DPTValueError("value not in range %r" % repr(self._dpt.limits))
 
     def _toValue(self):
         wDay = (self._data >> 21) & 0x07
@@ -105,20 +105,6 @@ class DPTTime(DPT):
     def _fromFrame(self, frame):
         data = struct.unpack(">3B", frame)
         self._data = data[0] << 16 | data[1] << 8 | data[2]
-
-    def _toStrValue(self):
-        wDay = self.value[0]
-        hour = self.value[1]
-        min_ = self.value[2]
-        sec = self.value[3]
-        if wDay == 0:
-            format_ = "%H:%M:%S"  # "No day, %H:%M:%S"
-        else:
-            format_ = "%a, %H:%M:%S"
-        s = time.strftime(format_, (0, 0, 0, hour, min_, sec, wDay - 1, 0, 0))
-        return s
-
-    #def _fromStrValue(self, strValue):
 
     @property
     def weekDay(self):
@@ -166,7 +152,7 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.knownHandlers
+            #print self.dpt.handledDPT
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):

@@ -90,8 +90,8 @@ class DPTDate(DPT):
 
     def _checkValue(self, value):
         for index in range(3):
-            if not self._handler.limits[0][index] <= value[index] <= self._handler.limits[1][index]:
-                raise DPTValueError("value not in range %r" % repr(self._handler.limits))
+            if not self._dpt.limits[0][index] <= value[index] <= self._dpt.limits[1][index]:
+                raise DPTValueError("value not in range %r" % repr(self._dpt.limits))
 
     def _toValue(self):
         day = (self._data >> 16) & 0x1f
@@ -116,15 +116,6 @@ class DPTDate(DPT):
         data = day << 16 | month << 8 | year
         #Logger().debug("DPTDate._fromValue(): data=%s" % hex(data))
         self._data = data
-
-    def _toStrValue(self):
-        day = self.value[0]
-        month = self.value[1]
-        year = self.value[2]
-        s = time.strftime("%Y-%m-%d", (year, month, day, 0, 0, 0, 0, 0, 0))
-        return s
-
-    #def _fromStrValue(self, strValue):
 
     def _toFrame(self):
         data = [(self._data >> shift) & 0xff for shift in range(16, -1, -8)]
@@ -168,7 +159,7 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.knownHandlers
+            #print self.dpt.handledDPT
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):

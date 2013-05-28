@@ -88,8 +88,8 @@ class DPTString(DPT):
 
     def _checkValue(self, value):
         for index in range(14):
-            if not self._handler.limits[0][index] <= value[index] <= self._handler.limits[1][index]:
-                raise DPTValueError("value not in range %r" % repr(self._handler.limits))
+            if not self._dpt.limits[0][index] <= value[index] <= self._dpt.limits[1][index]:
+                raise DPTValueError("value not in range %r" % repr(self._dpt.limits))
 
     def _toValue(self):
         value = tuple([int((self._data >> shift) & 0xff) for shift in range(104, -1, -8)])
@@ -102,16 +102,6 @@ class DPTString(DPT):
             data |= value[13 - shift / 8] << shift
         #Logger().debug("DPTString._fromValue(): data=%s" % hex(data))
         self._data = data
-
-    def _toStrValue(self):
-        s = "".join([chr(c) for c in self.value])
-        s = s.rstrip('\x00')  # Remove trailing null chars
-        return s
-
-    def _fromStrValue(self, strValue):
-        strValue = strValue.ljust(14, '\x00')  # Complete with null chars
-        value = [ord(c) for c in strValue]
-        self.value = value
 
     def _toFrame(self):
         return struct.pack(">14B", *self.value)
@@ -153,7 +143,7 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.knownHandlers
+            #print self.dpt.handledDPT
 
         #def test_checkValue(self):
             #with self.assertRaises(DPTValueError):

@@ -87,8 +87,8 @@ class DPT3BitControl(DPT):
             raise DPTValueError("data %s not in (0x00, 0x0f)" % hex(data))
 
     def _checkValue(self, value):
-        if not self._handler.limits[0] <= value <= self._handler.limits[1]:
-            raise DPTValueError("value %d not in range %r" % (value, repr(self._handler.limits)))
+        if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
+            raise DPTValueError("value %d not in range %r" % (value, repr(self._dpt.limits)))
 
     def _toData(self):
 
@@ -117,20 +117,6 @@ class DPT3BitControl(DPT):
         self._dpt.data = ctrl
         stepCode = abs(value) & 0x07
         self._data = stepCode
-
-    def _toStrValue(self):
-        """
-        @todo: use ctrl/stepCode properties once implemented
-        @todo: manage _displayUnit (convert stepCode to steps?)
-        """
-        stepCode = self._data
-        if stepCode == 0:
-            s = "Break"
-        else:
-            s = "%s:%d" % (self._dpt.strValue, stepCode)
-        return s
-
-    #def _fromStrValue(self, strValue):
 
     # Add properties control and stepCode + helper methods (+ intervals?)
 
@@ -212,11 +198,11 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.knownHandlers
+            #print self.dpt.handledDPT
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):
-                self.dpt._checkValue(self.dpt._handler.limits[1] + 1)
+                self.dpt._checkValue(self.dpt._dpt.limits[1] + 1)
 
         def test_toValue(self):
             for value, data, frame in self.testTable:

@@ -155,8 +155,8 @@ class DPT4ByteFloat(DPT):
             raise DPTValueError("data %s not in (0x00000000, 0xffffffff)" % hex(data))
 
     def _checkValue(self, value):
-        if not self._handler.limits[0] <= value <= self._handler.limits[1]:
-            raise DPTValueError("Value not in range %r" % repr(self._handler.limits))
+        if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
+            raise DPTValueError("Value not in range %r" % repr(self._dpt.limits))
 
     def _toValue(self):
         value = struct.unpack(">f", struct.pack(">L", self._data))[0]  # struct.unpack(">f", self.toFrame())[0]
@@ -173,19 +173,6 @@ class DPT4ByteFloat(DPT):
 
     def _fromFrame(self, frame):
         self._data = struct.unpack(">L", frame)[0]
-
-    def _toStrDPT(self):
-        s = "%.f" % self.value
-
-        # Add unit
-        if self._displayUnit and self._handler.unit is not None:
-            try:
-                s = "%s %s" % (s, self._handler.unit)
-            except TypeError:
-                Logger().exception("DPT4ByteFloat", debug=True)
-        return s
-
-    #def _fromStrDPT(self, strValue):
 
 
 if __name__ == '__main__':
@@ -210,11 +197,11 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.knownHandlers
+            #print self.dpt.handledDPT
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):
-                self.dpt._checkValue(self.dpt._handler.limits[1] * 10)
+                self.dpt._checkValue(self.dpt._dpt.limits[1] * 10)
 
         def test_toValue(self):
             for value, data, frame in self.testTable:

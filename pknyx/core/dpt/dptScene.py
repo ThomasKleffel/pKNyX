@@ -74,8 +74,8 @@ class DPTScene(DPT):
 
     def _checkValue(self, value):
         for index in range(2):
-            if not self._handler.limits[0][index] <= value[index] <= self._handler.limits[1][index]:
-                raise DPTValueError("value not in range %r" % repr(self._handler.limits))
+            if not self._dpt.limits[0][index] <= value[index] <= self._dpt.limits[1][index]:
+                raise DPTValueError("value not in range %r" % repr(self._dpt.limits))
 
     def _toValue(self):
         ctrl = (self._data >> 7) & 0x01
@@ -90,17 +90,6 @@ class DPTScene(DPT):
         data = ctrl << 7 | scene
         #Logger().debug("DPTScene._fromValue(): data=%s" % hex(data))
         self._data = data
-
-    def _toStrValue(self):
-        ctrl = value[0]
-        scene = value[1]
-        if ctrl:
-            s = "learn %d" % scene
-        else:
-            s = "restore %d" % scene
-        return s
-
-    #def _fromStrValue(self, strValue):
 
     def _toFrame(self):
         return struct.pack(">B", self._data)
@@ -141,7 +130,7 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.knownHandlers
+            #print self.dpt.handledDPT
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):

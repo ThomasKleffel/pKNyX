@@ -201,26 +201,28 @@ class DPT(object):
     The term B{data} refers to the KNX representation of the python type B{value}. It is stored in the object.
     The B{frame} is the 'data' as bytes (python str), which can be sent/received over the bus.
 
-    @ivar _knownHandlers: table containing all DPT_ the DPT can handle (defined in sub-classes)
-    @type _knownHandlers: dict
+    @ivar _handledDPT: table containing all DPT_ the DPT can handle (defined in sub-classes)
+    @type _handledDPT: dict
 
-    @ivar _handler: current DPT_ object of the DPT
-    @type _handler: L{DPT<pknyx.core.dpt>}
+    @ivar _dpt: current DPT_ object of the DPT
+    @type _dpt: L{DPT<pknyx.core.dpt>}
 
     @ivar _data: KNX encoded data
     @type _data: depends on sub-class
+
+    @todo: remove the strValue stuff
     """
     def __new__(cls, *args, **kwargs):
         """ Init the class with all available types for this DPT
 
         All class objects defined in sub-classes name B{DPT_xxx}, will be treated as DPT objects and added to the
-        B{_knownHandlers} dict.
+        B{_handledDPT} dict.
         """
         self = object.__new__(cls, *args, **kwargs)
-        cls._knownHandlers = {}
+        cls._handledDPT = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("DPT_"):
-                cls._knownHandlers[value.id] = value
+                cls._handledDPT[value.id] = value
 
         return self
 
@@ -237,20 +239,19 @@ class DPT(object):
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         try:
-            self._handler = self._knownHandlers[dptId]
+            self._dpt = self._handledDPT[dptId]
         except KeyError:
             Logger().exception("DPT.__init__()", debug=True)
             raise DPTValueError("unhandled DPT ID (%s)" % dptId)
 
         self._data = None
-        self._displayUnit = True
 
     def __repr__(self):
         try:
             data_ = hex(self._data)
         except TypeError:
             data_ = None
-        return "<%s(dpt='%s', data=%r)>" % (reprStr(self.__class__), self._handler.id, data_)
+        return "<%s(dpt='%s', data=%r)>" % (reprStr(self.__class__), self._dpt.id, data_)
 
     def _checkData(self, data):
         """ Check if the data can be handled by the Datapoint Type
@@ -271,18 +272,6 @@ class DPT(object):
         @raise ValueError: value can't be handled
         """
         Logger().warning("DPT._checkValue() not implemented is sub-class")
-
-    def _checkStrValue(self, strValue):
-        """ Check if the DPT string representation can be handled by the Datapoint Type
-
-        @todo: manage upper/lower, unit/no unit...
-
-        @param strValue: string representation of the data
-        @type strValue: str
-
-        @raise ValueError: string can't be handled
-        """
-        Logger().warning("DPT._checkStrDPT() not implemented is sub-class")
 
     #def _checkFrame(self, frame):
         #""" Check if KNX frame can be handled by the Datapoint Type
@@ -329,27 +318,6 @@ class DPT(object):
         """
         raise NotImplementedError
 
-    def _toStrValue(self):
-        """ Conversion from KNX encoded data to DPT string representation
-
-        It mainly converts the data to a string, adding the unit if any.
-        For some DPTs, like Boolean, it can also interprets the data as a string (0 -> "Up")
-
-        @return: DPT string representation
-        @rtype: str
-        """
-        raise NotImplementedError
-
-    def _fromStrValue(self, strValue):
-        """ Conversion from DPT string representation to KNX encoded data
-
-        @todo: manage upper/lower, unit/no unit...
-
-        @param strValue: string representation of the data
-        @type strValue: str
-        """
-        raise NotImplementedError
-
     def _toFrame(self, data):
         """ Conversion from KNX encoded data to bus frame
 
@@ -373,24 +341,24 @@ class DPT(object):
         raise NotImplementedError
 
     @property
+    def handledDPT(self):
+        handledDPT = self._handledDPT.keys()
+        handledDPT.sort()
+        return handledDPT
+
+    @property
     def dpt(self):
-        return self._handler
+        return self._dpt
 
     @dpt.setter
     def dpt(self, dptId):
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         try:
-            self._handler = self._knownHandlers[dptId]
+            self._dpt = self._handledDPT[dptId]
         except KeyError:
             Logger().exception("DPT.dpt", debug=True)
             raise DPTValueError("unhandled DPT ID (%s)" % dptId)
-
-    @property
-    def knownHandlers(self):
-        knownHandlers = self._knownHandlers.keys()
-        knownHandlers.sort()
-        return knownHandlers
 
     @property
     def data(self):
@@ -415,15 +383,8 @@ class DPT(object):
         self._fromValue(value)
 
     @property
-    def strValue(self):
-        if self._data is None:
-            raise DPTValueError("data not initialized")
-        return self._toStrValue()
-
-    @strValue.setter
-    def strValue(self, strValue):
-        self._checkStrValue(strValue)
-        self._fromStrValue(strValue)
+    def unit(self):
+        return self._dpt.unit
 
     @property
     def frame(self):

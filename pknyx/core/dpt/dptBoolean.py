@@ -46,24 +46,17 @@ ValueError: data not initialized
 >>> dpt.data
 1
 >>> dpt.value
-1
->>> dpt.value = 0
+'On'
+>>> dpt.value = 'Off'
 >>> dpt.data
 0
 >>> dpt.frame
 '\x00'
->>> dpt.strValue
-'Off'
->>> dpt.strValue = 'On'
->>> dpt.value
-1
 >>> dpt.data = 2
 ValueError: data 0x2 not in (0x00, 0x01)
 >>> dpt.value = 3
-ValueError: value 3 not in (0, 1)
->>> dpt.strValue = 'Dummy'
-ValueError: DPT string Dummy not in ('Off', 'On')
->>> dpt.knownHandlers
+ValueError: value 3 not in ("Off", "On")
+>>> dpt.handledDPT
 [<DPTID("1.xxx")>, <DPTID("1.001")>, <DPTID("1.002")>, <DPTID("1.003")>, <DPTID("1.004")>, <DPTID("1.005")>,
 <DPTID("1.006")>, <DPTID("1.007")>, <DPTID("1.008")>, <DPTID("1.009")>, <DPTID("1.010")>, <DPTID("1.011")>,
 <DPTID("1.012")>, <DPTID("1.013")>, <DPTID("1.014")>, <DPTID("1.015")>, <DPTID("1.016")>, <DPTID("1.017")>,
@@ -123,33 +116,20 @@ class DPTBoolean(DPT):
                 raise DPTValueError("data not in (0x00, 0x01)")
 
     def _checkValue(self, value):
-
-        # For this DPT, we use the DPT_Generic, as other DPTs interpret value as string
-        if value not in self.DPT_Generic.limits:
-            raise DPTValueError("value %d not in %s" % (value, str(self.DPT_Generic.limits)))
-
-    def _checkStrValue(self, strValue):
-        if strValue not in self._handler.limits:
-            raise DPTValueError("DPT string '%s' not in %s" % (strValue, str(self._handler.limits)))
+        if value not in self._dpt.limits and value not in self.DPT_Generic.limits:
+            raise DPTValueError("value %d not in %s" % (value, str(self._dpt.limits)))
 
     def _toValue(self):
-        value = self.DPT_Generic.limits[self._data]
+        value = self._dpt.limits[self._data]
         #Logger().debug("DPTBoolean._toValue(): value=%d" % value)
         return value
 
     def _fromValue(self, value):
         #Logger().debug("DPTBoolean._fromValue(): value=%d" % value)
         self._checkValue(value)
-        data = self.DPT_Generic.limits.index(value)
+        data = self._dpt.limits.index(value)
         #Logger().debug("DPTBoolean._fromValue(): data=%s" % hex(data))
         self._data = data
-
-    def _toStrValue(self):
-        return str(self._handler.limits[self.value])
-
-    def _fromStrValue(self, strValue):
-        if self._handler.ma
-        self._data = self._handler.limits.index(strValue)
 
     def _toFrame(self):
         return struct.pack(">B", self._data)
@@ -177,7 +157,7 @@ if __name__ == '__main__':
             pass
 
         #def test_constructor(self):
-            #print self.dpt.knownHandlers
+            #print self.dpt.handledDPT
 
         def test_dpt(self):
             self.assertEqual(self.dpt.dpt, DPTBoolean.DPT_Generic)
@@ -186,7 +166,7 @@ if __name__ == '__main__':
 
         def test_checkValue(self):
             with self.assertRaises(DPTValueError):
-                self.dpt.value = self.dpt._handler.limits[1] + 1
+                self.dpt.value = self.dpt._dpt.limits[1] + 1
 
         def test_toValue(self):
             for value, data, frame in self.testTable:

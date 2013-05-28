@@ -101,21 +101,25 @@ class CEMILData(CEMI):
     def _fromData(self, data):
         """
         """
-        self._data = data
+        #self._data = data
 
-        final ByteArrayInputStream is = new ByteArrayInputStream(data, offset, data.length - offset);
-        readMC(is);
-        readAddInfo(is);
-        readCtrlAndAddr(is);
-        if ((ctrl1 & 0x80) == 0)
-                throw new KNXFormatException("only cEMI standard frame supported");
-        readPayload(is);
+        #final ByteArrayInputStream is = new ByteArrayInputStream(data, offset, data.length - offset)
+        #readMC(is)
+        #readAddInfo(is)
+        #readCtrlAndAddr(is)
+        #if (ctrl1 & 0x80) == 0 :
+                #throw new KNXFormatException("only cEMI standard frame supported")
+        #readPayload(is);
 
-    def getPayload(self)
+    def getPayload(self):
+        pass
 
-    def getMessageCode(self)
+    def getMessageCode(self):
+        pass
 
-    def getStructLength(self)
+    def getStructLength(self):
+        pass
 
-    def toByteArray(self)
+    def toByteArray(self):
+        pass
 

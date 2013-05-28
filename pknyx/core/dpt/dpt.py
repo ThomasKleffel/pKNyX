@@ -34,7 +34,6 @@ Implements
 ==========
 
  - B{DPTValueError}
- - B{DPT_}
  - B{DPT}
 
 Documentation
@@ -76,10 +75,10 @@ Datapoint Types with the same main number have the same data type. A different s
 Usage
 =====
 
->>> from dpt import DPT_
->>> dpt_ = DPT_("1.001", "Switch", ("Off", "On"))
+>>> from dpt import DPT
+>>> dpt_ = DPT("1.001", "Switch", ("Off", "On"))
 >>> dpt_
-<DPT_(id="<DPTID("1.001")>", desc="Switch", limits=('Off', 'On'))>
+<DPT(id="<DPTID("1.001")>", desc="Switch", limits=('Off', 'On'))>
 >>> dpt_.id
 <DPTID("1.001")>
 >>> dpt_.id.main
@@ -108,7 +107,7 @@ class DPTValueError(PKNyXValueError):
     """
 
 
-class DPT_(object):
+class DPT(object):
     """ Datapoint Type hanlding class
 
     Manage Datapoint Type informations and behavior.
@@ -126,7 +125,7 @@ class DPT_(object):
     @type _unit: str
     """
     def __init__(self, dptId, desc, limits, unit=None):
-        """ Init the DPT_ object
+        """ Init the DPT object
 
         @param dptId: available implemented Datapoint Type ID
         @type dptId: L{DPTID} or str
@@ -142,7 +141,7 @@ class DPT_(object):
 
         @raise DPTValueError:
         """
-        super(DPT_, self).__init__()
+        super(DPT, self).__init__()
 
         #Logger().debug("DPT.__init__(): id=%s, desc=%s, limits=%r, unit=%s" % (dptId, desc, limits, unit))
 
@@ -159,9 +158,9 @@ class DPT_(object):
 
     def __repr__(self):
         if self._unit is not None:
-            s = "<DPT_(id=\"%r\", desc=\"%s\", limits=%s, unit=\"%s\")>" % (self._id, self._desc, repr(self._limits), self._unit)
+            s = "<DPT(id=\"%r\", desc=\"%s\", limits=%s, unit=\"%s\")>" % (self._id, self._desc, repr(self._limits), self._unit)
         else:
-            s = "<DPT_(id=\"%r\", desc=\"%s\", limits=%s)>" % (self._id, self._desc, repr(self._limits))
+            s = "<DPT(id=\"%r\", desc=\"%s\", limits=%s)>" % (self._id, self._desc, repr(self._limits))
         return s
 
     @property
@@ -189,218 +188,6 @@ class DPT_(object):
         return self._unit
 
 
-class DPT(object):
-    """ Base DPT class
-
-    Manage conversion between KNX encoded data and python types.
-
-    Each DPT class can handles all DPT_s of a same main type.
-
-    The handled DPTs must be defined in sub-classes, as class objects, and named B{DPT_xxx}.
-
-    The term B{data} refers to the KNX representation of the python type B{value}. It is stored in the object.
-    The B{frame} is the 'data' as bytes (python str), which can be sent/received over the bus.
-
-    @ivar _handledDPT: table containing all DPT_ the DPT can handle (defined in sub-classes)
-    @type _handledDPT: dict
-
-    @ivar _dpt: current DPT_ object of the DPT
-    @type _dpt: L{DPT<pknyx.core.dpt>}
-
-    @ivar _data: KNX encoded data
-    @type _data: depends on sub-class
-
-    @todo: remove the strValue stuff
-    """
-    def __new__(cls, *args, **kwargs):
-        """ Init the class with all available types for this DPT
-
-        All class objects defined in sub-classes name B{DPT_xxx}, will be treated as DPT objects and added to the
-        B{_handledDPT} dict.
-        """
-        self = object.__new__(cls, *args, **kwargs)
-        cls._handledDPT = {}
-        for key, value in cls.__dict__.iteritems():
-            if key.startswith("DPT_"):
-                cls._handledDPT[value.id] = value
-
-        return self
-
-    def __init__(self, dptId):
-        """ Creates a DPT for the given Datapoint Type ID
-
-        @param dptId: available implemented Datapoint Type ID
-        @type dptId: L{DPTID} or str
-
-        @raise DPTValueError:
-        """
-        super(DPT, self).__init__()
-
-        if not isinstance(dptId, DPTID):
-            dptId = DPTID(dptId)
-        try:
-            self._dpt = self._handledDPT[dptId]
-        except KeyError:
-            Logger().exception("DPT.__init__()", debug=True)
-            raise DPTValueError("unhandled DPT ID (%s)" % dptId)
-
-        self._data = None
-
-    def __repr__(self):
-        try:
-            data_ = hex(self._data)
-        except TypeError:
-            data_ = None
-        return "<%s(dpt='%s', data=%r)>" % (reprStr(self.__class__), self._dpt.id, data_)
-
-    def _checkData(self, data):
-        """ Check if the data can be handled by the Datapoint Type
-
-        @param data: KNX Datapoint Type to check
-        @type data: int
-
-        @raise ValueError: data can't be handled
-        """
-        Logger().warning("DPT._checkData() not implemented is sub-class")
-
-    def _checkValue(self, value):
-        """ Check if the value can be handled by the Datapoint Type
-
-        @param value: value to check
-        @type value: depends on the DPT
-
-        @raise ValueError: value can't be handled
-        """
-        Logger().warning("DPT._checkValue() not implemented is sub-class")
-
-    #def _checkFrame(self, frame):
-        #""" Check if KNX frame can be handled by the Datapoint Type
-
-        #@param frame: KNX Datapoint Type to check
-        #@type frame: str
-
-        #@raise ValueError: frame can't be handled
-        #"""
-        #Logger().warning("DPT._checkFrame() not implemented is sub-class")
-
-    def _toData(self):
-        """ Return KNX encoded data
-
-        @return: KNX encoded data
-        @rtype: int
-        """
-        return self._data
-
-    def _fromData(self, data):
-        """ Store KNX encoded data
-
-        @param data: KNX encoded data
-        @type data: int
-        """
-        self._data = data
-
-    def _toValue(self, data):
-        """ Conversion from KNX encoded data to python value
-
-        @param data: KNX encoded data
-        @type data: int
-
-        @return: python value
-        @rtype: depends on the DPT
-        """
-        raise NotImplementedError
-
-    def _fromValue(self, value):
-        """ Conversion from python value to KNX encoded data
-
-        @param value: python value
-        @type value: depends on the DPT
-        """
-        raise NotImplementedError
-
-    def _toFrame(self, data):
-        """ Conversion from KNX encoded data to bus frame
-
-        @param data: KNX encoded data
-        @type data: int
-
-        @return: KNX encoded data as bus frame
-        @rtype: str
-        """
-        raise NotImplementedError
-
-    def _fromFrame(self, frame):
-        """ Conversion from bus frame to KNX encoded data
-
-        @param frame: KNX encoded data as bus frame
-        @type frame: str
-
-        @return: KNX encoded data
-        @rtype: depends on the DPT
-        """
-        raise NotImplementedError
-
-    @property
-    def handledDPT(self):
-        handledDPT = self._handledDPT.keys()
-        handledDPT.sort()
-        return handledDPT
-
-    @property
-    def dpt(self):
-        return self._dpt
-
-    @dpt.setter
-    def dpt(self, dptId):
-        if not isinstance(dptId, DPTID):
-            dptId = DPTID(dptId)
-        try:
-            self._dpt = self._handledDPT[dptId]
-        except KeyError:
-            Logger().exception("DPT.dpt", debug=True)
-            raise DPTValueError("unhandled DPT ID (%s)" % dptId)
-
-    @property
-    def data(self):
-        #if self._data is None:
-            #raise DPTValueError("data not initialized")
-        return self._toData()
-
-    @data.setter
-    def data(self, data):
-        self._checkData(data)
-        self._fromData(data)
-
-    @property
-    def value(self):
-        if self._data is None:
-            raise DPTValueError("data not initialized")
-        return self._toValue()
-
-    @value.setter
-    def value(self, value):
-        self._checkValue(value)
-        self._fromValue(value)
-
-    @property
-    def unit(self):
-        return self._dpt.unit
-
-    @property
-    def frame(self):
-        """
-        @todo: use PDT_UNSIGNED_CHAR........
-        """
-        if self._data is None:
-            raise DPTValueError("data not initialized")
-        return self._toFrame()
-
-    @frame.setter
-    def frame(self, frame):
-        #self._checkFrame(frame)
-        self._fromFrame(frame)
-
-
 if __name__ == '__main__':
     import unittest
 
@@ -415,19 +202,7 @@ if __name__ == '__main__':
 
         def test_constructor(self):
             with self.assertRaises(DPTValueError):
-                DPT_("9.001", "Temperature", -273)
-
-    class DPTTestCase(unittest.TestCase):
-
-        def setUp(self):
-            pass
-
-        def tearDown(self):
-            pass
-
-        def test_constructor(self):
-            with self.assertRaises(DPTValueError):
-                DPT("1.001")
+                DPT("9.001", "Temperature", -273)
 
 
     unittest.main()

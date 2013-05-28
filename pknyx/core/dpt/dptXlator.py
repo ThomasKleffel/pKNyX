@@ -39,39 +39,6 @@ Implements
 Documentation
 =============
 
-From KNX documentation::
-
-                    Datapoint Type
-                          |
-            ----------------------------
-            |                           |
-        Data Type                   Dimension
-            |                           |
-       -----------                 ----------
-      |           |               |          |
-   Format      Encoding         Range       Unit
-
-The Datapoint Types are defined as a combination of a data type and a dimension. It has been preferred not to define the
-data types separately from any dimension. This only leads to more abstract naming and identifications.
-
-Any Datapoint Type thus standardizes one combination of format, encoding, range and unit. The Datapoint Types will be
-used to describe further KNX Interworking Standards.
-
-The Datapoint Types are identified by a 16 bit main number separated by a dot from a 16-bit subnumber, e.g. "7.002".
-The coding is as follows::
-
-    ---------------------------------------
-     Field              | Stands for
-    --------------------+------------------
-     main number (left) | Format, Encoding
-     subnumber (right)  | Range, Unit
-    ---------------------------------------
-
-Datapoint Types with the same main number thus have the same format and encoding.
-
-Datapoint Types with the same main number have the same data type. A different subnumber indicates a different dimension
-(different range and/or different unit).
-
 Usage
 =====
 

@@ -184,15 +184,28 @@ class VMC(Device):
     DP_02 = {'name': "temp_sortie", dptId: "9.001", 'flags': "cwtu", 'priority': "low", 'initValue': 0}
     DP_03 = dict(name="temp_repris", dptId="9.001", flags="cwtu", priority="low", initValue=0)
 
-    def init(self):
+    def _init(self):
         """
         """
 
-    def initDP(self):
+    def _initDP(self):
         """
         """
         self.dp["temp_entree"].value = 0  # Add persistence feature!!!
         # self.dp.temp_entree.value = 0
+
+    def _poll(self):
+        """
+        This method is called regularly by the thread. Do here whatever you need to do.
+        Stop thread if return True?
+        If not overloaded in the Device sub-class, the thread sleeps forever. Only callbacks, if any, will run.
+        Really needed? Just for fast polling...
+        """
+
+    @Device.schedule.at(minute=5)
+    def myCallback(self):
+        """
+        """
 
     #def bus(self, event):
         #"""
@@ -205,32 +218,10 @@ class VMC(Device):
         #print event.priority
         #print event.cEMI
 
-    @trigger.schedule.at()
-    @trigger.dp.change()
-    def notify(self, event):
-        """
-        """
-        print event.src
-        print event.dest
-        print event.value
-        print event.priority
-        print event.cEMI
-
-    def execute(self):
-        """
-        This method is called regularly by the thread. Do here whatever you need to do.
-        Stop thread if return True?
-        If not overloaded in the Device sub-class, the thread sleeps forever. Only callbacks, if any, will run.
-        """
-
 
 vmc = VMC("1.2.3")
-#vmc.link("temp_entree", "1/1/1")  # allow wildcard and regexp?
-#vmc.dpTempSalon.link("1/1/1")
-#ETS.addLink(vmc.dpTempSalon, "1/1/1")
 ETS.link(vmc, "temp_entree", "1/1/1")
 ETS.link(vmc, "temp_entree", ("1/1/1", "1/1/2"))
 
 
 ################################################################################
-

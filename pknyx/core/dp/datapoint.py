@@ -72,7 +72,7 @@ Usage
 >>> from dp import Datapoint as DP
 >>> dp = DP("test")
 >>> dp
-<Datapoint("test", <DPTID("1.xxx")>, flags="cwtu", Priority(low)>)>
+<Datapoint("test", <DPTID("1.xxx")>, flags="CWTU", Priority(low)>)>
 >>> dp.main
 'test'
 >>> dp.dptId
@@ -91,7 +91,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.dpt.dptConverterFactory import DPTConverterFactory
+from pknyx.core.dpt.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dpt.dpt import DPTID
 #from pknyx.core.knxFlags import KnxFlags
 from pknyx.core.priority import Priority
@@ -105,6 +105,9 @@ class DPValueError(PKNyXValueError):
 class Datapoint(object):
     """ Datapoint handling class
 
+    The term B{data} refers to the KNX representation of the python type B{value}. It is stored in this object.
+    The B{frame} is the 'data' as bytes (python str), which can be sent/received over the bus.
+
     @ivar _name: name of the Datapoint
     @type _name: str
 
@@ -114,10 +117,16 @@ class Datapoint(object):
     @ivar _priority: bus message priority
     @type _priority: L{Priority}
 
-    @ivar _dptHandler: DPT handler associated with this Datapoint
-    @param _dptHandler: L{DPTHandlerBase}
+    @ivar _dptXlator: DPT translator associated with this Datapoint
+    @type _dptXlator: L{DPTXlator}
+
+    @ivar _data: KNX encoded data
+    @type _data: depends on sub-class
+
+    @todo: add desc. param
+    @todo: also create the generic handler (if not the default one), and a .generic property
     """
-    def __init__(self, name, dptId=DPTID(), flags="cwtu", priority=Priority()):
+    def __init__(self, name, dptId=DPTID(), flags="CWTU", priority=Priority()):
         """
 
         @param name: name of the Datapoint
@@ -138,7 +147,6 @@ class Datapoint(object):
                        #(name, dptId, flags, priority, stateBased))
 
         self._name = name
-        self._mainGroupAddress = mainGroupAddress
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         self._dptId = dptId
@@ -149,7 +157,8 @@ class Datapoint(object):
             priority = Priority(priority)
         self._priority = priority
 
-        self._dptHandler = DPTConverterFactory.create(dptId)
+        self._dptXlator = DPTXlatorFactory.create(dptId)
+        self._dptXlatorGeneric = None
 
     def __repr__(self):
         s = "<Datapoint(\"%s\", %s, flags=\"%s\", %s)>" % \
@@ -168,14 +177,19 @@ class Datapoint(object):
         """
         return self._dptId
 
-    #@dptId.setter
-    #def dptId(self, dptId):
-        #""" Change the Datapoint DPT ID
-        #"""
-        #if not isinstance(dptId, DPTID):
-            #dptId = DPTID(dptId)
-        #self._dptId = dptId
-        self._dpt.
+    @dptId.setter
+    def dptId(self, dptId):
+        """ Change the Datapoint DPT ID
+        """
+        if not isinstance(dptId, DPTID):
+            dptId = DPTID(dptId)
+        self._dptId = dptId
+
+    @property
+    def dpXlator(self):
+        """ return the DPT
+        """
+        return self._dptXlator
 
     @property
     def flags(self):
@@ -204,12 +218,42 @@ class Datapoint(object):
         #self._priority = priority
 
     @property
+    def data(self):
+        return self.data
+
+    @data.setter
+    def data(self, data):
+        self._dptXlator.checkData(data)
+        self._data = data
+
+    @property
     def value(self):
-        return self._dpt.value
+        if self._data is None:
+            raise DPValueError("data not initialized")
+       return self._dptXlator.dataToValue(self._data)
 
     @value.setter
     def value(self, value):
-        self.dpt.value = value
+        self._dptXlator.checkValue(value)
+        self._data = self._dptXlator.valueToData(value)
+
+    @property
+    def unit(self):
+        return self._dptXlator.unit
+
+    @property
+    def frame(self):
+        """
+        @todo: use PDT_UNSIGNED_CHAR........
+        """
+        if self._data is None:
+            raise DPValueError("data not initialized")
+        return self._dptXlator.dataToFrame(self._data)
+
+    @frame.setter
+    def frame(self, frame):
+        #self._dptXlator.checkFrame(frame)
+        self._data = self._dptXlator.frameToData(frame)
 
 
 if __name__ == '__main__':

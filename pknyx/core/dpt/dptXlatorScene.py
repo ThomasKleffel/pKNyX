@@ -33,12 +33,12 @@ Datapoint Types management.
 Implements
 ==========
 
- - B{DPTScene}
+ - B{DPTXlatorScene}
 
 Usage
 =====
 
-see L{DPTBoolean}
+see L{DPTXlatorBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -51,11 +51,12 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
+from pknyx.core.dpt.dpt import DPT
+from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 
 
-class DPTScene(DPT):
-    """ DPT class for Scene (B1r1U6) KNX Datapoint Type
+class DPTXlatorScene(DPTXlatorBase):
+    """ DPTXlator class for Scene (B1r1U6) KNX Datapoint Type
 
      - 1 Byte: CrUUUUUU
      - C: Control bit [0, 1]
@@ -64,39 +65,39 @@ class DPTScene(DPT):
 
     .
     """
-    DPT_Generic = DPT_("17.xxx", "Generic", (0, 255))
+    DPT_Generic = DPT("17.xxx", "Generic", (0, 255))
 
-    DPT_Date = DPT_("17.001", "Scene", ((0, 0), (1, 63)))
+    DPT_Date = DPT("17.001", "Scene", ((0, 0), (1, 63)))
 
-    def _checkData(self, data):
+    def checkData(self, data):
         if not 0x00 <= data <= 0xff:
-            raise DPTValueError("data %s not in (0x00, 0xff)" % hex(data))
+            raise DPTXlatorValueError("data %s not in (0x00, 0xff)" % hex(data))
 
-    def _checkValue(self, value):
+    def checkValue(self, value):
         for index in range(2):
             if not self._dpt.limits[0][index] <= value[index] <= self._dpt.limits[1][index]:
-                raise DPTValueError("value not in range %r" % repr(self._dpt.limits))
+                raise DPTXlatorValueError("value not in range %r" % repr(self._dpt.limits))
 
-    def _toValue(self):
-        ctrl = (self._data >> 7) & 0x01
-        scene = self._data & 0x3f
+    def dataToValue(self, data):
+        ctrl = (data >> 7) & 0x01
+        scene = data & 0x3f
         value = (ctrl, scene)
-        #Logger().debug("DPTScene._toValue(): value=%d" % value)
+        #Logger().debug("DPTXlatorScene._toValue(): value=%d" % value)
         return value
 
-    def _fromValue(self, value):
+    def valueToData(self, value):
         ctrl = value[0]
         scene = value[1]
         data = ctrl << 7 | scene
-        #Logger().debug("DPTScene._fromValue(): data=%s" % hex(data))
-        self._data = data
+        #Logger().debug("DPTXlatorScene.valueToData(): data=%s" % hex(data))
+        return data
 
-    def _toFrame(self):
-        return struct.pack(">B", self._data)
+    def dataToFrame(self, data):
+        return struct.pack(">B", data)
 
-    def _fromFrame(self, frame):
-        data = struct.unpack(">B", frame)
-        self._data = data[0]
+    def frameToData(self, frame):
+        data = struct.unpack(">B", frame)[0]
+        return data
 
     @property
     def ctrl(self):
@@ -124,50 +125,46 @@ if __name__ == '__main__':
                 ((1,  1), 0x81, "\x81"),
                 ((1, 63), 0xbf, "\xbf"),
             )
-            self.dpt = DPTScene("17.001")
+            self.dptXlator = DPTXlatorScene("17.001")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPT
+            #print self.dptXlator.handledDPT
 
-        def test_checkValue(self):
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((-1, 0))
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((0, -1))
+        def testcheckValue(self):
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((-1, 0))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((0, -1))
 
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((0, 64))
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((2, 0))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((0, 64))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((2, 0))
 
-        def test_toValue(self):
+        def test_dataToValue(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                value_ = self.dpt.value
+                value_ = self.dptXlator.dataToValue(data)
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %s, should be %s)" %
                                  (hex(data), value_, value))
 
-        def test_fromValue(self):
+        def test_valueToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.value = value
-                data_ = self.dpt.data
+                data_ = self.dptXlator.valueToData(value)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %s is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
-        def test_toFrame(self):
+        def test_dataToFrame(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                frame_ = self.dpt.frame
+                frame_ = self.dptXlator.dataToFrame(data)
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
-        def test_fromFrame(self):
+        def test_frameToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.frame = frame
-                data_ = self.dpt.data
+                data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

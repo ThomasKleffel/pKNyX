@@ -33,12 +33,12 @@ Datapoint Types management.
 Implements
 ==========
 
- - B{DPT8BitUnsigned}
+ - B{DPTXlator8BitUnsigned}
 
 Usage
 =====
 
-see L{DPTBoolean}
+see L{DPTXlatorBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -51,46 +51,47 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
+from pknyx.core.dpt.dpt import DPT
+from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 
 
-class DPT8BitUnsigned(DPT):
-    """ DPT class for 8-Bit-Unsigned (U8) KNX Datapoint Type
+class DPTXlator8BitUnsigned(DPTXlatorBase):
+    """ DPTXlator class for 8-Bit-Unsigned (U8) KNX Datapoint Type
 
      - 1 Byte: UUUUUUUU
      - U: Byte [0:255]
 
     .
     """
-    DPT_Generic = DPT_("5.xxx", "Generic", (0, 255))
+    DPT_Generic = DPT("5.xxx", "Generic", (0, 255))
 
-    DPT_Scaling = DPT_("5.001", "Scaling", (0, 100), "%")
-    DPT_Angle = DPT_("5.003", "Angle", (0, 360), "°")
-    DPT_Percent_U8 = DPT_("5.004", "Percent (8 bit)", (0, 255), "%")
-    DPT_DecimalFactor = DPT_("5.005", "Decimal factor", (0, 1), "ratio")
+    DPT_Scaling = DPT("5.001", "Scaling", (0, 100), "%")
+    DPT_Angle = DPT("5.003", "Angle", (0, 360), "°")
+    DPT_Percent_U8 = DPT("5.004", "Percent (8 bit)", (0, 255), "%")
+    DPT_DecimalFactor = DPT("5.005", "Decimal factor", (0, 1), "ratio")
     #DPT_Tariff = DPT("5.006", "Tariff", (0, 254), "ratio")
-    DPT_Value_1_Ucount = DPT_("5.010", "Unsigned count", (0, 255), "pulses")
+    DPT_Value_1_Ucount = DPT("5.010", "Unsigned count", (0, 255), "pulses")
 
-    def _checkData(self, data):
+    def checkData(self, data):
         if not 0x00 <= data <= 0xff:
-            raise DPTValueError("data %s not in (0x00, 0xff)" % hex(data))
+            raise DPTXlatorValueError("data %s not in (0x00, 0xff)" % hex(data))
 
-    def _checkValue(self, value):
+    def checkValue(self, value):
         if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
-            raise DPTValueError("value not in range %r" % repr(self._dpt.limits))
+            raise DPTXlatorValueError("value not in range %r" % repr(self._dpt.limits))
 
-    def _toValue(self):
-        value = self._data
+    def dataToValue(self, data):
+        value = data
         if self._dpt is self.DPT_Scaling:
             value = value * 100. / 255.
         elif self._dpt is self.DPT_Angle:
             value = value * 360. / 255.
         elif self._dpt is self.DPT_DecimalFactor:
             value = value / 255.
-        #Logger().debug("DPT8BitUnsigned._toValue(): value=%d" % value)
+        #Logger().debug("DPTXlator8BitUnsigned._toValue(): value=%d" % value)
         return value
 
-    def _fromValue(self, value):
+    def valueToData(self, value):
         if self._dpt is self.DPT_Scaling:
             data = int(round(value * 255 / 100.))
         elif self._dpt is self.DPT_Angle:
@@ -99,14 +100,15 @@ class DPT8BitUnsigned(DPT):
             data = int(round(value * 255))
         else:
             data = value
-        #Logger().debug("DPT8BitUnsigned._valueToData(): data=%s" % hex(data))
-        self._data = data
+        #Logger().debug("DPTXlator8BitUnsigned._valueToData(): data=%s" % hex(data))
+        return data
 
-    def _toFrame(self):
-        return struct.pack(">B", self._data)
+    def dataToFrame(self, data):
+        return struct.pack(">B", data)
 
-    def _fromFrame(self, frame):
-        self._data = struct.unpack(">B", frame)[0]
+    def frameToData(self, frame):
+        data = struct.unpack(">B", frame)[0]
+        return data
 
 
 if __name__ == '__main__':
@@ -123,43 +125,39 @@ if __name__ == '__main__':
                 (  1, 0x01, "\x01"),
                 (255, 0xff, "\xff"),
             )
-            self.dpt = DPT8BitUnsigned("5.xxx")
+            self.dptXlator = DPTXlator8BitUnsigned("5.xxx")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPT
+            #print self.dptXlator.handledDPT
 
-        def test_checkValue(self):
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue(self.dpt._dpt.limits[1] + 1)
+        def testcheckValue(self):
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue(self.dptXlator._dpt.limits[1] + 1)
 
-        def test_toValue(self):
+        def test_dataToValue(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                value_ = self.dpt.value
+                value_ = self.dptXlator.dataToValue(data)
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %d, should be %d)" %
                                  (hex(data), value_, value))
 
-        def test_fromValue(self):
+        def test_valueToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.value = value
-                data_ = self.dpt.data
+                data_ = self.dptXlator.valueToData(value)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %d is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
-        def test_toFrame(self):
+        def test_dataToFrame(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                frame_ = self.dpt.frame
+                frame_ = self.dptXlator.dataToFrame(data)
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
-        def test_fromFrame(self):
+        def test_frameToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.frame = frame
-                data_ = self.dpt.data
+                data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

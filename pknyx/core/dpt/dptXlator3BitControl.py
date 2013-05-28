@@ -33,12 +33,12 @@ Datapoint Types management.
 Implements
 ==========
 
- - B{DPT3BitControl}
+ - B{DPTXlator3BitControl}
 
 Usage
 =====
 
-see L{DPTBoolean}
+see L{DPTXlatorBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -50,12 +50,13 @@ __revision__ = "$Id$"
 import struct
 
 from pknyx.common.loggingServices import Logger
-from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
-from pknyx.core.dpt.dptBoolean import DPTBoolean
+from pknyx.core.dpt.dpt import DPT
+from pknyx.core.dpt.dptXlatorBoolean import DPTXlatorBoolean
+from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 
 
-class DPT3BitControl(DPT):
-    """ DPT class for 3-Bit-Control (B1U3) KNX Datapoint Type
+class DPTXlator3BitControl(DPTXlatorBase):
+    """ DPTXlator class for 3-Bit-Control (B1U3) KNX Datapoint Type
 
     This is a composite DPT.
 
@@ -70,65 +71,48 @@ class DPT3BitControl(DPT):
     @ivar _dpt: sub-DPT
     @type _dpt: L{DPT}
     """
-    DPT_Generic = DPT_("3.xxx", "Generic", (-7, 7))
+    DPT_Generic = DPT("3.xxx", "Generic", (-7, 7))
 
-    DPT_Control_Dimming = DPT_("3.007", "Dimming", (-7, 7))
-    DPT_Control_Blinds = DPT_("3.008", "Blinds", (-7, 7))
+    DPT_Control_Dimming = DPT("3.007", "Dimming", (-7, 7))
+    DPT_Control_Blinds = DPT("3.008", "Blinds", (-7, 7))
 
     def __init__(self, dptId):
-        super(DPT3BitControl, self).__init__(dptId)
+        super(DPTXlator3BitControl, self).__init__(dptId)
 
         mainId, subId = dptId.split('.')
         dptId_ = "1.%s" % subId
-        self._dpt = DPTBoolean(dptId_)
+        self._dpt2 = DPTXlatorBoolean(dptId_)
 
-    def _checkData(self, data):
+    def checkData(self, data):
         if not 0x00 <= data <= 0x0f:
-            raise DPTValueError("data %s not in (0x00, 0x0f)" % hex(data))
+            raise DPTXlatorValueError("data %s not in (0x00, 0x0f)" % hex(data))
 
-    def _checkValue(self, value):
+    def checkValue(self, value):
         if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
-            raise DPTValueError("value %d not in range %r" % (value, repr(self._dpt.limits)))
+            raise DPTXlatorValueError("value %d not in range %r" % (value, repr(self._dpt.limits)))
 
-    def _toData(self):
-
-        # Combinate the control, which is stored in the sub-DPT, and the stepCode, which is stored here.
-        ctrl = self._dpt.data
-        stepCode = self._data
-        data = ctrl << 3 | stepCode
-        return data
-
-    def _fromData(self, data):
-
-        # Split control and stepCode; store control in sub-DPT, and stepCode here.
+    def dataToValue(self, data):
         ctrl = (data & 0x08) >> 3
-        self._dpt.data = ctrl
         stepCode = data & 0x07
-        self._data = stepCode
-
-    def _toValue(self):
-        ctrl = self._dpt.data
-        stepCode = self._data
         value = stepCode if ctrl else -stepCode
         return value
 
-    def _fromValue(self, value):
+    def valueToData(self, value):
         ctrl = 1 if value > 0 else 0
-        self._dpt.data = ctrl
         stepCode = abs(value) & 0x07
-        self._data = stepCode
+        data = ctrl << 3 | stepCode
+        return data
 
     # Add properties control and stepCode + helper methods (+ intervals?)
 
-    def _toFrame(self):
+    def dataToFrame(self, data):
+        return struct.pack(">B", data)
 
-        # Note the usage of self.data, and not self._data!
-        return struct.pack(">B", self.data)
+    def frameToData(self, frame):
 
-    def _fromFrame(self, frame):
-
-        # Note the usage of self.data, and not self._data!
-        self.data = struct.unpack(">B", frame)[0]
+        # Note the usage of self.data, and not data!
+        data = struct.unpack(">B", frame)[0]
+        return data
 
     #def nbIntervalsToStepCode(self, nbIntervals):
         #""" Compute the stepCode for a given number of intervals
@@ -192,55 +176,51 @@ if __name__ == '__main__':
                 (6, 32),
                 (7, 64),
             )
-            self.dpt = DPT3BitControl("3.xxx")
+            self.dptXlator = DPTXlator3BitControl("3.xxx")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPT
+            #print self.dptXlator.handledDPT
 
-        def test_checkValue(self):
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue(self.dpt._dpt.limits[1] + 1)
+        def testcheckValue(self):
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue(self.dptXlator.dpt.limits[1] + 1)
 
-        def test_toValue(self):
+        def test_dataToValue(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                value_ = self.dpt.value
+                value_ = self.dptXlator.dataToValue(data)
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %d, should be %d)" %
                                  (hex(data), value_, value))
 
-        def test_fromValue(self):
+        def test_valueToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.value = value
-                data_ = self.dpt.data
+                data_ = self.dptXlator.valueToData(value)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %d is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
-        def test_toFrame(self):
+        def test_dataToFrame(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                frame_ = self.dpt.frame
+                frame_ = self.dptXlator.dataToFrame(data)
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
-        def test_fromFrame(self):
+        def test_frameToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.frame = frame
-                data_ = self.dpt.data
+                data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 
         #def test_nbIntervalsToStepCode(self):
             #for stepCode, nbIntervals in self.stepCodeIntervalTable:
-                #nbIntervals_ = self.dpt.stepCodeToNbIntervals(stepCode)
+                #nbIntervals_ = self.dptXlator.stepCodeToNbIntervals(stepCode)
                 #self.assertEqual(nbIntervals_, nbIntervals, "Conversion failed (computed nbIntervals for stepCode %d is %d, should be %d)" %
                                  #(stepCode, nbIntervals_, nbIntervals))
 
         #def test_stepCodeToNbIntervals(self):
             #for stepCode, nbIntervals in self.stepCodeIntervalTable:
-                #stepCode_ = self.dpt.nbIntervalsToStepCode(nbIntervals)
+                #stepCode_ = self.dptXlator.nbIntervalsToStepCode(nbIntervals)
                 #self.assertEqual(stepCode_, stepCode, "Conversion failed (computed stepCode for %d intervals is %d, should be %d)" %
                                  #(nbIntervals, stepCode_, stepCode))
 

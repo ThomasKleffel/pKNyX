@@ -34,7 +34,7 @@ Implements
 ==========
 
  - B{DPTXlatorValueError}
- - B{DPTXlator}
+ - B{DPTXlatorBase}
 
 Documentation
 =============
@@ -59,7 +59,7 @@ class DPTXlatorValueError(PKNyXValueError):
     """
 
 
-class DPTXlator(object):
+class DPTXlatorBase(object):
     """ Base DPT translator class
 
     Manage conversion between KNX encoded data and python types.
@@ -89,7 +89,7 @@ class DPTXlator(object):
         cls._handledDPT = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("DPT_"):
-                cls._handledDPT[value.id] = value
+                self._handledDPT[value.id] = value
 
         return self
 
@@ -101,14 +101,14 @@ class DPTXlator(object):
 
         @raise DPTXlatorValueError:
         """
-        super(DPT, self).__init__()
+        super(DPTXlatorBase, self).__init__()
 
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         try:
             self._dpt = self._handledDPT[dptId]
         except KeyError:
-            Logger().exception("DPTXlator.__init__()", debug=True)
+            Logger().exception("DPTXlatorBase.__init__()", debug=True)
             raise DPTXlatorValueError("unhandled DPT ID (%s)" % dptId)
 
         self._data = None
@@ -137,7 +137,7 @@ class DPTXlator(object):
         try:
             self._dpt = self._handledDPT[dptId]
         except KeyError:
-            Logger().exception("DPTXlator.dpt", debug=True)
+            Logger().exception("DPTXlatorBase.dpt", debug=True)
             raise DPTXlatorValueError("unhandled DPT ID (%s)" % dptId)
 
     @property
@@ -152,7 +152,7 @@ class DPTXlator(object):
 
         @raise DPTXlatorValueError: data can't be handled
         """
-        Logger().warning("DPTXlator._checkData() not implemented is sub-class")
+        Logger().warning("DPTXlatorBase.checkData() not implemented is sub-class")
 
     def checkValue(self, value):
         """ Check if the value can be handled by the Datapoint Type
@@ -162,7 +162,7 @@ class DPTXlator(object):
 
         @raise DPTXlatorValueError: value can't be handled
         """
-        Logger().warning("DPTXlator._checkValue() not implemented is sub-class")
+        Logger().warning("DPTXlatorBase.checkValue() not implemented is sub-class")
 
     def checkFrame(self, frame):
         """ Check if KNX frame can be handled by the Datapoint Type
@@ -172,7 +172,7 @@ class DPTXlator(object):
 
         @raise DPTXlatorValueError: frame can't be handled
         """
-        Logger().warning("DPTXlator._checkFrame() not implemented is sub-class")
+        Logger().warning("DPTXlatorBase._checkFrame() not implemented is sub-class")
 
     def dataToValue(self, data):
         """ Conversion from KNX encoded data to python value
@@ -220,7 +220,7 @@ if __name__ == '__main__':
     import unittest
 
 
-    class DPTXlatorTestCase(unittest.TestCase):
+    class DPTXlatorBaseTestCase(unittest.TestCase):
 
         def setUp(self):
             pass
@@ -230,7 +230,7 @@ if __name__ == '__main__':
 
         def test_constructor(self):
             with self.assertRaises(DPTXlatorValueError):
-                DPTXlator("1.001")
+                DPTXlatorBase("1.001")
 
 
     unittest.main()

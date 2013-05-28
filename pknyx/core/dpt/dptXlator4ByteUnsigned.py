@@ -33,12 +33,12 @@ Datapoint Types management
 Implements
 ==========
 
- - B{DPT4ByteUnsigned}
+ - B{DPTXlator4ByteUnsigned}
 
 Usage
 =====
 
-see L{DPTBoolean}
+see L{DPTXlatorBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -51,44 +51,46 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
+from pknyx.core.dpt.dpt import DPT
+from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 
 
-class DPT4ByteUnsigned(DPT):
-    """ DPT class for 4-Byte-Unsigned (U32) KNX Datapoint Type
+class DPTXlator4ByteUnsigned(DPTXlatorBase):
+    """ DPTXlator class for 4-Byte-Unsigned (U32) KNX Datapoint Type
 
      - 4 Byte Unsigned: UUUUUUUU UUUUUUUU UUUUUUUU UUUUUUUU
      - U: Bytes [0:4294967295]
 
     .
     """
-    DPT_Generic = DPT_("12.xxx", "Generic", (0, 4294967295))
+    DPT_Generic = DPT("12.xxx", "Generic", (0, 4294967295))
 
-    DPT_Value_4_Ucount = DPT_("12.001", "Unsigned count", (0, 4294967295), "pulses")
+    DPT_Value_4_Ucount = DPT("12.001", "Unsigned count", (0, 4294967295), "pulses")
 
-    def _checkData(self, data):
+    def checkData(self, data):
         if not 0x00000000 <= data <= 0xffffffff:
-            raise DPTValueError("data %s not in (0x00000000, 0xffffffff)" % hex(data))
+            raise DPTXlatorValueError("data %s not in (0x00000000, 0xffffffff)" % hex(data))
 
-    def _checkValue(self, value):
+    def checkValue(self, value):
         if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
-            raise DPTValueError("Value not in range %r" % repr(self._dpt.limits))
+            raise DPTXlatorValueError("Value not in range %r" % repr(self._dpt.limits))
 
-    def _toValue(self):
-        value = self._data
-        #Logger().debug("DPT4ByteUnsigned._toValue(): value=%d" % value)
+    def dataToValue(self, data):
+        value = data
+        #Logger().debug("DPTXlator4ByteUnsigned._toValue(): value=%d" % value)
         return value
 
-    def _fromValue(self, value):
+    def valueToData(self, value):
         data = value
-        #Logger().debug("DPT4ByteUnsigned._fromValue(): data=%s" % hex(data))
-        self._data = data
+        #Logger().debug("DPTXlator4ByteUnsigned.valueToData(): data=%s" % hex(data))
+        return data
 
-    def _toFrame(self):
-        return struct.pack(">L", self._data)
+    def dataToFrame(self, data):
+        return struct.pack(">L", data)
 
-    def _fromFrame(self, frame):
-        self._data = struct.unpack(">L", frame)[0]
+    def frameToData(self, frame):
+        data = struct.unpack(">L", frame)[0]
+        return data
 
 
 if __name__ == '__main__':
@@ -105,43 +107,39 @@ if __name__ == '__main__':
                 (         1, 0x00000001, "\x00\x00\x00\x01"),
                 (4294967295, 0xffffffff, "\xff\xff\xff\xff"),
             )
-            self.dpt = DPT4ByteUnsigned("12.xxx")
+            self.dptXlator = DPTXlator4ByteUnsigned("12.xxx")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPT
+            #print self.dptXlator.handledDPT
 
-        def test_checkValue(self):
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue(self.dpt._dpt.limits[1] + 1)
+        def testcheckValue(self):
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue(self.dptXlator._dpt.limits[1] + 1)
 
-        def test_toValue(self):
+        def test_dataToValue(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                value_ = self.dpt.value
+                value_ = self.dptXlator.dataToValue(data)
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %d, should be %d)" %
                                  (hex(data), value_, value))
 
-        def test_fromValue(self):
+        def test_valueToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.value = value
-                data_ = self.dpt.data
+                data_ = self.dptXlator.valueToData(value)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %d is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
-        def test_toFrame(self):
+        def test_dataToFrame(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                frame_ = self.dpt.frame
+                frame_ = self.dptXlator.dataToFrame(data)
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
-        def test_fromFrame(self):
+        def test_frameToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.frame = frame
-                data_ = self.dpt.data
+                data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

@@ -33,12 +33,12 @@ Datapoint Types management
 Implements
 ==========
 
- - B{DPT2ByteUnsigned}
+ - B{DPTXlator2ByteUnsigned}
 
 Usage
 =====
 
-see L{DPTBoolean}
+see L{DPTXlatorBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -51,64 +51,66 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
+from pknyx.core.dpt.dpt import DPT
+from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 
 
-class DPT2ByteUnsigned(DPT):
-    """ DPT class for 2-Byte-Unsigned (U16) KNX Datapoint Type
+class DPTXlator2ByteUnsigned(DPTXlatorBase):
+    """ DPTXlator class for 2-Byte-Unsigned (U16) KNX Datapoint Type
 
       - 2 Byte Unsigned: UUUUUUUU UUUUUUUU
       - U: Bytes [0:65535]
 
     .
     """
-    DPT_Generic = DPT_("7.xxx", "Generic", (0, 65535))
+    DPT_Generic = DPT("7.xxx", "Generic", (0, 65535))
 
-    DPT_Value_2_Ucount = DPT_("7.001", "Unsigned count", (0, 65535), "pulses")
-    DPT_TimePeriodMsec = DPT_("7.002", "Time period (resol. 1ms)", (0, 65535), "ms")
-    DPT_TimePeriod10Msec = DPT_("7.003", "Time period (resol. 10ms)", (0, 655350), "ms")
-    DPT_TimePeriod100Msec = DPT_("7.004", "Time period (resol. 100ms)", (0, 6553500), "ms")
-    DPT_TimePeriodSec = DPT_("7.005", "Time period (resol. 1s)", (0, 65535), "s")
-    DPT_TimePeriodMin = DPT_("7.006", "Time period (resol. 1min)", (0, 65535), "min")
-    DPT_TimePeriodHrs = DPT_("7.007", "Time period (resol. 1h)", (0, 65535), "h")
-    DPT_PropDataType = DPT_("7.010", "Interface object property ID", (0, 65535))
-    DPT_Length_mm = DPT_("7.011", "Length", (0, 65535), "mm")
+    DPT_Value_2_Ucount = DPT("7.001", "Unsigned count", (0, 65535), "pulses")
+    DPT_TimePeriodMsec = DPT("7.002", "Time period (resol. 1ms)", (0, 65535), "ms")
+    DPT_TimePeriod10Msec = DPT("7.003", "Time period (resol. 10ms)", (0, 655350), "ms")
+    DPT_TimePeriod100Msec = DPT("7.004", "Time period (resol. 100ms)", (0, 6553500), "ms")
+    DPT_TimePeriodSec = DPT("7.005", "Time period (resol. 1s)", (0, 65535), "s")
+    DPT_TimePeriodMin = DPT("7.006", "Time period (resol. 1min)", (0, 65535), "min")
+    DPT_TimePeriodHrs = DPT("7.007", "Time period (resol. 1h)", (0, 65535), "h")
+    DPT_PropDataType = DPT("7.010", "Interface object property ID", (0, 65535))
+    DPT_Length_mm = DPT("7.011", "Length", (0, 65535), "mm")
     #DPT_UEICurrentmA = DPT("7.012", "Electrical current", (0, 65535), "mA")  # Add special meaning for 0 (create Limit object)
-    DPT_Brightness = DPT_("7.013", "Brightness", (0, 65535), "lx")
+    DPT_Brightness = DPT("7.013", "Brightness", (0, 65535), "lx")
 
-    def _checkData(self, data):
+    def checkData(self, data):
         if not 0x0000 <= data <= 0xffff:
-            raise DPTValueError("data %s not in (0x0000, 0xffff)" % hex(data))
+            raise DPTXlatorValueError("data %s not in (0x0000, 0xffff)" % hex(data))
 
-    def _checkValue(self, value):
+    def checkValue(self, value):
         if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
-            raise DPTValueError("Value not in range %r" % repr(self._dpt.limits))
+            raise DPTXlatorValueError("Value not in range %r" % repr(self._dpt.limits))
 
-    def _toValue(self):
+    def dataToValue(self, data):
         if self._dpt is self.DPT_TimePeriod10Msec:
-            value = self._data * 10.
+            value = data * 10.
         elif self._dpt is self.DPT_TimePeriod100Msec:
-            value = self._data * 100.
+            value = data * 100.
         else:
-            value = self._data
-        #Logger().debug("DPT2ByteUnsigned._toValue(): value=%d" % value)
+            value = data
+        #Logger().debug("DPTXlator2ByteUnsigned._toValue(): value=%d" % value)
         return value
 
-    def _fromValue(self, value):
+    def valueToData(self, value):
         if self._dpt is self.DPT_TimePeriod10Msec:
             data = int(round(value / 10.))
         elif self._dpt is self.DPT_TimePeriod100Msec:
             data = int(round(value / 100.))
         else:
             data = value
-        #Logger().debug("DPT2ByteUnsigned._fromValue(): data=%s" % hex(data))
-        self._data = data
+        #Logger().debug("DPTXlator2ByteUnsigned.valueToData(): data=%s" % hex(data))
+        return data
 
-    def _toFrame(self):
-        return struct.pack(">H", self._data)
+    def dataToFrame(self, data):
+        return struct.pack(">H", data)
 
-    def _fromFrame(self, frame):
-        self._data = struct.unpack(">H", frame)[0]
+    def frameToData(self, frame):
+        data = struct.unpack(">H", frame)[0]
+        return data
 
 
 if __name__ == '__main__':
@@ -125,43 +127,39 @@ if __name__ == '__main__':
                 (    1, 0x0001, "\x00\x01"),
                 (65535, 0xffff, "\xff\xff"),
             )
-            self.dpt = DPT2ByteUnsigned("7.xxx")
+            self.dptXlator = DPTXlator2ByteUnsigned("7.xxx")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPT
+            #print self.dptXlator.handledDPT
 
-        def test_checkValue(self):
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue(self.dpt._dpt.limits[1] + 1)
+        def testcheckValue(self):
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue(self.dptXlator._dpt.limits[1] + 1)
 
-        def test_toValue(self):
+        def test_dataToValue(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                value_ = self.dpt.value
+                value_ = self.dptXlator.dataToValue(data)
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %d, should be %d)" %
                                  (hex(data), value_, value))
 
-        def test_fromValue(self):
+        def test_valueToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.value = value
-                data_ = self.dpt.data
+                data_ = self.dptXlator.valueToData(value)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %d is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
-        def test_toFrame(self):
+        def test_dataToFrame(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                frame_ = self.dpt.frame
+                frame_ = self.dptXlator.dataToFrame(data)
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
-        def test_fromFrame(self):
+        def test_frameToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.frame = frame
-                data_ = self.dpt.data
+                data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

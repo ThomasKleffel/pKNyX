@@ -33,12 +33,12 @@ Datapoint Types management.
 Implements
 ==========
 
- - B{DPTString}
+ - B{DPTXlatorString}
 
 Usage
 =====
 
-see L{DPTBoolean}
+see L{DPTXlatorBoolean}
 
 Note
 ====
@@ -53,7 +53,7 @@ Python time module does not encode century the same way:
  - if byte year >= 69, then real year is 20th century year
  - if byte year is < 69, then real year is 21th century year
 
-The DPTString class follows the python encoding.
+The DPTXlatorString class follows the python encoding.
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -66,49 +66,51 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
+from pknyx.core.dpt.dpt import DPT
+from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 
 
-class DPTString(DPT):
-    """ DPT class for String (A112) KNX Datapoint Type
+class DPTXlatorString(DPTXlatorBase):
+    """ DPTXlator class for String (A112) KNX Datapoint Type
 
      - 14 Byte: AAAAAAAA ... AAAAAAAA
      - A: Char [0:255]
 
     .
     """
-    DPT_Generic = DPT_("16.xxx", "Generic", (0, 5192296858534827628530496329220095))
+    DPT_Generic = DPT("16.xxx", "Generic", (0, 5192296858534827628530496329220095))
 
-    DPT_String_ASCII = DPT_("16.000", "String", (14 * (0,), 14 * (127,)))
-    DPT_String_8859_1 = DPT_("16.001", "String", (14 * (0,), 14 * (255,)))
+    DPT_String_ASCII = DPT("16.000", "String", (14 * (0,), 14 * (127,)))
+    DPT_String_8859_1 = DPT("16.001", "String", (14 * (0,), 14 * (255,)))
 
-    def _checkData(self, data):
+    def checkData(self, data):
         if not 0x0000000000000000000000000000 <= data <= 0xffffffffffffffffffffffffffff:
-            raise DPTValueError("data %s not in (0x0000000000000000000000000000, 0xffffffffffffffffffffffffffff)" % hex(data))
+            raise DPTXlatorValueError("data %s not in (0x0000000000000000000000000000, 0xffffffffffffffffffffffffffff)" % hex(data))
 
-    def _checkValue(self, value):
+    def checkValue(self, value):
         for index in range(14):
             if not self._dpt.limits[0][index] <= value[index] <= self._dpt.limits[1][index]:
-                raise DPTValueError("value not in range %r" % repr(self._dpt.limits))
+                raise DPTXlatorValueError("value not in range %r" % repr(self._dpt.limits))
 
-    def _toValue(self):
-        value = tuple([int((self._data >> shift) & 0xff) for shift in range(104, -1, -8)])
-        #Logger().debug("DPTString._toValue(): value=%d" % value)
+    def dataToValue(self, data):
+        value = tuple([int((data >> shift) & 0xff) for shift in range(104, -1, -8)])
+        #Logger().debug("DPTXlatorString._toValue(): value=%d" % value)
         return value
 
-    def _fromValue(self, value):
+    def valueToData(self, value):
         data = 0x00
         for shift in range(104, -1, -8):
             data |= value[13 - shift / 8] << shift
-        #Logger().debug("DPTString._fromValue(): data=%s" % hex(data))
-        self._data = data
+        #Logger().debug("DPTXlatorString.valueToData(): data=%s" % hex(data))
+        return data
 
-    def _toFrame(self):
-        return struct.pack(">14B", *self.value)
+    def dataToFrame(self, data):
+        return struct.pack(">14B", *self.dataToValue(data))
 
-    def _fromFrame(self, frame):
+    def frameToData(self, frame):
         value = struct.unpack(">14B", frame)
-        self.value = value
+        data = self.valueToData(value)
+        return data
 
     @property
     def day(self):
@@ -137,43 +139,39 @@ if __name__ == '__main__':
                 ((48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 0, 0, 0, 0), 0x3031323334353637383900000000, "0123456789\x00\x00\x00\x00"),
                 (14 * (255,),                                          0xffffffffffffffffffffffffffff, 14 * "\xff"),
             )
-            self.dpt = DPTString("16.001")
+            self.dptXlator = DPTXlatorString("16.001")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPT
+            #print self.dptXlator.handledDPT
 
-        #def test_checkValue(self):
-            #with self.assertRaises(DPTValueError):
-                #self.dpt._checkValue((0, 1, 1969))
+        #def testcheckValue(self):
+            #with self.assertRaises(DPTXlatorValueError):
+                #self.dptXlator.checkValue((0, 1, 1969))
 
-        def test_toValue(self):
+        def test_dataToValue(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                value_ = self.dpt.value
+                value_ = self.dptXlator.dataToValue(data)
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %s, should be %s)" %
                                  (hex(data), value_, value))
 
-        def test_fromValue(self):
+        def test_valueToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.value = value
-                data_ = self.dpt.data
+                data_ = self.dptXlator.valueToData(value)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %s is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
-        def test_toFrame(self):
+        def test_dataToFrame(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                frame_ = self.dpt.frame
+                frame_ = self.dptXlator.dataToFrame(data)
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
-        def test_fromFrame(self):
+        def test_frameToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.frame = frame
-                data_ = self.dpt.data
+                data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

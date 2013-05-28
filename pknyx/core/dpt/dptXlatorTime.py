@@ -33,12 +33,12 @@ Datapoint Types management.
 Implements
 ==========
 
- - B{DPTTime}
+ - B{DPTXlatorTime}
 
 Usage
 =====
 
-see L{DPTBoolean}
+see L{DPTXlatorBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -51,11 +51,12 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
+from pknyx.core.dpt.dpt import DPT
+from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 
 
-class DPTTime(DPT):
-    """ DPT class for Time (N3U5r2U6r2U6) KNX Datapoint Type
+class DPTXlatorTime(DPTXlatorBase):
+    """ DPTXlator class for Time (N3U5r2U6r2U6) KNX Datapoint Type
 
      - 3 Byte: NNNHHHHH rrMMMMMM rrSSSSSS
      - N: Week day [0:7]
@@ -66,45 +67,46 @@ class DPTTime(DPT):
 
     .
     """
-    DPT_Generic = DPT_("10.xxx", "Generic", (0, 16777215))
+    DPT_Generic = DPT("10.xxx", "Generic", (0, 16777215))
 
-    DPT_TimeOfDay = DPT_("10.001", "Time of day", ((0, 0, 0, 0), (7, 23, 59, 59)))
+    DPT_TimeOfDay = DPT("10.001", "Time of day", ((0, 0, 0, 0), (7, 23, 59, 59)))
 
-    def _checkData(self, data):
+    def checkData(self, data):
         if not 0x000000 <= data <= 0xffffff:
-            raise DPTValueError("data %s not in (0x000000, 0xffffff)" % hex(data))
+            raise DPTXlatorValueError("data %s not in (0x000000, 0xffffff)" % hex(data))
 
-    def _checkValue(self, value):
+    def checkValue(self, value):
         for index in range(4):
             if not self._dpt.limits[0][index] <= value[index] <= self._dpt.limits[1][index]:
-                raise DPTValueError("value not in range %r" % repr(self._dpt.limits))
+                raise DPTXlatorValueError("value not in range %r" % repr(self._dpt.limits))
 
-    def _toValue(self):
-        wDay = (self._data >> 21) & 0x07
-        hour = (self._data >> 16) & 0x1f
-        min_ = (self._data >> 8) & 0x3f
-        sec = self._data & 0x3f
+    def dataToValue(self, data):
+        wDay = (data >> 21) & 0x07
+        hour = (data >> 16) & 0x1f
+        min_ = (data >> 8) & 0x3f
+        sec = data & 0x3f
         value = (wDay, hour, min_, sec)
-        #Logger().debug("DPTTime._toValue(): value=%d" % value)
+        #Logger().debug("DPTXlatorTime._toValue(): value=%d" % value)
         return value
 
-    def _fromValue(self, value):
+    def valueToData(self, value):
         # add from string and from int (sec)?
         wDay = value[0]
         hour = value[1]
         min_ = value[2]
         sec = value[3]
         data = wDay << 21 | hour << 16 | min_ << 8 | sec
-        #Logger().debug("DPTTime._fromValue(): data=%s" % hex(data))
-        self._data = data
+        #Logger().debug("DPTXlatorTime.valueToData(): data=%s" % hex(data))
+        return data
 
-    def _toFrame(self):
-        data = [(self._data >> shift) & 0xff for shift in range(16, -1, -8)]
+    def dataToFrame(self, data):
+        data = [(data >> shift) & 0xff for shift in range(16, -1, -8)]
         return struct.pack(">3B", *data)
 
-    def _fromFrame(self, frame):
+    def frameToData(self, frame):
         data = struct.unpack(">3B", frame)
-        self._data = data[0] << 16 | data[1] << 8 | data[2]
+        data = data[0] << 16 | data[1] << 8 | data[2]
+        return data
 
     @property
     def weekDay(self):
@@ -146,58 +148,54 @@ if __name__ == '__main__':
                 ((1,  2,  3,  4), 0x220304, "\x22\x03\x04"),
                 ((7, 23, 59, 59), 0xf73b3b, "\xf7\x3b\x3b"),
             )
-            self.dpt = DPTTime("10.001")
+            self.dptXlator = DPTXlatorTime("10.001")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPT
+            #print self.dptXlator.handledDPT
 
-        def test_checkValue(self):
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((-1, 0, 0, 0))
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((0, -1, 0, 0))
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((0, 0, -1, 0))
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((0, 0, 0, -1))
+        def testcheckValue(self):
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((-1, 0, 0, 0))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((0, -1, 0, 0))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((0, 0, -1, 0))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((0, 0, 0, -1))
 
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((8, 23, 59, 59))
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((7, 24, 59, 59))
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((7, 23, 60, 59))
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue((7, 23, 59, 60))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((8, 23, 59, 59))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((7, 24, 59, 59))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((7, 23, 60, 59))
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue((7, 23, 59, 60))
 
-        def test_toValue(self):
+        def test_dataToValue(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                value_ = self.dpt.value
+                value_ = self.dptXlator.dataToValue(data)
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %s, should be %s)" %
                                  (hex(data), value_, value))
 
-        def test_fromValue(self):
+        def test_valueToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.value = value
-                data_ = self.dpt.data
+                data_ = self.dptXlator.valueToData(value)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %s is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
-        def test_toFrame(self):
+        def test_dataToFrame(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                frame_ = self.dpt.frame
+                frame_ = self.dptXlator.dataToFrame(data)
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
-        def test_fromFrame(self):
+        def test_frameToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.frame = frame
-                data_ = self.dpt.data
+                data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

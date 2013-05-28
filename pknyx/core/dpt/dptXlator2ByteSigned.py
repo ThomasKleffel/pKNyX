@@ -33,12 +33,12 @@ Datapoint Types management
 Implements
 ==========
 
- - B{DPT2ByteSigned}
+ - B{DPTXlator2ByteSigned}
 
 Usage
 =====
 
-see L{DPTBoolean}
+see L{DPTXlatorBoolean}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -51,42 +51,43 @@ import struct
 
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT_, DPT, DPTValueError
+from pknyx.core.dpt.dpt import DPT
+from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 
 
-class DPT2ByteSigned(DPT):
-    """ DPT class for 2-Byte-Unsigned (V16) KNX Datapoint Type
+class DPTXlator2ByteSigned(DPTXlatorBase):
+    """ DPTXlator class for 2-Byte-Unsigned (V16) KNX Datapoint Type
 
      - 2 Byte Signed: VVVVVVVV VVVVVVVV
      - V: Bytes [-32768:32767]
 
     .
     """
-    DPT_Generic = DPT_("8.xxx", "Generic", (-32768, 32767))
+    DPT_Generic = DPT("8.xxx", "Generic", (-32768, 32767))
 
-    DPT_Value_2_Count = DPT_("8.001", "Signed count", (-32768, 32767), "pulses")
-    DPT_DeltaTimeMsec = DPT_("8.002", "Delta time (ms)", (-32768, 32767), "ms")
-    DPT_DeltaTime10Msec = DPT_("8.003", "Delta time (10ms)", (-327680, 327670), "ms")
-    DPT_DeltaTime100Msec = DPT_("8.004", "Delta time (100ms)", (-3276800, 3276700), "ms")
-    DPT_DeltaTimeSec = DPT_("8.005", "Delta time (s)", (-32768, 32767), "s")
-    DPT_DeltaTimeMin = DPT_("8.006", "Delta time (min)", (-32768, 32767), "min")
-    DPT_DeltaTimeHrs = DPT_("8.007", "Delta time (h)", (-32768, 32767), "h")
-    DPT_Percent_V16 = DPT_("8.010", "Percent (16 bit)", (-327.68, 327.67), "%")
-    DPT_Rotation_Angle = DPT_("8.011", "Rotation angle", (-32768, 32767), "°")
+    DPT_Value_2_Count = DPT("8.001", "Signed count", (-32768, 32767), "pulses")
+    DPT_DeltaTimeMsec = DPT("8.002", "Delta time (ms)", (-32768, 32767), "ms")
+    DPT_DeltaTime10Msec = DPT("8.003", "Delta time (10ms)", (-327680, 327670), "ms")
+    DPT_DeltaTime100Msec = DPT("8.004", "Delta time (100ms)", (-3276800, 3276700), "ms")
+    DPT_DeltaTimeSec = DPT("8.005", "Delta time (s)", (-32768, 32767), "s")
+    DPT_DeltaTimeMin = DPT("8.006", "Delta time (min)", (-32768, 32767), "min")
+    DPT_DeltaTimeHrs = DPT("8.007", "Delta time (h)", (-32768, 32767), "h")
+    DPT_Percent_V16 = DPT("8.010", "Percent (16 bit)", (-327.68, 327.67), "%")
+    DPT_Rotation_Angle = DPT("8.011", "Rotation angle", (-32768, 32767), "°")
 
-    def _checkData(self, data):
+    def checkData(self, data):
         if not 0x0000 <= data <= 0xffff:
-            raise DPTValueError("data %s not in (0x0000, 0xffff)" % hex(data))
+            raise DPTXlatorValueError("data %s not in (0x0000, 0xffff)" % hex(data))
 
-    def _checkValue(self, value):
+    def checkValue(self, value):
         if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
-            raise DPTValueError("Value not in range %r" % repr(self._dpt.limits))
+            raise DPTXlatorValueError("Value not in range %r" % repr(self._dpt.limits))
 
-    def _toValue(self):
-        if self._data >= 0x8000:
-            data = -((self._data - 1) ^ 0xffff)  # invert twos complement
+    def dataToValue(self, data):
+        if data >= 0x8000:
+            data = -((data - 1) ^ 0xffff)  # invert twos complement
         else:
-            data = self._data
+            data = data
         if self._dpt is self.DPT_DeltaTime10Msec:
             value = data * 10.
         elif self._dpt is self.DPT_DeltaTime100Msec:
@@ -95,10 +96,10 @@ class DPT2ByteSigned(DPT):
             value = data / 100.
         else:
             value = data
-        #Logger().debug("DPT2ByteSigned._toValue(): value=%d" % value)
+        #Logger().debug("DPTXlator2ByteSigned._toValue(): value=%d" % value)
         return value
 
-    def _fromValue(self, value):
+    def valueToData(self, value):
         if value < 0:
             value = (abs(value) ^ 0xffff) + 1  # twos complement
         if self._dpt is self.DPT_DeltaTime10Msec:
@@ -109,14 +110,15 @@ class DPT2ByteSigned(DPT):
             data = int(round(value * 100.))
         else:
             data = value
-        #Logger().debug("DPT2ByteSigned._fromValue(): data=%s" % hex(data))
-        self._data = data
+        #Logger().debug("DPTXlator2ByteSigned.valueToData(): data=%s" % hex(data))
+        return data
 
-    def _toFrame(self):
-        return struct.pack(">H", self._data)
+    def dataToFrame(self, data):
+        return struct.pack(">H", data)
 
-    def _fromFrame(self, frame):
-        self._data = struct.unpack(">H", frame)[0]
+    def frameToData(self, frame):
+        data = struct.unpack(">H", frame)[0]
+        return data
 
 
 if __name__ == '__main__':
@@ -136,43 +138,39 @@ if __name__ == '__main__':
                 (     1, 0x0001, "\x00\x01"),
                 ( 32767, 0x7fff, "\x7f\xff"),
             )
-            self.dpt = DPT2ByteSigned("8.xxx")
+            self.dptXlator = DPTXlator2ByteSigned("8.xxx")
 
         def tearDown(self):
             pass
 
         #def test_constructor(self):
-            #print self.dpt.handledDPT
+            #print self.dptXlator.handledDPT
 
-        def test_checkValue(self):
-            with self.assertRaises(DPTValueError):
-                self.dpt._checkValue(self.dpt._dpt.limits[1] + 1)
+        def testcheckValue(self):
+            with self.assertRaises(DPTXlatorValueError):
+                self.dptXlator.checkValue(self.dptXlator._dpt.limits[1] + 1)
 
-        def test_toValue(self):
+        def test_dataToValue(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                value_ = self.dpt.value
+                value_ = self.dptXlator.dataToValue(data)
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %d, should be %d)" %
                                  (hex(data), value_, value))
 
-        def test_fromValue(self):
+        def test_valueToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.value = value
-                data_ = self.dpt.data
+                data_ = self.dptXlator.valueToData(value)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %d is %s, should be %s)" %
                                  (value, hex(data_), hex(data)))
 
-        def test_toFrame(self):
+        def test_dataToFrame(self):
             for value, data, frame in self.testTable:
-                self.dpt.data = data
-                frame_ = self.dpt.frame
+                frame_ = self.dptXlator.dataToFrame(data)
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
-        def test_fromFrame(self):
+        def test_frameToData(self):
             for value, data, frame in self.testTable:
-                self.dpt.frame = frame
-                data_ = self.dpt.data
+                data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
 

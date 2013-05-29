@@ -51,7 +51,7 @@ __revision__ = "$Id: dpt.py 34 2013-05-27 12:33:55Z fma $"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.dpt.dptId import DPTID
+from pknyx.core.dptXlator.dptId import DPTID
 
 
 class DPTXlatorValueError(PKNyXValueError):

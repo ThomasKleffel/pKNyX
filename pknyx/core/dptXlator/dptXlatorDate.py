@@ -65,9 +65,9 @@ __revision__ = "$Id$"
 import struct
 
 from pknyx.common.loggingServices import Logger
-from pknyx.core.dpt.dptId import DPTID
-from pknyx.core.dpt.dpt import DPT
-from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
+from pknyx.core.dptXlator.dptId import DPTID
+from pknyx.core.dptXlator.dpt import DPT
+from pknyx.core.dptXlator.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 
 
 class DPTXlatorDate(DPTXlatorBase):

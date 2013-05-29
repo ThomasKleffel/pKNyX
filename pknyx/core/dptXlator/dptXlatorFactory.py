@@ -51,25 +51,25 @@ import re
 
 from pknyx.common.loggingServices import Logger
 from pknyx.common.helpers import reprStr
-from pknyx.core.dpt.dptId import DPTID
-#from pknyx.core.dpt.dpt import DPT
-from pknyx.core.dpt.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
-from pknyx.core.dpt.dptXlatorBoolean import DPTXlatorBoolean              #  1.xxx
-from pknyx.core.dpt.dptXlator3BitControl import DPTXlator3BitControl      #  3.xxx
-#from pknyx.core.dpt.dptXlatorCharacter import DPTXlatorCharacter          #  4.xxx
-from pknyx.core.dpt.dptXlator8BitUnsigned import DPTXlator8BitUnsigned    #  5.xxx
-from pknyx.core.dpt.dptXlator8BitSigned import DPTXlator8BitSigned        #  6.xxx
-from pknyx.core.dpt.dptXlator2ByteUnsigned import DPTXlator2ByteUnsigned  #  7.xxx
-from pknyx.core.dpt.dptXlator2ByteSigned import DPTXlator2ByteSigned      #  8.xxx
-from pknyx.core.dpt.dptXlator2ByteFloat import DPTXlator2ByteFloat        #  9.xxx
-from pknyx.core.dpt.dptXlatorTime import DPTXlatorTime                    # 10.xxx
-from pknyx.core.dpt.dptXlatorDate import DPTXlatorDate                    # 11.xxx
-from pknyx.core.dpt.dptXlator4ByteUnsigned import DPTXlator4ByteUnsigned  # 12.xxx
-from pknyx.core.dpt.dptXlator4ByteSigned import DPTXlator4ByteSigned      # 13.xxx
-from pknyx.core.dpt.dptXlator4ByteFloat import DPTXlator4ByteFloat        # 14.xxx
-from pknyx.core.dpt.dptXlatorString import DPTXlatorString                # 16.xxx
-from pknyx.core.dpt.dptXlatorScene import DPTXlatorScene                  # 17.xxx
-#from pknyx.core.dpt.dptXlatorDateTime import DPTXlatorDateTime            # 19.xxx
+from pknyx.core.dptXlator.dptId import DPTID
+#from pknyx.core.dptXlator.dpt import DPT
+from pknyx.core.dptXlator.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
+from pknyx.core.dptXlator.dptXlatorBoolean import DPTXlatorBoolean              #  1.xxx
+from pknyx.core.dptXlator.dptXlator3BitControl import DPTXlator3BitControl      #  3.xxx
+#from pknyx.core.dptXlator.dptXlatorCharacter import DPTXlatorCharacter          #  4.xxx
+from pknyx.core.dptXlator.dptXlator8BitUnsigned import DPTXlator8BitUnsigned    #  5.xxx
+from pknyx.core.dptXlator.dptXlator8BitSigned import DPTXlator8BitSigned        #  6.xxx
+from pknyx.core.dptXlator.dptXlator2ByteUnsigned import DPTXlator2ByteUnsigned  #  7.xxx
+from pknyx.core.dptXlator.dptXlator2ByteSigned import DPTXlator2ByteSigned      #  8.xxx
+from pknyx.core.dptXlator.dptXlator2ByteFloat import DPTXlator2ByteFloat        #  9.xxx
+from pknyx.core.dptXlator.dptXlatorTime import DPTXlatorTime                    # 10.xxx
+from pknyx.core.dptXlator.dptXlatorDate import DPTXlatorDate                    # 11.xxx
+from pknyx.core.dptXlator.dptXlator4ByteUnsigned import DPTXlator4ByteUnsigned  # 12.xxx
+from pknyx.core.dptXlator.dptXlator4ByteSigned import DPTXlator4ByteSigned      # 13.xxx
+from pknyx.core.dptXlator.dptXlator4ByteFloat import DPTXlator4ByteFloat        # 14.xxx
+from pknyx.core.dptXlator.dptXlatorString import DPTXlatorString                # 16.xxx
+from pknyx.core.dptXlator.dptXlatorScene import DPTXlatorScene                  # 17.xxx
+#from pknyx.core.dptXlator.dptXlatorDateTime import DPTXlatorDateTime            # 19.xxx
 
 dptFactory = None
 

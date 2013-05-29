@@ -99,7 +99,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.dpt.dptId import DPTID
+from pknyx.core.dptXlator.dptId import DPTID
 
 
 class DPTValueError(PKNyXValueError):

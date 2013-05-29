@@ -91,8 +91,8 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.dpt.dptXlatorFactory import DPTXlatorFactory
-from pknyx.core.dpt.dpt import DPTID
+from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
+from pknyx.core.dptXlator.dpt import DPTID
 #from pknyx.core.knxFlags import KnxFlags
 from pknyx.core.priority import Priority
 
@@ -118,7 +118,7 @@ class Datapoint(object):
     @type _priority: L{Priority}
 
     @ivar _dptXlator: DPT translator associated with this Datapoint
-    @type _dptXlator: L{DPTXlator}
+    @type _dptXlator: L{DPTXlator<pknyx.core.dptXlator>}
 
     @ivar _data: KNX encoded data
     @type _data: depends on sub-class

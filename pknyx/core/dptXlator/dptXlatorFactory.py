@@ -238,7 +238,7 @@ class DPTXlatorFactoryObject(object):
         """
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
-        return self._handledDPT[dptId.generic].createXlator(dptId)
+        return self._handledMainDPTMappers[dptId.generic].createXlator(dptId)
 
 
 def DPTXlatorFactory():

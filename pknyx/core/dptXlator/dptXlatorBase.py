@@ -47,7 +47,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: dpt.py 34 2013-05-27 12:33:55Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger

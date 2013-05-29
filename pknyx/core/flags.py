@@ -44,7 +44,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: dptId.py 22 2013-05-24 13:08:30Z fma $"
+__revision__ = "$Id$"
 
 import re
 

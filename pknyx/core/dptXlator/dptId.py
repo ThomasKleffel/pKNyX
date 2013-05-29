@@ -70,6 +70,7 @@ __revision__ = "$Id$"
 import re
 
 from pknyx.common.exception import PKNyXValueError
+from pknyx.common.loggingServices import Logger
 
 
 class DPTIDValueError(PKNyXValueError):
@@ -93,8 +94,13 @@ class DPTID(object):
         """
         super(DPTID, self).__init__()
 
-        if not re.match("^\d{1,3}\.\d{3}$", dptId) and not re.match("^\d{1,3}\.xxx$", dptId):
+        try:
+            if not re.match("^\d{1,3}\.\d{3}$", dptId) and not re.match("^\d{1,3}\.xxx$", dptId):
+                raise DPTIDValueError("invalid Datapoint Type ID (%r)" % repr(dptId))
+        except:
+            Logger().exception("Flags.__init__()", debug=True)
             raise DPTIDValueError("invalid Datapoint Type ID (%r)" % repr(dptId))
+
 
         self._id = dptId
 
@@ -178,6 +184,9 @@ class DPTID(object):
 
 if __name__ == '__main__':
     import unittest
+
+    # Mute logger
+    Logger().setLevel('error')
 
 
     class DPTIDTestCase(unittest.TestCase):

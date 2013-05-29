@@ -194,7 +194,7 @@ class VMC(Device):
         self.dp["temp_entree"].value = 0  # Add persistence feature!!!
         # self.dp.temp_entree.value = 0
 
-    def _poll(self):
+    def _runHook(self):
         """
         This method is called regularly by the thread. Do here whatever you need to do.
         Stop thread if return True?
@@ -202,8 +202,21 @@ class VMC(Device):
         Really needed? Just for fast polling...
         """
 
-    @Device.schedule.at(minute=5)
-    def myCallback(self):
+    @Device.trigger.at("...")  # take a complete date and/or time
+    @Device.trigger.cron("...")  # cron-like syntax
+    @Device.trigger.after(minute=5)  # after the device is created (day/month/year/hour/minute/second)
+    @Device.trigger.every(day=1, start="...", end="...")  # (day/month/year/hour/minute/second + start/end)
+    def timeCallback(self, event):
+        """
+        """
+
+    @Device.trigger.dp("temp_sortie")  # dp value has changed (from the bus)
+    def dpCallback(self, event):
+        """
+        """
+
+    @Device.trigger.system("start")  # "start"/"stop"/"crash"
+    def systemCallback(self, event):
         """
         """
 

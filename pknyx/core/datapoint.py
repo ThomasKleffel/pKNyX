@@ -38,14 +38,7 @@ Implements
 Documentation
 =============
 
-Datapoint (DP) store knowledge about a datapoint in the KNX network, used for communication within the
-pKNyX framework, to the KNX network, and with the user.
-Datapoint is identified through a  L{GroupAddress}. A name is supplied to allow a
-more friendly interaction with the user, the selected name does not have to be unique. <<<<<<<< ????
-Information exchanged between datapoints consists of a certain encoding, defined by a
-L{DPT}. This information exchange is done through messages, which are
-sent with a L{Priority} associated with the respective datapoint. Every datapoint
-object has its own DPT and priority.
+(move to ETS)
 
 The "flags" parameter is similar to the ETS flags. The value of each flag is represented by a letter:
  - c: Communication (allow the object to interact with the KNX bus)
@@ -69,8 +62,8 @@ Setting scene value to 'on' should send this value to KNX every time action is t
 Usage
 =====
 
->>> from dp import Datapoint as DP
->>> dp = DP("test")
+>>> from datapoint import Datapoint
+>>> dp = Datapoint("test")
 >>> dp
 <Datapoint("test", <DPTID("1.xxx")>, flags="CWTU", Priority(low)>)>
 >>> dp.main
@@ -93,7 +86,7 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
-#from pknyx.core.knxFlags import KnxFlags
+from pknyx.core.flags import Flags
 from pknyx.core.priority import Priority
 
 
@@ -112,7 +105,7 @@ class Datapoint(object):
     @type _name: str
 
     @ivar _flags: bus message flags
-    @type _flags: str (or KnxFlags?)
+    @type _flags: str L{Flags}
 
     @ivar _priority: bus message priority
     @type _priority: L{Priority}
@@ -126,7 +119,7 @@ class Datapoint(object):
     @todo: add desc. param
     @todo: also create the generic handler (if not the default one), and a .generic property
     """
-    def __init__(self, name, dptId=DPTID(), flags="CWTU", priority=Priority()):
+    def __init__(self, name, dptId=DPTID(), flags=Flags(), priority=Priority(), initValue=None):
         """
 
         @param name: name of the Datapoint
@@ -136,10 +129,13 @@ class Datapoint(object):
         @type dptId: str L{DPTID}
 
         @param flags: bus message flags
-        @type flags: str (or KnxFlags?)
+        @type flags: str L{Flags}
 
         @param priority: bus message priority
         @type priority: str or L{Priority}
+
+        @param initValue: value to use as default one
+        @type initValue: depend on the DPT
         """
         super(Datapoint, self).__init__()
 
@@ -150,15 +146,17 @@ class Datapoint(object):
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         self._dptId = dptId
-        #if not isinstance(flags, KnxFlags):
-            #flags = KnxFlags(dptId)
+        if not isinstance(flags, Flags):
+            flags = Flags(flags)
         self._flags = flags
         if not isinstance(priority, Priority):
             priority = Priority(priority)
         self._priority = priority
 
-        self._dptXlator = DPTXlatorFactory.create(dptId)
+        self._dptXlator = DPTXlatorFactory().create(dptId)
         self._dptXlatorGeneric = None
+
+        self._data = None
 
     def __repr__(self):
         s = "<Datapoint(\"%s\", %s, flags=\"%s\", %s)>" % \
@@ -207,6 +205,8 @@ class Datapoint(object):
     def flags(self, flags):
         """ set the Datapoint flags
         """
+        if not isinstance(flags, Flags):
+            flags = Flags(flags)
         self._flags = flags
 
     @property
@@ -265,11 +265,21 @@ class Datapoint(object):
 if __name__ == '__main__':
     import unittest
 
+    # Mute logger
+    Logger().setLevel('error')
+
 
     class DPTestCase(unittest.TestCase):
 
         def setUp(self):
-            pass
+            self.dp = Datapoint("test")
 
         def tearDown(self):
             pass
+
+        #def test_constructor(self):
+            #with self.assertRaises(DPValueError):
+                #Datapoint("name")
+
+
+    unittest.main()

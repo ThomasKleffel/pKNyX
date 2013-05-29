@@ -151,9 +151,9 @@ class DPT(object):
         self._desc = desc
         try:
             self._limits = tuple(limits)
-        except TypeError:
+        except:
             Logger().exception("DPT.__init__()", debug=True)
-            raise DPTValueError("invalid limits")
+            raise DPTValueError("invalid limits (%s)" % repr(limits))
         self._unit = unit
 
     def __repr__(self):
@@ -190,6 +190,9 @@ class DPT(object):
 
 if __name__ == '__main__':
     import unittest
+
+    # Mute logger
+    Logger().setLevel('error')
 
 
     class DPT_TestCase(unittest.TestCase):

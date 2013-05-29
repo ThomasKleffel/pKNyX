@@ -100,7 +100,7 @@ class Priority(object):
             if not 0x00 <= level <= 0x03:
                 raise PriorityValueError("level %d not in (0x00, 0x01, 0x02, 0x03)" % level)
         else:
-            raise PriorityValueError("invalid priority level")
+            raise PriorityValueError("invalid priority level (%s)" % repr(level))
 
         self._level = level
 
@@ -121,6 +121,9 @@ class Priority(object):
 
 if __name__ == '__main__':
     import unittest
+
+    # Mute logger
+    Logger().setLevel('error')
 
 
     class PriorityTestCase(unittest.TestCase):

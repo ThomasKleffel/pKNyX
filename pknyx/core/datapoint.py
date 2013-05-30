@@ -65,13 +65,13 @@ Usage
 >>> from datapoint import Datapoint
 >>> dp = Datapoint("test")
 >>> dp
-<Datapoint("test", <DPTID("1.xxx")>, flags="CWTU", Priority(low)>)>
->>> dp.main
+<Datapoint("test", <DPTID("1.xxx")>, flags=<Flags("CWTU")>, Priority(low)>)>
+>>> dp.name
 'test'
 >>> dp.dptId
 <DPTID("1.xxx")>
 >>> dp.flags
-'cwtu'
+<Flags("CWTU")>
 >>> dp.priority
 <Priority(low)>
 
@@ -88,6 +88,7 @@ from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
 from pknyx.core.flags import Flags
 from pknyx.core.priority import Priority
+from pknyx.stack.groupDataListener import GroupDataListener
 
 
 class DPValueError(PKNyXValueError):
@@ -95,7 +96,7 @@ class DPValueError(PKNyXValueError):
     """
 
 
-class Datapoint(object):
+class Datapoint(GroupDataListener):
     """ Datapoint handling class
 
     The term B{data} refers to the KNX representation of the python type B{value}. It is stored in this object.
@@ -104,38 +105,41 @@ class Datapoint(object):
     @ivar _name: name of the Datapoint
     @type _name: str
 
+    @ivar _dptId: Datapoint Type ID
+    @type _dptId: str or L{DPTID}
+
     @ivar _flags: bus message flags
-    @type _flags: str L{Flags}
+    @type _flags: str or L{Flags}
 
     @ivar _priority: bus message priority
-    @type _priority: L{Priority}
-
-    @ivar _dptXlator: DPT translator associated with this Datapoint
-    @type _dptXlator: L{DPTXlator<pknyx.core.dptXlator>}
+    @type _priority: str or L{Priority}
 
     @ivar _data: KNX encoded data
     @type _data: depends on sub-class
 
+    @ivar _dptXlator: DPT translator associated with this Datapoint
+    @type _dptXlator: L{DPTXlator<pknyx.core.dptXlator>}
+
     @todo: add desc. param
     @todo: also create the generic handler (if not the default one), and a .generic property
     """
-    def __init__(self, name, dptId=DPTID(), flags=Flags(), priority=Priority(), initValue=None):
+    def __init__(self, name, dptId=DPTID(), flags=Flags(), priority=Priority(), defaultValue=None):
         """
 
         @param name: name of the Datapoint
         @type name: str
 
         @param dptId: Datapoint Type ID
-        @type dptId: str L{DPTID}
+        @type dptId: str or L{DPTID}
 
         @param flags: bus message flags
-        @type flags: str L{Flags}
+        @type flags: str or L{Flags}
 
         @param priority: bus message priority
         @type priority: str or L{Priority}
 
-        @param initValue: value to use as default one
-        @type initValue: depend on the DPT
+        @param defaultValue: value to use as default
+        @type defaultValue: depend on the DPT
         """
         super(Datapoint, self).__init__()
 
@@ -153,72 +157,68 @@ class Datapoint(object):
             priority = Priority(priority)
         self._priority = priority
 
+        self._data = None
+
         self._dptXlator = DPTXlatorFactory().create(dptId)
         self._dptXlatorGeneric = None
-
-        self._data = None
 
     def __repr__(self):
         s = "<Datapoint(\"%s\", %s, flags=\"%s\", %s)>" % \
              (self._name, repr(self._dptId), self._flags, repr(self._priority))
         return s
 
+    def onRead(self, cEMI):
+        """
+        """
+
+    def onWrite(self, cEMI):
+        """
+        """
+
+    def onResponse(self, cEMI):
+        """
+        """
+
     @property
     def name(self):
-        """ return the Datapoint name
-        """
         return self._name
 
     @name.setter
     def name(self, name):
-        """ change the Datapoint name
-        """
         self._name = name
 
     @property
     def dptId(self):
-        """ return the DPT ID
-        """
         return self._dptId
 
     @dptId.setter
     def dptId(self, dptId):
-        """ Change the Datapoint DPT ID
-        """
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         self._dptId = dptId
 
     #@property
-    #def dpXlator(self):
+    #def dptXlator(self):
         #""" return the DPT
         #"""
         #return self._dptXlator
 
     @property
     def flags(self):
-        """ return the Datapoint flags
-        """
         return self._flags
 
     @flags.setter
     def flags(self, flags):
-        """ set the Datapoint flags
-        """
         if not isinstance(flags, Flags):
             flags = Flags(flags)
         self._flags = flags
 
     @property
     def priority(self):
-        """ return the Datapoint priority
-        """
         return self._priority
 
     @priority.setter
     def priority(str, level):
-        """ Change the Datapoint priority
-        """
         if not isinstance(priority, Priority):
             priority = Priority(priority)
         self._priority = priority

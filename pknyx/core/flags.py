@@ -83,6 +83,12 @@ class Flags(object):
             raise FlagsValueError("invalid flags set (%r)" % repr(raw))
         self._raw = raw
 
+    def __repr__(self):
+        return "<Flags(\"%s\")>" % self._raw
+
+    def __str__(self):
+        return str(self._raw)
+
     @property
     def raw(self):
         return self._raw

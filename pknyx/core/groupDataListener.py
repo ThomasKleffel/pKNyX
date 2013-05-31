@@ -31,7 +31,8 @@ Module purpose
 Implements
 ==========
 
- - B{}
+ - B{GroupDataListenerValueError}
+ - B{GroupDataListener}
 
 Documentation
 =============

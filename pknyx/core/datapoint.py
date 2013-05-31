@@ -38,7 +38,9 @@ Implements
 Documentation
 =============
 
-(move to ETS)
+(move to ETS class doc.)
+
+linknx :
 
 The "flags" parameter is similar to the ETS flags. The value of each flag is represented by a letter:
  - c: Communication (allow the object to interact with the KNX bus)
@@ -58,6 +60,18 @@ The default set of flags is good for most normal objects like switches where the
 corresponding to real object state. Another set of flags can be for example "crwtf" (or "crwts") for objects that
 should send it's value to the KNX bus even if linknx maintains the same value. This is usefull for scenes.
 Setting scene value to 'on' should send this value to KNX every time action is triggered to make the scene happen.
+
+ETS: S         K   L   E   T   Act
+
+ - S -> le DP envoie sa valeur sur la GA ayant ce flag (première GA associée à ce DP)
+ - K -> communication : si pas présent, le DP n'envoie rien sur le bus (à utiliser pour com.interne au framework)
+ - L -> lecture : le DP renverra sa valeur si une demande de lecture est faite sur une GA associée à ce DP (1 seul DP par
+        GA devrait avoir ce flag)
+ - E -> écriture : la valeur du DP sera modifiée si un télégramme de type 'write' est envoyé sur un des GA associée à ce DP
+ - T -> transmission : si la valeur du DP est modifiée en interne (ou via plugin pour framewok), il enverra sa nouvelle
+        valeur sur le bus, sur la GA ayant le flag S associé
+ - Act -> update : le DP met à jour sa valeur s'il voit passer un télégramme en réponse à une demande de lecture sur
+          l'une des GA associée à ce DP
 
 Usage
 =====

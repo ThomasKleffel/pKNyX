@@ -62,6 +62,7 @@ should send it's value to the KNX bus even if linknx maintains the same value. T
 Setting scene value to 'on' should send this value to KNX every time action is triggered to make the scene happen.
 
 ETS: S         K   L   E   T   Act
+     S         C   R   W   T   U
 
  - S -> le DP envoie sa valeur sur la GA ayant ce flag (première GA associée à ce DP)
  - K -> communication : si pas présent, le DP n'envoie rien sur le bus (à utiliser pour com.interne au framework)
@@ -102,7 +103,7 @@ from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
 from pknyx.core.flags import Flags
 from pknyx.core.priority import Priority
-from pknyx.stack.groupDataListener import GroupDataListener
+from pknyx.stack.dataPointListener import DatapointListener
 
 
 class DPValueError(PKNyXValueError):
@@ -110,7 +111,7 @@ class DPValueError(PKNyXValueError):
     """
 
 
-class Datapoint(GroupDataListener):
+class Datapoint(object):
     """ Datapoint handling class
 
     The term B{data} refers to the KNX representation of the python type B{value}. It is stored in this object.
@@ -175,6 +176,8 @@ class Datapoint(GroupDataListener):
 
         self._dptXlator = DPTXlatorFactory().create(dptId)
         self._dptXlatorGeneric = None
+
+        self._listener = DatapointListener(self)
 
     def __repr__(self):
         s = "<Datapoint(\"%s\", %s, flags=\"%s\", %s)>" % \

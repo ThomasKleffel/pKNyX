@@ -87,7 +87,7 @@ class Flags(object):
         return "<Flags(\"%s\")>" % self._raw
 
     def __str__(self):
-        return str(self._raw)
+        return self._raw
 
     @property
     def raw(self):

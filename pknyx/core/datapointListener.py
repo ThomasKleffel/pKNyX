@@ -45,7 +45,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: groupDataListener.py 63 2013-05-30 14:22:58Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger

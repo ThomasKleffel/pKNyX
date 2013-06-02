@@ -60,26 +60,30 @@ class DPListenerValueError(GroupDataListenerValueError):
 class DatapointListener(DatapointListener):
     """ Datapoint listener class
 
-    @ivar :
-    @type :
+    @ivar _datapoint: datapoint this listener belong to
+    @type _datapoint: L{Datapoint}
     """
-    def __init__(self, parent):
+    def __init__(self, datapoint):
         """
 
-        @param :
-        @type :
+        @param datapoint: datapoint this listener belong to
+        @type datapoint: L{Datapoint}
 
         raise DPListenerValueError:
         """
         super(DatapointListener, self).__init__()
 
+        self._datapoint = Datapoint
+
     def groupRead(self):
         """
         """
+        return self._datapoint.data
 
-    def groupWrite(self):
+    def groupWrite(self, data):
         """
         """
+        self._datapoint.data = data
 
 
 if __name__ == '__main__':

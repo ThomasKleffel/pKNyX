@@ -36,6 +36,43 @@ Implements
  - B{FlagsValueError}
  - B{Flags}
 
+Documentation
+=============
+
+linknx :
+
+The "flags" parameter is similar to the ETS flags. The value of each flag is represented by a letter:
+ - c: Communication (allow the object to interact with the KNX bus)
+ - r: Read (allow the object to answer to a read request from another participant)
+ - w: Write (update the object's internal value with the one received in write telegram if they are different)
+ - t : Transmit (allow the object to transmit it's value on the bus if it's modified internally by a rule or via XML protocol)
+ - u : Update (update the object's internal value with the one received in "read response" telegram if they are different)
+ - f : Force (force the object value to be transmitted on the bus, even if it didn't change).
+       In the recent versions you can use s : Stateless flag alternatively which means exactly the same
+       (object does not update it's state so linknx should always send it's value to the bus
+ - i : Init (useless for the moment. Will perhaps replace the parameter init="request" in the future)
+
+Each letter appearing inside the value of this parameter means the corresponding flag is set.
+If "flags" is not specified, the default value is "cwtu" (Communication, Write, Transmit and Update).
+
+The default set of flags is good for most normal objects like switches where the value kept internally by linknx is
+corresponding to real object state. Another set of flags can be for example "crwtf" (or "crwts") for objects that
+should send it's value to the KNX bus even if linknx maintains the same value. This is usefull for scenes.
+Setting scene value to 'on' should send this value to KNX every time action is triggered to make the scene happen.
+
+ETS: S         K   L   E   T   Act
+     S         C   R   W   T   U
+
+ - S -> le DP envoie sa valeur sur la GA ayant ce flag (première GA associée à ce DP)
+ - K -> communication : si pas présent, le DP n'envoie rien sur le bus (à utiliser pour com.interne au framework)
+ - L -> lecture : le DP renverra sa valeur si une demande de lecture est faite sur une GA associée à ce DP (1 seul DP par
+        GA devrait avoir ce flag)
+ - E -> écriture : la valeur du DP sera modifiée si un télégramme de type 'write' est envoyé sur un des GA associée à ce DP
+ - T -> transmission : si la valeur du DP est modifiée en interne (ou via plugin pour framewok), il enverra sa nouvelle
+        valeur sur le bus, sur la GA ayant le flag S associé
+ - Act -> update : le DP met à jour sa valeur s'il voit passer un télégramme en réponse à une demande de lecture sur
+          l'une des GA associée à ce DP
+
 Usage
 =====
 

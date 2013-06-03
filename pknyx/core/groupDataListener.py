@@ -28,6 +28,8 @@ or see:
 Module purpose
 ==============
 
+Group data management
+
 Implements
 ==========
 
@@ -36,6 +38,9 @@ Implements
 
 Documentation
 =============
+
+The B{GroupDataListener} class is the base class for group data listeners, which are called when group data
+events occurs on KNX bus (real or virtual one).
 
 Usage
 =====
@@ -51,39 +56,46 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 
 
-class GroupDataListenerValueError(PKNyXValueError):
+class GDListenerValueError(PKNyXValueError):
     """
     """
 
 
 class GroupDataListener(object):
     """ Group data listener class
-
-    @ivar :
-    @type :
     """
     def __init__(self, parent):
-        """
-
-        @param :
-        @type :
-
-        raise GroupDataListenerValueError:
+        """ Init group data listener object
         """
         super(GroupDataListener, self).__init__()
 
-    def onGroupWrite(self):
-        """
+    def onGroupWrite(self, srcGad, data):
+        """  Group write callback
+
+        @param srcGAD : source Group Address
+        @type srcGAD : L{GroupAddress}
+
+        @param data: data received
+        @type data: bytearray
         """
         raise NotImplementedError
 
-    def onGroupRead(self):
-        """
+    def onGroupRead(self, srcGad):
+        """ Group read callback
+
+        @param srcGAD : source Group Address
+        @type srcGAD : L{GroupAddress}
         """
         raise NotImplementedError
 
-    def onGroupResponse(self):
-        """
+    def onGroupResponse(self, srcGad, data):
+        """ Group response
+
+        @param srcGAD : source Group Address
+        @type srcGAD : L{GroupAddress}
+
+        @param data: data received
+        @type data: bytearray
         """
         raise NotImplementedError
 
@@ -95,7 +107,7 @@ if __name__ == '__main__':
     Logger().setLevel('error')
 
 
-    class GroupDataListenerTestCase(unittest.TestCase):
+    class GDListenerTestCase(unittest.TestCase):
 
         def setUp(self):
             pass

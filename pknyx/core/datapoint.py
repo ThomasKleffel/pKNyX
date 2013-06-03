@@ -67,7 +67,8 @@ from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
 from pknyx.core.flags import Flags
 from pknyx.core.priority import Priority
-from pknyx.stack.dataPointListener import DatapointListener
+from pknyx.core.accesspoint import Accesspoint
+from pknyx.core.dataPointListener import DatapointListener
 
 
 class DPValueError(PKNyXValueError):
@@ -98,6 +99,9 @@ class Datapoint(DatapointListener):
 
     @ivar _dptXlator: DPT translator associated with this Datapoint
     @type _dptXlator: L{DPTXlator<pknyx.core.dptXlator>}
+
+    @ivar _accesspoint : Accesspoint  to use to communicate with the bus
+    @type _accesspoint : L{Accesspoint}
 
     @todo: add desc. param
     @todo: also create the generic handler (if not the default one), and a .generic property
@@ -141,20 +145,22 @@ class Datapoint(DatapointListener):
         self._dptXlator = DPTXlatorFactory().create(dptId)
         self._dptXlatorGeneric = None
 
+        self._accesspoint = None
+
     def __repr__(self):
         s = "<Datapoint(\"%s\", %s, flags=\"%s\", %s)>" % \
              (self._name, repr(self._dptId), self._flags, repr(self._priority))
         return s
 
-    #def onRead(self, cEMI):
+    #def onGroupWrite(self, cEMI):
         #"""
         #"""
 
-    #def onWrite(self, cEMI):
+    #def onGroupRead(self, cEMI):
         #"""
         #"""
 
-    #def onResponse(self, cEMI):
+    #def onGroupResponse(self, cEMI):
         #"""
         #"""
 
@@ -162,54 +168,54 @@ class Datapoint(DatapointListener):
     def name(self):
         return self._name
 
-    @name.setter
-    def name(self, name):
-        self._name = name
+    #@name.setter
+    #def name(self, name):
+        #self._name = name
 
     @property
     def dptId(self):
         return self._dptId
 
-    @dptId.setter
-    def dptId(self, dptId):
-        if not isinstance(dptId, DPTID):
-            dptId = DPTID(dptId)
-        self._dptId = dptId
+    #@dptId.setter
+    #def dptId(self, dptId):
+        #if not isinstance(dptId, DPTID):
+            #dptId = DPTID(dptId)
+        #self._dptId = dptId
 
-    #@property
-    #def dptXlator(self):
-        #""" return the DPT
-        #"""
-        #return self._dptXlator
+    @property
+    def dptXlator(self):
+        """ return the DPT
+        """
+        return self._dptXlator
 
     @property
     def flags(self):
         return self._flags
 
-    @flags.setter
-    def flags(self, flags):
-        if not isinstance(flags, Flags):
-            flags = Flags(flags)
-        self._flags = flags
+    #@flags.setter
+    #def flags(self, flags):
+        #if not isinstance(flags, Flags):
+            #flags = Flags(flags)
+        #self._flags = flags
 
     @property
     def priority(self):
         return self._priority
 
-    @priority.setter
-    def priority(str, level):
-        if not isinstance(priority, Priority):
-            priority = Priority(priority)
-        self._priority = priority
+    #@priority.setter
+    #def priority(str, level):
+        #if not isinstance(priority, Priority):
+            #priority = Priority(priority)
+        #self._priority = priority
 
     @property
     def data(self):
-        return self.data
+        return self._data
 
     @data.setter
     def data(self, data):
 
-        # Check flags!!!
+        # Check flags and _accesspoint -> send value over bus if changed (or if forced)
         self._dptXlator.checkData(data)
         self._data = data
 
@@ -222,7 +228,7 @@ class Datapoint(DatapointListener):
     @value.setter
     def value(self, value):
         self._dptXlator.checkValue(value)
-        self._data = self._dptXlator.valueToData(value)
+        self.data = self._dptXlator.valueToData(value)  # Note usage of .data and not ._data
 
     @property
     def unit(self):
@@ -240,7 +246,7 @@ class Datapoint(DatapointListener):
     @frame.setter
     def frame(self, frame):
         self._dptXlator.checkFrame(frame)
-        self._data = self._dptXlator.frameToData(frame)
+        self.data = self._dptXlator.frameToData(frame)  # Note usage of .data and not ._data
 
 
 if __name__ == '__main__':

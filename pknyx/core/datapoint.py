@@ -66,9 +66,9 @@ from pknyx.common.loggingServices import Logger
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
 from pknyx.core.flags import Flags
-from pknyx.core.priority import Priority
-from pknyx.core.accesspoint import Accesspoint
 from pknyx.core.dataPointListener import DatapointListener
+#from pknyx.stack.accesspoint import Accesspoint
+from pknyx.stack.priority import Priority
 
 
 class DPValueError(PKNyXValueError):
@@ -140,10 +140,10 @@ class Datapoint(DatapointListener):
             priority = Priority(priority)
         self._priority = priority
 
-        self._data = None
-
         self._dptXlator = DPTXlatorFactory().create(dptId)
         self._dptXlatorGeneric = None
+
+        self._data = None
 
         self._accesspoint = None
 
@@ -152,17 +152,14 @@ class Datapoint(DatapointListener):
              (self._name, repr(self._dptId), self._flags, repr(self._priority))
         return s
 
-    #def onGroupWrite(self, cEMI):
-        #"""
-        #"""
+    def onGroupWrite(self, cEMI):
+        Logger().debug("Datapoint.onGroupWrite(): cEMI=%s" % repr(cEMI))
 
-    #def onGroupRead(self, cEMI):
-        #"""
-        #"""
+    def onGroupRead(self, cEMI):
+        Logger().debug("Datapoint.onGroupRead(): cEMI=%s" % repr(cEMI))
 
-    #def onGroupResponse(self, cEMI):
-        #"""
-        #"""
+    def onGroupResponse(self, cEMI):
+        Logger().debug("Datapoint.onGroupResponse(): cEMI=%s" % repr(cEMI))
 
     @property
     def name(self):

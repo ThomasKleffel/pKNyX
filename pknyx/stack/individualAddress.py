@@ -73,7 +73,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.knxAddress import KnxAddress
+from pknyx.stack.knxAddress import KnxAddress
 
 
 class IndividualAddressValueError(PKNyXValueError):

@@ -73,10 +73,10 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.stack.knxAddress import KnxAddress
+from pknyx.stack.knxAddress import KnxAddress, KnxAddressValueError
 
 
-class IndividualAddressValueError(PKNyXValueError):
+class IndividualAddressValueError(KnxAddressValueError):
     """
     """
 
@@ -84,13 +84,13 @@ class IndividualAddressValueError(PKNyXValueError):
 class IndividualAddress(KnxAddress):
     """ Individual address hanlding class
     """
-    def __init__(self, address):
+    def __init__(self, address="0.0.0"):
         """ Create an individual address
 
         @param address: individual address
         @type address: str or tuple of int
 
-        raise IndividualAddressValueError:
+        raise IndividualAddressValueError: invalid address
         """
         #Logger().debug("IndividualAddress.__init__(): address=%s" % repr(address))
 

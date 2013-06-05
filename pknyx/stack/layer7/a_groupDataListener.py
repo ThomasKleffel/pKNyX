@@ -63,14 +63,14 @@ class A_GDLValueError(PKNyXValueError):
 class A_GroupDataListener(object):
     """ A_GroupDataListener class
 
-    @ivar :
-    @type :
+    @ivar _x:
+    @type _x:
     """
     def __init__(self):
         """
 
-        @param :
-        @type :
+        @param x:
+        @type x:
 
         raise A_GDLValueError:
         """

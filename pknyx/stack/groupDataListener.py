@@ -28,7 +28,7 @@ or see:
 Module purpose
 ==============
 
-Group data management
+Group data service management
 
 Implements
 ==========
@@ -56,7 +56,7 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 
 
-class GDListenerValueError(PKNyXValueError):
+class GDLValueError(PKNyXValueError):
     """
     """
 
@@ -64,35 +64,35 @@ class GDListenerValueError(PKNyXValueError):
 class GroupDataListener(object):
     """ Group data listener class
     """
-    def __init__(self, parent):
+    def __init__(self):
         """ Init group data listener object
         """
         super(GroupDataListener, self).__init__()
 
-    def onGroupWrite(self, srcGad, data):
+    def onGroupWrite(self, src, data):
         """  Group write callback
 
-        @param srcGAD : source Group Address
-        @type srcGAD : L{GroupAddress}
+        @param src : source Group Address
+        @type src : L{GroupAddress<pknyx.stack.groupAddress>}
 
         @param data: data received
         @type data: bytearray
         """
         raise NotImplementedError
 
-    def onGroupRead(self, srcGad):
+    def onGroupRead(self, src):
         """ Group read callback
 
-        @param srcGAD : source Group Address
-        @type srcGAD : L{GroupAddress}
+        @param src : source Group Address
+        @type src : L{GroupAddress<pknyx.stack.groupAddress>}
         """
         raise NotImplementedError
 
-    def onGroupResponse(self, srcGad, data):
+    def onGroupResponse(self, src, data):
         """ Group response
 
-        @param srcGAD : source Group Address
-        @type srcGAD : L{GroupAddress}
+        @param src : source Group Address
+        @type src : L{GroupAddress<pknyx.stack.groupAddress>}
 
         @param data: data received
         @type data: bytearray

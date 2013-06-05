@@ -51,10 +51,10 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.stack.groupDataListener import GroupDataListener, GroupDataListenerValueError
+from pknyx.stack.groupDataListener import GroupDataListener, GDLValueError
 
 
-class DPListenerValueError(GroupDataListenerValueError):
+class DPLValueError(GDLValueError):
     """
     """
 
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     Logger().setLevel('error')
 
 
-    class DatapointListenerTestCase(unittest.TestCase):
+    class DPLTestCase(unittest.TestCase):
 
         def setUp(self):
             pass

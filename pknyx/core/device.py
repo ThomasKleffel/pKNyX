@@ -38,9 +38,9 @@ Implements
 Documentation
 =============
 
-B{Device} is one of the most important object of B{pKNyX} framework, after L{Datapoint}.
-A device contains one or more Datapoints, to form a high level entity. It can represents a real device, and act as
-a KNX gateway for that device, or
+B{Device} is one of the most important object of B{pKNyX} framework, after L{Datapoint<pknyx.core.datapoint>}.
+A device exposes one or more Datapoints, to form a high level entity. It can represents a real device (and act as
+a KNX gateway for that device), or can be a virtual device, to
 
 Usage
 =====
@@ -54,6 +54,8 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
+from pknyx.core.datapoint import Datapoint
+from pknyx.stack.individualAddress import IndividualAddress
 
 
 class DeviceValueError(PKNyXValueError):
@@ -64,18 +66,76 @@ class DeviceValueError(PKNyXValueError):
 class Device(object):
     """ Device class
 
-    @ivar :
-    @type :
+    The Datapoint of a Device must be defined in sub-classes, as class B{dict}, and named B{DP_xxx}. They will be
+    automatically instanciated as real L{Datapoint} objects, and added to the B{_dp} dict.
+
+    @ivar _name: name of the device
+    @type _name:str
+
+    @ivar _desc: description of the device
+    @type _desc:str
+
+    @ivar _address: source address used when transmitting on the bus
+    @type _address: L{IndividualAddress}
+
+    @ivar _dp: Datapoint exposed by this Datapoint
+    @type _dp: dict of L{Datapoint}
     """
-    def __init__(self):
+    def __new__(cls, *args, **kwargs):
+        """ Init the class with all available types for this DPT
+
+        All class objects defined in sub-classes name B{DPT_xxx}, will be treated as DPT objects and added to the
+        B{_handledDPT} dict.
+        """
+        self = object.__new__(cls, *args, **kwargs)
+        cls._dp = {}
+        for key, value in cls.__dict__.iteritems():
+            if key.startswith("DP_"):
+                name = value['name']
+                if self._dp.has_key(dpKey):
+                    raise("duplicated Datapoint (%s)" % repr(dpKey))
+                self._dp[name] = Datapoint(*value)
+
+        return self
+
+    def __init__(self, name, desc="", address=IndividualAddress()):
         """
 
-        @param :
-        @type :
+        @param name: name of the device
+        @type name: str
+
+        @param desc: description of the device
+        @type desc: str
+
+        @param address: source address used when transmitting on the bus
+        @type address: L{IndividualAddress}
 
         raise DeviceValueError:
         """
         super(Device, self).__init__()
+
+        self._name = name
+        self._desc = desc
+
+        if not isinstance(IndividualAddress, address):
+            address = IndividualAddress(address)
+        self._address = address
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def desc(self):
+        return self._desc
+
+    @property
+    def address(self):
+        return self._address
+
+    @property
+    def dp(self):
+        return self._dp
 
 
 if __name__ == '__main__':

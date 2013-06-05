@@ -28,7 +28,7 @@ or see:
 Module purpose
 ==============
 
-Group Address management
+Group data service management
 
 Implements
 ==========
@@ -86,10 +86,10 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.stack.knxAddress import KnxAddress
+from pknyx.stack.knxAddress import KnxAddress, KnxAddressValueError
 
 
-class GroupAddressValueError(PKNyXValueError):
+class GroupAddressValueError(KnxAddressValueError):
     """
     """
 
@@ -100,7 +100,7 @@ class GroupAddress(KnxAddress):
     @ivar _outFormatLevel: output format level representation, in (2, 3).
     @type _outFormatLevel: int
     """
-    def __init__(self, address, outFormatLevel=3):
+    def __init__(self, address="0/0/0", outFormatLevel=3):
         """ Create a group address
 
         @param address: group address

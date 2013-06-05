@@ -28,10 +28,12 @@ or see:
 Module purpose
 ==============
 
+Group data service management
+
 Implements
 ==========
 
- - B{}
+ - B{GroupDataService}
 
 Documentation
 =============
@@ -48,19 +50,24 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.stack.layer7.a_groupDataListener import A_groupDataListener
+from pknyx.stack.group import Group
+from pknyx.stack.groupAddress import GroupAddress
+from pknyx.stack.layer7.a_groupDataListener import A_GroupDataListener
 
 
-class GDServiceValueError(PKNyXValueError):
+class GDSValueError(PKNyXValueError):
     """
     """
 
 
 class GroupDataService(A_GroupDataListener):
-    """ Xxx class
+    """ GroupDataService class
 
     @ivar _agds: Application group data service object
     @type _agds: L{A_GroupDataService}
+
+    @ivar _groups: Groups managed
+    @type _groups: set of L{Group}
     """
     def __init__(self, agds):
         """
@@ -68,11 +75,38 @@ class GroupDataService(A_GroupDataListener):
         @param agds: Application group data service object
         @type agds: L{A_GroupDataService}
 
-        raise GDServiceValueError:
+        raise GDSValueError:
         """
         super(GroupDataService, self).__init__()
 
-        self._agds = A_GroupDataService()
+        self._agds = agds
+        self._groups = {}
+
+    @property
+    def agds(self):
+        return self._agds
+
+    @property
+    def groups(self):
+        return self._groups
+
+    def subscribe(self, gad, listener):
+        """
+
+        @param gad: Group address for the listener to subscribe
+        @type gad : L{GroupAddress}
+
+        @param listener: object to link to the GAD
+        @type listener: L{GroupDataListener}
+        """
+        if not isinstance(GroupAddress, gad):
+            gad = GroupAddress(gad)
+
+        if not self._groups.has_key(gad):
+            self._group[gad] = Group(gad, self)
+        accesspoint = self._groups[gad].createAP(listener)
+
+        return accesspoint
 
 
 if __name__ == '__main__':
@@ -82,7 +116,7 @@ if __name__ == '__main__':
     Logger().setLevel('error')
 
 
-    class GDServiceTestCase(unittest.TestCase):
+    class GDSTestCase(unittest.TestCase):
 
         def setUp(self):
             pass

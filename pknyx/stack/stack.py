@@ -78,19 +78,19 @@ class Stack(object):
         self._agds = A_GroupDataService()
         self._gds = GroupDataService(self._agds)
 
-        @property
-        def agds(self):
-            return self._agds
+    @property
+    def agds(self):
+        return self._agds
 
-        @property
-        def gds(self):
-            return self._gds
+    @property
+    def gds(self):
+        return self._gds
 
-        def start(self):
-            """ Start the stack threads
+    def start(self):
+        """ Start the stack threads
 
-            @todo: name it 'server_forever()'?
-            """
+        @todo: name it 'server_forever()'?
+        """
 
 
 if __name__ == '__main__':

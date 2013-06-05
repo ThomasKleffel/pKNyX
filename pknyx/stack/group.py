@@ -28,7 +28,7 @@ or see:
 Module purpose
 ==============
 
-Group data management
+Group data service management
 
 Implements
 ==========
@@ -56,6 +56,7 @@ __revision__ = "$Id$"
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.stack.groupAddress import GroupAddress
+from pknyx.stack.groupDataService import GroupDataService
 from pknyx.stack.groupDataListener import GroupDataListener
 
 
@@ -74,7 +75,7 @@ class Group(object):
     @type _gds: L{GroupDataService}
 
     @ivar _listeners: Listeners linked (binded) to the GAD
-    @type _listeners: list of L{GroupDataListener}
+    @type _listeners: set of L{GroupDataListener}
     """
     def __init__(self, gad, gds):
         """ Init the Group object
@@ -93,8 +94,9 @@ class Group(object):
             gad = GroupAddress(gad)
         self._gad = gad
 
-        if not isinstance(GroupDataListener, gds):
-            raise GroupValueError("invalid group data listener (%s)" % repr(gds))
+        if not isinstance(GroupDataService, gds):
+            raise GroupValueError("invalid group data service (%s)" % repr(gds))
+        self._gds = gds
 
         self._listeners = set()
 
@@ -111,7 +113,7 @@ class Group(object):
 
         self._listeners.add(listener)
 
-        return Acesspoint(listener)
+        return Acesspoint(self)
 
     def write(self, src, priority, data):
         """ Write data request on the GAD associated with this group
@@ -127,7 +129,7 @@ class Group(object):
         """ Callback for write requests
 
         @param src: individual address of the source device which sent the write request
-        @type src: L{IndividualAddress}
+        @type src: L{IndividualAddress<pknyx.stack.individualAddress>}
 
         @param data: data associated with this request
         @type data: bytearray
@@ -142,13 +144,13 @@ class Group(object):
         """ Callback for read requests
 
         @param src: individual address of the source device which sent the read request
-        @type src: L{IndividualAddress}
+        @type src: L{IndividualAddress<pknyx.stack.individualAddress>}
         """
         for listener in self._listeners:
             try:
                 data = listener.onGroupRead(src, self._gad)
                 if data is not None:
-                    gds.agds.groupValue_readRes(src, self._gad, listener.priority, data)
+                    self._gds.agds.groupValue_readRes(src, self._gad, listener.priority, data)
             except:
                 Logger().exception("Group.onRead()")
 
@@ -156,7 +158,7 @@ class Group(object):
         """ Callback for read response result
 
         @param src: individual address of the source device which sent the read result
-        @type src: L{IndividualAddress}
+        @type src: L{IndividualAddress<pknyx.stack.individualAddress>}
 
         @param data: data associated with this result
         @type data: bytearray

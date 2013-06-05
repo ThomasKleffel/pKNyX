@@ -66,8 +66,8 @@ from pknyx.common.loggingServices import Logger
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
 from pknyx.core.flags import Flags
-from pknyx.core.dataPointListener import DatapointListener
-#from pknyx.stack.accesspoint import Accesspoint
+from pknyx.core.datapointListener import DatapointListener
+from pknyx.stack.accesspoint import Accesspoint
 from pknyx.stack.priority import Priority
 
 
@@ -100,7 +100,9 @@ class Datapoint(DatapointListener):
     @ivar _dptXlator: DPT translator associated with this Datapoint
     @type _dptXlator: L{DPTXlator<pknyx.core.dptXlator>}
 
-    @ivar _accesspoint : Accesspoint  to use to communicate with the bus
+    @ivar _accesspoint : Accesspoint to use to communicate with the bus
+                         A Datapoint can be linked to several GAD (by the way of L{Group}), but can only transmit (write)
+                         data to the first GAD. This Accespoint belongs to the Group handling that GAD.
     @type _accesspoint : L{Accesspoint}
 
     @todo: add desc. param
@@ -123,11 +125,13 @@ class Datapoint(DatapointListener):
 
         @param defaultValue: value to use as default
         @type defaultValue: depend on the DPT
+
+        @todo: if flag 'U' is set, do an automatic read request on the bus?
         """
         super(Datapoint, self).__init__()
 
-        #Logger().debug("Datapoint.__init__(): name=%s, dptId=%r, flags=%r, priority=%s" % \
-                       #(name, dptId, flags, priority, stateBased))
+        #Logger().debug("Datapoint.__init__(): name=%s, dptId=%s, flags=%s, priority=%s, defaultValue=%s" % \
+                       #(repr(name), repr(dptId), repr(flags), repr(priority), repr(defaultValue)))
 
         self._name = name
         if not isinstance(dptId, DPTID):
@@ -265,9 +269,21 @@ if __name__ == '__main__':
         def tearDown(self):
             pass
 
-        #def test_constructor(self):
+        def test_constructor(self):
             #with self.assertRaises(DPValueError):
                 #Datapoint("name")
+            DP_01 = dict(name="temperature", dptId="9.001", flags="CRT", priority="low", defaultValue=0.)
+            DP_02 = dict(name="humidity", dptId="9.007", flags="CRT", priority="low", defaultValue=0.)
+            DP_03 = dict(name="wind_speed", dptId="9.005", flags="CRT", priority="low", defaultValue=0.)
+            DP_04 = dict(name="wind_alarm", dptId="1.005", flags="CRT", priority="urgent", defaultValue="No alarm")
+            DP_05 = dict(name="wind_speed_limit", dptId="9.005", flags="CWTU", priority="low", defaultValue=15.)
+            DP_06 = dict(name="wind_alarm_enable", dptId="1.003", flags="CWTU", priority="low", defaultValue="Disable")
+            Datapoint(**DP_01)
+            Datapoint(**DP_02)
+            Datapoint(**DP_03)
+            Datapoint(**DP_04)
+            Datapoint(**DP_05)
+            Datapoint(**DP_06)
 
 
     unittest.main()

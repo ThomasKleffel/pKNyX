@@ -60,14 +60,14 @@ class A_GDSValueError(PKNyXValueError):
 class A_GroupDataService(object):
     """ A_GroupDataService class
 
-    @ivar :
-    @type :
+    @ivar _x:
+    @type _x:
     """
     def __init__(self):
         """
 
-        @param :
-        @type :
+        @param x:
+        @type x:
 
         raise A_GDSValueError:
         """

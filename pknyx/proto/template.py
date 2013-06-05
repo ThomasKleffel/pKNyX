@@ -58,14 +58,14 @@ class XxxValueError(PKNyXValueError):
 class Xxx(object):
     """ Xxx class
 
-    @ivar :
-    @type :
+    @ivar _xxx:
+    @type _xxx:
     """
     def __init__(self):
         """
 
-        @param :
-        @type :
+        @param xxx:
+        @type xxx:
 
         raise XxxValueError:
         """

@@ -80,17 +80,17 @@ class KnxAddress(object):
     @type _raw: int
     @todo: use buffer protocole (bytearray)?
     """
-    def __init__(self, raw):
+    def __init__(self, raw=0x0000):
         """ Create a generic address
 
         @param raw: knx raw address
-        @type raw: int or str
+        @type raw: int or str (frame) -> switch to bytearray
 
         @raise KnxAddressValueError:
         """
         super(KnxAddress, self).__init__()
 
-        #Logger().debug("KnxAddress.__init__(): address=%r" % address)
+        #Logger().debug("KnxAddress.__init__(): raw=%r" % raw)
 
         if isinstance(raw, str) and len(raw) == 2:
             raw = struct.unpack(">H", raw)[0]
@@ -106,14 +106,14 @@ class KnxAddress(object):
         return s
 
     @property
-    def address(self):
-        raise NotImplementedError
-
-    @property
     def raw(self):
         """ return the raw address
         """
         return self._raw
+
+    @property
+    def address(self):
+        raise NotImplementedError
 
     @property
     def frame(self):

@@ -59,14 +59,14 @@ class APDUValueError(PKNyXValueError):
 class APDU(object):
     """ APDU class
 
-    @ivar :
-    @type :
+    @ivar _x:
+    @type _x:
     """
     def __init__(self):
         """
 
-        @param :
-        @type :
+        @param x:
+        @type x:
 
         raise APDUValueError:
         """
@@ -97,7 +97,7 @@ class APDU(object):
     def getGroupValueData(aPDU, length):
         """
         """
-        data = new byte[length]
+        data = bytearray(length)
         System.arraycopy(aPDU, TFrame.APDU_START + 1, data, 0, length)
         data[0] &= 0x3f
 

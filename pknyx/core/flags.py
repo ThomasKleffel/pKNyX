@@ -60,8 +60,9 @@ corresponding to real object state. Another set of flags can be for example "crw
 should send it's value to the KNX bus even if linknx maintains the same value. This is usefull for scenes.
 Setting scene value to 'on' should send this value to KNX every time action is triggered to make the scene happen.
 
-ETS: S         K   L   E   T   Act
-     S         C   R   W   T   U
+ETS:
+S         K   L   E   T   Act
+S         C   R   W   T   U
 
  - S -> le DP envoie sa valeur sur la GA ayant ce flag (première GA associée à ce DP)
  - K -> communication : si pas présent, le DP n'envoie rien sur le bus (à utiliser pour com.interne au framework)

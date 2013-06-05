@@ -28,7 +28,7 @@ or see:
 Module purpose
 ==============
 
-Application xx xx Interface management
+Application layer group data management
 
 Implements
 ==========
@@ -38,6 +38,8 @@ Implements
 Documentation
 =============
 
+This class defines constants used for the APCI (Application Protocol Control Interface).
+
 Usage
 =====
 
@@ -46,7 +48,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: template.py 61 2013-05-30 06:17:47Z fma $"
+__revision__ = "$Id$"
 
 
 class APCI():

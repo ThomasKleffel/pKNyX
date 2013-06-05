@@ -51,10 +51,11 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: template.py 61 2013-05-30 06:17:47Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
+from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.groupDataListener import GroupDataListener
 
 
@@ -69,35 +70,36 @@ class Group(object):
     @ivar _gad: Group address (GAD) identifying this group
     @type _gad: L{GroupAddress}
 
+    @ivar _gds: Group data service object
+    @type _gds: L{GroupDataService}
+
     @ivar _listeners: Listeners linked (binded) to the GAD
     @type _listeners: list of L{GroupDataListener}
     """
-    def __init__(self):
+    def __init__(self, gad, gds):
         """ Init the Group object
 
         @param gad: Group address identifying this group
         @type gad: L{GroupAddress}
 
+        @param gds: Group data service object
+        @type gds: L{GroupDataService}
+
         raise GroupValueError:
         """
         super(Group, self).__init__()
 
-    def groupValue_writeInd(self, srcGad, data):
-        for listener in self._listeners:
-            listener.onGroupWrite(srcGad, data)
+        if not isinstance(GroupAddress, gad):
+            gad = GroupAddress(gad)
+        self._gad = gad
 
-    def groupValue_readInd(self, srcGad):
-        for listener in self._listeners:
-            data = listener.onGroupRead(srcGad)
-            if data is not None:
-                ags.groupValue_ReadRes(self._gad, data, listener.priority)
+        if not isinstance(GroupDataListener, gds):
+            raise GroupValueError("invalid group data listener (%s)" % repr(gds))
 
-    def groupValue_readCon(self, srcGad, data):
-        for listener in self._listeners:
-            listener.onGroupResponse(srcGad, data)
+        self._listeners = set()
 
     def createAP(self, listener):
-        """ Create an accesspoint
+        """ Create an accesspoint to communicate with this group
 
         The given listener is also added to the listenders binded with the GAD handled by this group.
 
@@ -107,7 +109,63 @@ class Group(object):
         if not issubclass(GroupDataListener, listener):
             raise GroupValueError("invalid listener (%s)" % repr(listener))
 
+        self._listeners.add(listener)
+
         return Acesspoint(listener)
+
+    def write(self, src, priority, data):
+        """ Write data request on the GAD associated with this group
+        """
+        gds.agds.groupValue_writeReq(src, self._gad, priority, data)
+
+    def read(self, src, priority):
+        """ Read data request on the GAD associated with this group
+        """
+        gds.agds.groupValue_readReq(src, self._gad, priority)
+
+    def onWrite(self, src, data):
+        """ Callback for write requests
+
+        @param src: individual address of the source device which sent the write request
+        @type src: L{IndividualAddress}
+
+        @param data: data associated with this request
+        @type data: bytearray
+        """
+        for listener in self._listeners:
+            try:
+                listener.onGroupWrite(src, self._gad, data)
+            except:
+                Logger().exception("Group.onWrite()")
+
+    def onRead(self, src):
+        """ Callback for read requests
+
+        @param src: individual address of the source device which sent the read request
+        @type src: L{IndividualAddress}
+        """
+        for listener in self._listeners:
+            try:
+                data = listener.onGroupRead(src, self._gad)
+                if data is not None:
+                    gds.agds.groupValue_readRes(src, self._gad, listener.priority, data)
+            except:
+                Logger().exception("Group.onRead()")
+
+    def onResponse(self, src, data):
+        """ Callback for read response result
+
+        @param src: individual address of the source device which sent the read result
+        @type src: L{IndividualAddress}
+
+        @param data: data associated with this result
+        @type data: bytearray
+        """
+        for listener in self._listeners:
+            try:
+                listener.onGroupResponse(src, self._gad, data)
+            except:
+                Logger().exception("Group.onResponse()")
 
 
 if __name__ == '__main__':

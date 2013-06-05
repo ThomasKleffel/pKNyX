@@ -212,9 +212,13 @@ class Datapoint(DatapointListener):
     @data.setter
     def data(self, data):
 
-        # Check flags and _accesspoint -> send value over bus if changed (or if forced)
         self._dptXlator.checkData(data)
+        oldData = self._data
         self._data = data
+
+        # Check if data should be send over the bus
+        if data != oldDate or self.flags.stateless:
+            self._accesspoint.writeGroup(self._address, self._priority, data)
 
     @property
     def value(self):
@@ -225,7 +229,7 @@ class Datapoint(DatapointListener):
     @value.setter
     def value(self, value):
         self._dptXlator.checkValue(value)
-        self.data = self._dptXlator.valueToData(value)  # Note usage of .data and not ._data
+        self.data = self._dptXlator.valueToData(value)  # Note usage of .data and not ._data!!!
 
     @property
     def unit(self):
@@ -243,7 +247,7 @@ class Datapoint(DatapointListener):
     @frame.setter
     def frame(self, frame):
         self._dptXlator.checkFrame(frame)
-        self.data = self._dptXlator.frameToData(frame)  # Note usage of .data and not ._data
+        self.data = self._dptXlator.frameToData(frame)  # Note usage of .data and not ._data!!!
 
 
 if __name__ == '__main__':

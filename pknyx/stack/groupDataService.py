@@ -59,18 +59,20 @@ class GDServiceValueError(PKNyXValueError):
 class GroupDataService(A_GroupDataListener):
     """ Xxx class
 
-    @ivar :
-    @type :
+    @ivar _agds: Application group data service object
+    @type _agds: L{A_GroupDataService}
     """
-    def __init__(self):
+    def __init__(self, agds):
         """
 
-        @param :
-        @type :
+        @param agds: Application group data service object
+        @type agds: L{A_GroupDataService}
 
         raise GDServiceValueError:
         """
         super(GroupDataService, self).__init__()
+
+        self._agds = A_GroupDataService()
 
 
 if __name__ == '__main__':

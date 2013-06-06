@@ -115,20 +115,15 @@ class Group(object):
 
         return Acesspoint(self)
 
-    def groupValueWrite(self, src, priority, data):
+    def groupValueWrite(self, src, data, priority):
         """ Write data request on the GAD associated with this group
         """
-        gds.agds.groupValueWriteReq(src, self._gad, priority, data)
+        gds.agds.groupValueWriteReq(src, self._gad, data, priority)
 
     def groupValueRead(self, src, priority):
         """ Read data request on the GAD associated with this group
         """
         gds.agds.groupValueReadReq(src, self._gad, priority)
-
-    def groupValueResponse(self, src, priority, data):
-        """ Read response data request on the GAD associated with this group
-        """
-        gds.agds.groupValueReadRes(src, self._gad, priority, data)
 
     def onGroupValueWrite(self, src, data):
         """ Callback for write requests

@@ -53,7 +53,7 @@ class EIBAddress(EIBAddr):
     def toGroup(self):
         return "%d/%d/%d" % ((self.data >> 11) & 0x1f, (self.data >> 8) & 0x07, (self.data) & 0xff)
 
-    def toPhysical(self):
+    def toIndividual(self):
         return "%d.%d.%d" % ((self.data >> 12) & 0x0f, (self.data >> 8) & 0x0f, (self.data) & 0xff)
 
 

@@ -52,7 +52,7 @@ class EIBAddress(EIBAddr):
     def toGroup(self):
         return "%d/%d/%d" % ((self.data >> 11) & 0x1f, (self.data >> 8) & 0x07, (self.data) & 0xff)
 
-    def toPhysical(self):
+    def toIndividual(self):
         return "%d.%d.%d" % ((self.data >> 12) & 0x0f, (self.data >> 8) & 0x0f, (self.data) & 0xff)
 
 
@@ -98,7 +98,7 @@ class GroupSocketListen(object):
             #Logger().debug("GroupsSocketListen.run(): src=%s, dest=%s, buf=%r" % (hex(self._src.data), hex(self._dest.data), self._buffer.buffer))
 
             if self._buffer.buffer[0] & 0x03 or self._buffer.buffer[1] & 0xc0 == 0xc0:
-                Logger().error("GroupsSocketListen.run(): unknown ADPU from %s to %s (%s)" % (self._src.toPhysical(), self._dest.toGroup(), self._buffer.buffer))
+                Logger().error("GroupsSocketListen.run(): unknown ADPU from %s to %s (%s)" % (self._src.toIndividual(), self._dest.toGroup(), self._buffer.buffer))
             else:
                 if self._buffer.buffer[1] & 0xc0 == 0x00:
                     s = "Read"
@@ -106,7 +106,7 @@ class GroupSocketListen(object):
                     s = "Response"
                 elif self._buffer.buffer[1] & 0xc0 == 0x80:
                     s = "Write"
-                s += " from %s to %s" % (self._src.toPhysical(), self._dest.toGroup())
+                s += " from %s to %s" % (self._src.toIndividual(), self._dest.toGroup())
                 if self._buffer.buffer[1] & 0xc0:
                     s += ": "
                     if length == 2:

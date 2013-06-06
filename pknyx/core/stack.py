@@ -75,6 +75,11 @@ class Stack(object):
         """
         super(Stack, self).__init__()
 
+        #self._lgds = L_GroupDataService()
+        #self._ngds = N_GroupDataService(self._lgds)
+        #self._tgds = T_GroupDataService(self._ngds)
+        #self._agds = A_GroupDataService(self._tgds)
+
         self._agds = A_GroupDataService()
         self._gds = GroupDataService(self._agds)
 

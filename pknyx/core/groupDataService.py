@@ -82,23 +82,41 @@ class GroupDataService(A_GroupDataListener):
         self._agds = agds
         self._groups = {}
 
-    def groupValueWriteInd(self, src, gad, priority, data):
+    def groupValueWriteInd(self, src, gad, data, priority):
         """
         """
-        Logger().debug("GroupDataService.groupValueWriteInd(): src=%s, gad=%s, priority=%s, data=%s" % \
-                       (repr(src), repr(gad), repr(priority), repr(data)))
+        Logger().debug("GroupDataService.groupValueWriteInd(): src=%s, gad=%s, data=%s, priority=%s" % \
+                       (repr(src), repr(gad), repr(data), repr(priority)))
+        try:
+            group = self._group[gad]
+            group.onGroupValueWrite(src, data)
+        except KeyError:
+            Logger().exception("GroupDataService.groupValueWriteInd()", debug=True)
+            Logger().debug("GroupDataService.groupValueWriteInd(): no registered group for that GAD (%s)" % repr(gad))
 
     def groupValueReadInd(self, src, gad, priority):
         """
         """
         Logger().debug("GroupDataService.groupValueReadInd(): src=%s, gad=%s, priority=%s" % \
                        (repr(src), repr(gad), repr(priority)))
+        try:
+            group = self._group[gad]
+            group.onGroupValueRead(src)
+        except KeyError:
+            Logger().exception("GroupDataService.groupValueReadInd()", debug=True)
+            Logger().debug("GroupDataService.groupValueReadInd(): no registered group for that GAD (%s)" % repr(gad))
 
-    def groupValueReadCon(self, src, gad, priority, data):
+    def groupValueReadCon(self, src, gad, data, priority):
         """
         """
-        Logger().debug("GroupDataService.groupValue_ReadCon(): src=%s, gad=%s, priority=%s, data=%s" % \
-                       (repr(src), repr(gad), repr(priority), repr(data)))
+        Logger().debug("GroupDataService.groupValue_ReadCon(): src=%s, gad=%s, data=%s, priority=%s" % \
+                       (repr(src), repr(gad), repr(data), repr(priority)))
+        try:
+            group = self._group[gad]
+            group.onGroupValueResponse(src, data)
+        except KeyError:
+            Logger().exception("GroupDataService.groupValueReadCon()", debug=True)
+            Logger().debug("GroupDataService.groupValueReadCon(): no registered group for that GAD (%s)" % repr(gad))
 
     @property
     def agds(self):

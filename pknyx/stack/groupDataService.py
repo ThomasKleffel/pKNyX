@@ -82,6 +82,24 @@ class GroupDataService(A_GroupDataListener):
         self._agds = agds
         self._groups = {}
 
+    def groupValueWriteInd(self, src, gad, priority, data):
+        """
+        """
+        Logger().debug("GroupDataService.groupValueWriteInd(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (repr(src), repr(gad), repr(priority), repr(data)))
+
+    def groupValueReadInd(self, src, gad, priority):
+        """
+        """
+        Logger().debug("GroupDataService.groupValueReadInd(): src=%s, gad=%s, priority=%s" % \
+                       (repr(src), repr(gad), repr(priority)))
+
+    def groupValueReadCon(self, src, gad, priority, data):
+        """
+        """
+        Logger().debug("GroupDataService.groupValue_ReadCon(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (repr(src), repr(gad), repr(priority), repr(data)))
+
     @property
     def agds(self):
         return self._agds
@@ -93,7 +111,7 @@ class GroupDataService(A_GroupDataListener):
     def subscribe(self, gad, listener):
         """
 
-        @param gad: Group address for the listener to subscribe
+        @param gad: Group address the listener wants to subscribe to
         @type gad : L{GroupAddress}
 
         @param listener: object to link to the GAD

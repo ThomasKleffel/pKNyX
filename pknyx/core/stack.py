@@ -50,8 +50,8 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.stack.groupDataService import GroupDataService
-from pknyx.stack.layer7.a_groupDataService import A_GroupDataService
+from pknyx.core.groupDataService import GroupDataService
+from pknyx.core.layer7.a_groupDataService import A_GroupDataService
 
 
 class StackValueError(PKNyXValueError):

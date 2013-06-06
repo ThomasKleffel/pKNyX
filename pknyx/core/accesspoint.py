@@ -52,7 +52,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.stack.group import Group
+from pknyx.core.group import Group
 
 
 class AccesspointValueError(PKNyXValueError):

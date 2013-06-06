@@ -55,9 +55,9 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.stack.groupAddress import GroupAddress
-from pknyx.stack.groupDataService import GroupDataService
-from pknyx.stack.groupDataListener import GroupDataListener
+from pknyx.core.groupAddress import GroupAddress
+from pknyx.core.groupDataService import GroupDataService
+from pknyx.core.groupDataListener import GroupDataListener
 
 
 class GroupValueError(PKNyXValueError):

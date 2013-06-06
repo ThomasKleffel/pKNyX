@@ -67,8 +67,8 @@ from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
 from pknyx.core.flags import Flags
 from pknyx.core.datapointListener import DatapointListener
-from pknyx.stack.accesspoint import Accesspoint
-from pknyx.stack.priority import Priority
+from pknyx.core.accesspoint import Accesspoint
+from pknyx.core.priority import Priority
 
 
 class DPValueError(PKNyXValueError):

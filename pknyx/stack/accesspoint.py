@@ -80,15 +80,20 @@ class Accesspoint(object):
             raise("invalid group (%r)" % repr(group))
         self._group = group
 
-    def writeGroup(self, src, priority, data):
+    def groupValueWrite(self, src, priority, data):
         """ Write data request on the GAD associated with this group
         """
-        self._group.write(src, priority, data)
+        self._group.groupValueWrite(src, priority, data)
 
-    def readGroup(self, src, priority):
+    def groupValueRead(self, src, priority):
         """ Read data request on the GAD associated with this group
         """
-        self._group.read(src, priority)
+        self._group.groupValueRead(src, priority)
+
+    def groupValueResponse(self, src, priority):
+        """ Read data response on the GAD associated with this group
+        """
+        self._group.groupValueResponse(src, priority)
 
 
 if __name__ == '__main__':

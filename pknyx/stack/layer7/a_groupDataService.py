@@ -73,6 +73,24 @@ class A_GroupDataService(object):
         """
         super(A_GroupDataService, self).__init__()
 
+    def groupValueWriteReq(self, src, gad, priority, data):
+        """
+        """
+        Logger().debug("A_GroupDataService.groupValueWriteReq(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (repr(src), repr(gad), repr(priority), repr(data)))
+
+    def groupValueReadReq(self, src, gad, priority):
+        """
+        """
+        Logger().debug("A_GroupDataService.groupValueReadReq(): src=%s, gad=%s, priority=%s" % \
+                       (repr(src), repr(gad), repr(priority)))
+
+    def groupValueReadRes(self, src, gad, priority, data):
+        """
+        """
+        Logger().debug("A_GroupDataService.groupValueReadRes(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (repr(src), repr(gad), repr(priority), repr(data)))
+
 
 if __name__ == '__main__':
     import unittest

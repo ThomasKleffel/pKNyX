@@ -156,13 +156,13 @@ class Datapoint(DatapointListener):
              (self._name, repr(self._dptId), self._flags, repr(self._priority))
         return s
 
-    def onGroupWrite(self, cEMI):
+    def onGroupValueWrite(self, cEMI):
         Logger().debug("Datapoint.onGroupWrite(): cEMI=%s" % repr(cEMI))
 
-    def onGroupRead(self, cEMI):
+    def onGroupValueRead(self, cEMI):
         Logger().debug("Datapoint.onGroupRead(): cEMI=%s" % repr(cEMI))
 
-    def onGroupResponse(self, cEMI):
+    def onGroupValueResponse(self, cEMI):
         Logger().debug("Datapoint.onGroupResponse(): cEMI=%s" % repr(cEMI))
 
     @property

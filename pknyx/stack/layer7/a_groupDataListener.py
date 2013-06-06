@@ -76,6 +76,21 @@ class A_GroupDataListener(object):
         """
         super(A_GroupDataListener, self).__init__()
 
+    def groupValueWriteInd(self, src, gad, priority, data):
+        """
+        """
+        raise NotImplementedError
+
+    def groupValueReadInd(self, src, gad, priority):
+        """
+        """
+        raise NotImplementedError
+
+    def groupValueReadCon(self, src, gad, priority, data):
+        """
+        """
+        raise NotImplementedError
+
 
 if __name__ == '__main__':
     import unittest

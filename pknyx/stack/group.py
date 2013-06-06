@@ -115,17 +115,22 @@ class Group(object):
 
         return Acesspoint(self)
 
-    def write(self, src, priority, data):
+    def groupValueWrite(self, src, priority, data):
         """ Write data request on the GAD associated with this group
         """
-        gds.agds.groupValue_writeReq(src, self._gad, priority, data)
+        gds.agds.groupValueWriteReq(src, self._gad, priority, data)
 
-    def read(self, src, priority):
+    def groupValueRead(self, src, priority):
         """ Read data request on the GAD associated with this group
         """
-        gds.agds.groupValue_readReq(src, self._gad, priority)
+        gds.agds.groupValueReadReq(src, self._gad, priority)
 
-    def onWrite(self, src, data):
+    def groupValueResponse(self, src, priority, data):
+        """ Read response data request on the GAD associated with this group
+        """
+        gds.agds.groupValueReadRes(src, self._gad, priority, data)
+
+    def onGroupValueWrite(self, src, data):
         """ Callback for write requests
 
         @param src: individual address of the source device which sent the write request
@@ -136,11 +141,11 @@ class Group(object):
         """
         for listener in self._listeners:
             try:
-                listener.onGroupWrite(src, self._gad, data)
+                listener.onGroupValueWrite(src, self._gad, data)
             except:
-                Logger().exception("Group.onWrite()")
+                Logger().exception("Group.onGroupValueWrite()")
 
-    def onRead(self, src):
+    def onGroupValueRead(self, src):
         """ Callback for read requests
 
         @param src: individual address of the source device which sent the read request
@@ -148,14 +153,14 @@ class Group(object):
         """
         for listener in self._listeners:
             try:
-                data = listener.onGroupRead(src, self._gad)
+                data = listener.onGroupValueRead(src, self._gad)
                 if data is not None:
-                    self._gds.agds.groupValue_readRes(src, self._gad, listener.priority, data)
+                    self._gds.agds.groupValueReadRes(src, self._gad, listener.priority, data)
             except:
-                Logger().exception("Group.onRead()")
+                Logger().exception("Group.onGroupValueRead()")
 
-    def onResponse(self, src, data):
-        """ Callback for read response result
+    def onGroupValueResponse(self, src, data):
+        """ Callback for read response indication
 
         @param src: individual address of the source device which sent the read result
         @type src: L{IndividualAddress<pknyx.stack.individualAddress>}
@@ -165,9 +170,9 @@ class Group(object):
         """
         for listener in self._listeners:
             try:
-                listener.onGroupResponse(src, self._gad, data)
+                listener.onGroupValueResponse(src, self._gad, data)
             except:
-                Logger().exception("Group.onResponse()")
+                Logger().exception("Group.onGroupValueResponse()")
 
 
 if __name__ == '__main__':

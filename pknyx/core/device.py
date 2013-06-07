@@ -66,7 +66,7 @@ class DeviceValueError(PKNyXValueError):
 class Device(object):
     """ Device class
 
-    The Datapoint of a Device must be defined in sub-classes, as class B{dict}, and named B{DP_xxx}. They will be
+    The Datapoint of a Device must be defined in sub-classes, as class dict, and named B{DP_xxx}. They will be
     automatically instanciated as real L{Datapoint} objects, and added to the B{_dp} dict.
 
     @ivar _name: name of the device
@@ -84,8 +84,8 @@ class Device(object):
     def __new__(cls, *args, **kwargs):
         """ Init the class with all available types for this DPT
 
-        All class objects defined in sub-classes name B{DPT_xxx}, will be treated as DPT objects and added to the
-        B{_handledDPT} dict.
+        All class objects defined in sub-classes name B{DP_xxx}, will be treated as Datapoint (aka Group Objects) and
+        added to the B{_dp} dict.
         """
         self = object.__new__(cls, *args, **kwargs)
         cls._dp = {}
@@ -93,8 +93,8 @@ class Device(object):
             if key.startswith("DP_"):
                 name = value['name']
                 if self._dp.has_key(dpKey):
-                    raise("duplicated Datapoint (%s)" % repr(dpKey))
-                self._dp[name] = Datapoint(*value)
+                    raise DeviceValueError("duplicated Datapoint (%s)" % repr(dpKey))
+                self._dp[name] = Datapoint(**value)
 
         return self
 
@@ -147,14 +147,21 @@ if __name__ == '__main__':
 
     class DeviceTestCase(unittest.TestCase):
 
+        class TestDevice(Device):
+            DP_01 = dict(name="temperature", dptId="9.001", flags="CRT", priority="low", initValue=0.)
+            DP_02 = dict(name="humidity", dptId="9.007", flags="CRT", priority="low", initValue=0.)
+            DP_03 = dict(name="wind_speed", dptId="9.005", flags="CRT", priority="low", initValue=0.)
+            DP_04 = dict(name="wind_alarm", dptId="1.005", flags="CRT", priority="urgent", initValue="No alarm")
+            DP_05 = dict(name="wind_speed_limit", dptId="9.005", flags="CWTU", priority="low", initValue=15.)
+            DP_06 = dict(name="wind_alarm_enable", dptId="1.003", flags="CWTU", priority="low", initValue="Disable")
+
         def setUp(self):
-            pass
+            self._dev = TestDevice("test")
 
         def tearDown(self):
             pass
 
         def test_constructor(self):
             pass
-
 
     unittest.main()

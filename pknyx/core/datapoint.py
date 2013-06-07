@@ -253,6 +253,13 @@ class Datapoint(DatapointListener):
         self._dptXlator.checkFrame(frame)
         self.data = self._dptXlator.frameToData(frame)  # Note usage of .data and not ._data!!!
 
+    @property
+    def accesspoint(self):
+        return self._accesspoint
+
+    @accesspoint.setter
+    def accesspoint(self, accesspoint):
+        self._accesspoint = accesspoint
 
 if __name__ == '__main__':
     import unittest

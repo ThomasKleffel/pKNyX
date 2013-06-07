@@ -77,7 +77,7 @@ class Accesspoint(object):
         super(Accesspoint, self).__init__()
 
         if not isinstance(Group, group):
-            raise("invalid group (%r)" % repr(group))
+            raise AccesspointValueError("invalid group (%r)" % repr(group))
         self._group = group
 
     def groupValueWrite(self, src, data, priority):

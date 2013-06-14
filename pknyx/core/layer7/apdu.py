@@ -48,7 +48,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.stack.transciever.tFrame import TFrame
+#from pknyx.core.transceiver.tFrame import TFrame
 
 
 class APDUValueError(PKNyXValueError):
@@ -58,15 +58,9 @@ class APDUValueError(PKNyXValueError):
 
 class APDU(object):
     """ APDU class
-
-    @ivar _x:
-    @type _x:
     """
     def __init__(self):
         """
-
-        @param x:
-        @type x:
 
         raise APDUValueError:
         """

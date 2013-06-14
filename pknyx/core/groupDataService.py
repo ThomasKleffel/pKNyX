@@ -135,14 +135,23 @@ class GroupDataService(A_GroupDataListener):
         @param listener: object to link to the GAD
         @type listener: L{GroupDataListener}
         """
-        if not isinstance(GroupAddress, gad):
+        if not isinstance(gad, GroupAddress):
             gad = GroupAddress(gad)
 
         if not self._groups.has_key(gad):
-            self._group[gad] = Group(gad, self)
+            self._groups[gad] = Group(gad, self)
         accesspoint = self._groups[gad].createAP(listener)
 
         return accesspoint
+
+    def computeMapTable(self):
+        """
+        """
+        mapTable = {}
+        for gad, group in self._groups.iteritems():
+            mapTable.update(group.computeMapTable())
+
+        return mapTable
 
 
 if __name__ == '__main__':

@@ -147,6 +147,9 @@ class GroupAddress(KnxAddress):
         s = "<GroupAddress(\"%s\")>" % self.address
         return s
 
+    def __str__(self):
+        return self.address
+
     @property
     def address(self):
         address = []

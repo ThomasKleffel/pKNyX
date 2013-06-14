@@ -56,8 +56,7 @@ __revision__ = "$Id$"
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.groupAddress import GroupAddress
-from pknyx.core.groupDataService import GroupDataService
-from pknyx.core.groupDataListener import GroupDataListener
+from pknyx.core.accesspoint import Accesspoint
 
 
 class GroupValueError(PKNyXValueError):
@@ -75,7 +74,7 @@ class Group(object):
     @type _gds: L{GroupDataService}
 
     @ivar _listeners: Listeners linked (binded) to the GAD
-    @type _listeners: set of L{GroupDataListener}
+    @type _listeners: set of L{GroupDataListener<pknyx.core.groupDataListener>}
     """
     def __init__(self, gad, gds):
         """ Init the Group object
@@ -90,12 +89,10 @@ class Group(object):
         """
         super(Group, self).__init__()
 
-        if not isinstance(GroupAddress, gad):
+        if not isinstance(gad, GroupAddress):
             gad = GroupAddress(gad)
         self._gad = gad
 
-        if not isinstance(GroupDataService, gds):
-            raise GroupValueError("invalid group data service (%s)" % repr(gds))
         self._gds = gds
 
         self._listeners = set()
@@ -106,14 +103,11 @@ class Group(object):
         The given listener is also added to the listenders binded with the GAD handled by this group.
 
         @param listener: Listener
-        @type listener: L{GroupDataListener}
+        @type listener: L{GroupDataListener<pknyx.core.groupDataListener>}
         """
-        if not issubclass(GroupDataListener, listener):
-            raise GroupValueError("invalid listener (%s)" % repr(listener))
-
         self._listeners.add(listener)
 
-        return Acesspoint(self)
+        return Accesspoint(self)
 
     def groupValueWrite(self, src, data, priority):
         """ Write data request on the GAD associated with this group
@@ -125,11 +119,16 @@ class Group(object):
         """
         gds.agds.groupValueReadReq(src, self._gad, priority)
 
+    def groupValueResponse(self, src, data, priority):
+        """ Response data request on the GAD associated with this group
+        """
+        gds.agds.groupValueReadRes(src, self._gad, data, priority)
+
     def onGroupValueWrite(self, src, data):
         """ Callback for write requests
 
         @param src: individual address of the source device which sent the write request
-        @type src: L{IndividualAddress<pknyx.stack.individualAddress>}
+        @type src: L{IndividualAddress<pknyx.core.individualAddress>}
 
         @param data: data associated with this request
         @type data: bytearray
@@ -144,7 +143,7 @@ class Group(object):
         """ Callback for read requests
 
         @param src: individual address of the source device which sent the read request
-        @type src: L{IndividualAddress<pknyx.stack.individualAddress>}
+        @type src: L{IndividualAddress<pknyx.core.individualAddress>}
         """
         for listener in self._listeners:
             try:
@@ -158,7 +157,7 @@ class Group(object):
         """ Callback for read response indication
 
         @param src: individual address of the source device which sent the read result
-        @type src: L{IndividualAddress<pknyx.stack.individualAddress>}
+        @type src: L{IndividualAddress<pknyx.core.individualAddress>}
 
         @param data: data associated with this result
         @type data: bytearray
@@ -168,6 +167,15 @@ class Group(object):
                 listener.onGroupValueResponse(src, self._gad, data)
             except:
                 Logger().exception("Group.onGroupValueResponse()")
+
+    def computeMapTable(self):
+        """
+        """
+        dpNames = []
+        for dp in self._listeners:
+            dpNames.append((dp.name, dp.owner.name))
+
+        return {self._gad: dpNames}
 
 
 if __name__ == '__main__':

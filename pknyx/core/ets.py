@@ -63,7 +63,7 @@ class ETS(object):
     """ ETS class
 
     @ivar _stack: KNX stack object
-    @type _stack: L{Stack}
+    @type _stack: L{Stack<pknyx.core.stack>}
 
     @ivar _devices: registered devices
     @type _devices: set of L{Device}
@@ -74,18 +74,15 @@ class ETS(object):
         """
 
         @param stack: KNX stack object
-        @type stack: L{Stack}
+        @type stack: L{Stack<pknyx.core.stack>}
 
         raise ETSValueError:
         """
         super(ETS, self).__init__()
 
-        if not isinstance(Stack, stack):
-            raise ETSValueError("invalid stack object (%s)" % repr(stack))
         self._stack = stack
 
         self._devices = set()
-        self._links = {}
 
     @property
     def stack(self):
@@ -93,31 +90,31 @@ class ETS(object):
 
     @property
     def devices(self):
-        return self._devices
+        return [device.name for device in self._devices]
 
-    def link(self, device, dpName, gad):
+    def link(self, dev, dp, gad):
         """ Link a datapoint to a GAD
 
-        @param device: device owning the datapoint
-        @type device: L{Device}
+        @param dev: device owning the datapoint
+        @type dev: L{Device}
 
-        @param dpName: name of the datapoint to link
-        @type dpName: str
+        @param dp: name of the datapoint to link
+        @type dp: str
 
         @param gad : Groupaddress to link to
         @type gad : str or L{GroupAddress}
 
         raise ETSValueError:
         """
-        #if not isinstance(Device, device):
-            #raise ValueError("invalid device (%s)" % repr(device)
+        #if not isinstance(Device, dev):
+            #raise ValueError("invalid device (%s)" % repr(dev)
 
         # Get datapoint
-        datapoint = device.dp[dpName]
+        datapoint = dev.dp[dp]
 
         # Ask the group data service to subscribe this datapoint to the given gad
         # In return, get the created accesspoint
-        accesspoint = self._stack.gds.subscribe(datapoint, gad)
+        accesspoint = self._stack.gds.subscribe(gad, datapoint)
 
         # If the datapoint does not already have an accesspoint, set it
         # This accesspoint will be used by the datapoint to send datas to the default GAD
@@ -126,25 +123,32 @@ class ETS(object):
         if datapoint.accesspoint is None:
             datapoint.accesspoint = accesspoint
 
-        # Store the association
-        #lnk = Link(device, dpName, gad)
-        #self._links.add(lnk)
-        try:
-            self._links[dpName].add(gad)
-        except KeyError:
-            self._links[dpName] = set((gad,))
-
         # Add the device to the known devices
-        # Really usefull?
-        self._devices.add(device)
+        self._devices.add(dev)
 
-    def showLinks(self, by='datapoint'):
+    def computeMapTable(self):
         """
         """
-        if by not in ('datapoint', 'gad'):
-            raise ETSValueError("invalid 'by' param (%s)" % repr(by))
-        if by == 'datapoint':
-            return self._links
+        mapTable = self._stack.gds.computeMapTable()
+
+        mapByGAD = {}
+        for gad, dps in mapTable.iteritems():
+            mapByGAD[str(gad)] = []
+            for dpName, devName in dps:
+                #mapByGAD[gad].append("%s.%s" % (devName, dpName))
+                mapByGAD[str(gad)].append("%s (%s)" % (dpName, devName))
+
+        mapByDP = {}
+        for gad, dps in mapTable.iteritems():
+            for dpName, devName in dps:
+                try:
+                    #mapByDP["%s.%s" % (devName, dpName)].append(str(gad))
+                    mapByDP["%s (%s)" % (dpName, devName)].append(str(gad))
+                except KeyError:
+                    #mapByDP["%s.%s" % (devName, dpName)] = [str(gad)]
+                    mapByDP["%s (%s)" % (dpName, devName)] = [str(gad)]
+
+        return {'byGAD': mapByGAD, 'byDP': mapByDP}
 
 
 if __name__ == '__main__':

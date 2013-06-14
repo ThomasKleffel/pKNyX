@@ -194,14 +194,6 @@ class VMC(Device):
         self.dp["temp_entree"].value = 0  # Add persistence feature!!!
         # self.dp.temp_entree.value = 0
 
-    def _runHook(self):
-        """
-        This method is called regularly by the thread. Do here whatever you need to do.
-        Stop thread if return True?
-        If not overloaded in the Device sub-class, the thread sleeps forever. Only callbacks, if any, will run.
-        Really needed? Just for fast polling...
-        """
-
     @Device.trigger.at("...")  # take a complete date and/or time
     @Device.trigger.cron("...")  # cron-like syntax
     @Device.trigger.after(minute=5)  # after the device is created (day/month/year/hour/minute/second)
@@ -210,26 +202,28 @@ class VMC(Device):
         """
         """
 
+    @Device.trigger.poll()
+    def pollingCallback(self, event):
+        """
+        Fast polling.
+        This method is called regularly by the thread. Do here whatever you need to do.
+        Issue if freeze or take too much time?
+        """
+
     @Device.trigger.dp("temp_sortie")  # dp value has changed (from the bus)
     def dpCallback(self, event):
         """
         """
-
-    @Device.trigger.system("start")  # "start"/"stop"/"crash"
-    def systemCallback(self, event):
-        """
-        """
-
-    #def bus(self, event):
-        #"""
-        #This method must be overloaded. It is called when an event occurs on the bus which changes GA
-        #linked with at least one DP of this device.
-        #"""
         #print event.src
         #print event.dest
         #print event.value
         #print event.priority
         #print event.cEMI
+
+    @Device.trigger.system("start")  # "start"/"stop"/"crash"
+    def systemCallback(self, event):
+        """
+        """
 
 
 vmc = VMC("1.2.3")
@@ -238,3 +232,46 @@ ETS.link(vmc, "temp_entree", ("1/1/1", "1/1/2"))
 
 
 ################################################################################
+
+from pknyx.api import Device, Stack, ETS
+
+stack = Stack()
+ets = ETS(stack)
+
+# Weather station class definition
+class WeatherStation(Device):
+
+    # Datapoints (= Group Objects) definition
+    DP_01 = dict(name="temperature", dptId="9.001", flags="CRT", priority="low", initValue=0.)
+    DP_02 = dict(name="humidity", dptId="9.007", flags="CRT", priority="low", initValue=0.)
+    DP_03 = dict(name="wind_speed", dptId="9.005", flags="CRT", priority="low", initValue=0.)
+    DP_04 = dict(name="wind_alarm", dptId="1.005", flags="CRT", priority="urgent", initValue="No alarm")
+    DP_05 = dict(name="wind_speed_limit", dptId="9.005", flags="CWTU", priority="low", initValue=15.)
+    DP_06 = dict(name="wind_alarm_enable", dptId="1.003", flags="CWTU", priority="low", initValue="Disable")
+
+    @Device.schedule.every(minute=5)
+    def checkWindSpeed(self):
+
+        # How we retreive the speed is out of the scope of this proposal
+        # speed = xxx
+
+        # Now, write the new speed value to the Datapoint
+        self.dp["wind_speed"].value = speed
+
+        # Check alarm speed
+        if self.dp["wind_alarm_enable"].value == "Enable":
+            if speed >= self.dp["wind_speed_limit"].value:
+                self.dp["wind_alarm"].value = "Alarm"
+            elif speed < self.dp["wind_speed_limit"].value - 5.:
+                self.dp["wind_alarm"].value = "No alarm"
+
+# Instanciation of the weather station device object
+station = WeatherStation(name="weather_station", desc="My simple weather station example", address="1.2.3")
+
+# Linking weather station Datapoints to Group Address
+ets.link(dev=station, dp="temperature", gad="1/1/1")
+ets.link(dev=station, dp="humidity", gad="1/1/2")
+ets.link(dev=station, dp="wind_speed", gad="1/1/3")
+ets.link(dev=station, dp="wind_alarm", gad="1/1/4")
+ets.link(dev=station, dp="wind_speed_limit", gad="1/1/5")
+ets.link(dev=station, dp="wind_alarm_enable", gad="1/1/6")

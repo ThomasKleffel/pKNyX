@@ -92,9 +92,9 @@ class Device(object):
         for key, value in cls.__dict__.iteritems():
             if key.startswith("DP_"):
                 name = value['name']
-                if self._dp.has_key(dpKey):
-                    raise DeviceValueError("duplicated Datapoint (%s)" % repr(dpKey))
-                self._dp[name] = Datapoint(**value)
+                if self._dp.has_key(key):
+                    raise DeviceValueError("duplicated Datapoint (%s)" % repr(key))
+                self._dp[name] = Datapoint(self, **value)
 
         return self
 
@@ -117,7 +117,7 @@ class Device(object):
         self._name = name
         self._desc = desc
 
-        if not isinstance(IndividualAddress, address):
+        if not isinstance(address, IndividualAddress):
             address = IndividualAddress(address)
         self._address = address
 

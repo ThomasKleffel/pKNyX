@@ -73,7 +73,7 @@ class GroupDataListener(object):
         """  Group write callback
 
         @param src : source Group Address
-        @type src : L{GroupAddress<pknyx.stack.groupAddress>}
+        @type src : L{GroupAddress<pknyx.core.groupAddress>}
 
         @param data: data received
         @type data: bytearray
@@ -84,7 +84,7 @@ class GroupDataListener(object):
         """ Group read callback
 
         @param src : source Group Address
-        @type src : L{GroupAddress<pknyx.stack.groupAddress>}
+        @type src : L{GroupAddress<pknyx.core.groupAddress>}
         """
         raise NotImplementedError
 
@@ -92,7 +92,7 @@ class GroupDataListener(object):
         """ Group response
 
         @param src : source Group Address
-        @type src : L{GroupAddress<pknyx.stack.groupAddress>}
+        @type src : L{GroupAddress<pknyx.core.groupAddress>}
 
         @param data: data received
         @type data: bytearray

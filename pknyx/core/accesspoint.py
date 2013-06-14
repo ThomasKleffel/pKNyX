@@ -52,7 +52,6 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.group import Group
 
 
 class AccesspointValueError(PKNyXValueError):
@@ -64,20 +63,18 @@ class Accesspoint(object):
     """ Accesspoint class
 
     @ivar _group: group that access poit belong to
-    @type _group: L{Group}
+    @type _group: L{Group<pknyx.core.group>}
     """
     def __init__(self, group):
         """
 
         @param group: group that access poit belong to
-        @type group: L{Group}
+        @type group: L{Group<pknyx.core.group>}
 
         raise AccesspointValueError:
         """
         super(Accesspoint, self).__init__()
 
-        if not isinstance(Group, group):
-            raise AccesspointValueError("invalid group (%r)" % repr(group))
         self._group = group
 
     def groupValueWrite(self, src, data, priority):
@@ -89,6 +86,11 @@ class Accesspoint(object):
         """ Read data request on the GAD associated with this group
         """
         self._group.groupValueRead(src, priority)
+
+    def groupValueResponse(self, src, data, priority):
+        """ Response data request on the GAD associated with this group
+        """
+        self._group.groupValueResponse(src, data, priority)
 
 
 if __name__ == '__main__':

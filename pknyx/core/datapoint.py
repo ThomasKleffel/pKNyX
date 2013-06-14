@@ -82,6 +82,9 @@ class Datapoint(DatapointListener):
     The term B{data} refers to the KNX representation of the python type B{value}. It is stored in this object.
     The B{frame} is the 'data' as bytes (python str), which can be sent/received over the bus.
 
+    @ivar _owner: owner of the Datapoint
+    @type _owner: L{Device<pknyx.core.device>} -> could be a more generic object
+
     @ivar _name: name of the Datapoint
     @type _name: str
 
@@ -108,8 +111,11 @@ class Datapoint(DatapointListener):
     @todo: add desc. param
     @todo: also create the generic handler (if not the default one), and a .generic property
     """
-    def __init__(self, name, dptId=DPTID(), flags=Flags(), priority=Priority(), defaultValue=None):
+    def __init__(self, owner, name, dptId=DPTID(), flags=Flags(), priority=Priority(), defaultValue=None):
         """
+
+        @param owner: owner of the Datapoint
+        @type owner: L{Device<pknyx.core.device>} -> could be a more generic object
 
         @param name: name of the Datapoint
         @type name: str
@@ -133,6 +139,7 @@ class Datapoint(DatapointListener):
         #Logger().debug("Datapoint.__init__(): name=%s, dptId=%s, flags=%s, priority=%s, defaultValue=%s" % \
                        #(repr(name), repr(dptId), repr(flags), repr(priority), repr(defaultValue)))
 
+        self._owner = owner
         self._name = name
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
@@ -147,7 +154,7 @@ class Datapoint(DatapointListener):
         self._dptXlator = DPTXlatorFactory().create(dptId)
         self._dptXlatorGeneric = None
 
-        self._data = None
+        self._data = defaultValue
 
         self._accesspoint = None
 
@@ -159,11 +166,41 @@ class Datapoint(DatapointListener):
     def onGroupValueWrite(self, cEMI):
         Logger().debug("Datapoint.onGroupWrite(): cEMI=%s" % repr(cEMI))
 
+        data = cEMI.data
+        self._dptXlator.checkData(data)
+        oldData = self._data
+
+        # Notify owner if data changed
+        # Use the subscribing mecanism to call the registered owner methods (via @trigger...)
+        # The dispatching should be done in the Device.notify() method
+        if data != oldData and self._flags.write:
+            self._data = data
+            self._owner.notify(self)
+
     def onGroupValueRead(self, cEMI):
         Logger().debug("Datapoint.onGroupRead(): cEMI=%s" % repr(cEMI))
 
+        # Check if data should be send over the bus
+        if self._flags.read and self._flags.communicate:
+            self._accesspoint.groupValueResponse(self._address, self._data, self._priority)
+
     def onGroupValueResponse(self, cEMI):
         Logger().debug("Datapoint.onGroupResponse(): cEMI=%s" % repr(cEMI))
+
+        data = cEMI.data
+        self._dptXlator.checkData(data)
+        oldData = self._data
+
+        # Notify owner if data changed
+        # Use the subscribing mecanism to call the registered owner methods (via @trigger...)
+        # The dispatching should be done in the Device.notify() method
+        if data != oldDate and self._flags.update:
+            self._data = data
+            self._owner.notify(self)
+
+    @property
+    def owner(self):
+        return self._owner
 
     @property
     def name(self):
@@ -221,8 +258,8 @@ class Datapoint(DatapointListener):
         self._data = data
 
         # Check if data should be send over the bus
-        if data != oldDate or self.flags.stateless:
-            self._accesspoint.writeGroup(self._address, self._priority, data)
+        if (data != oldDate or self._flags.stateless) and self._flags.transmit and self._flags.communicate:
+            self._accesspoint.groupValueWrite(self._address, data, self._priority)
 
     @property
     def value(self):
@@ -260,6 +297,12 @@ class Datapoint(DatapointListener):
     @accesspoint.setter
     def accesspoint(self, accesspoint):
         self._accesspoint = accesspoint
+
+        # If the flag init is set, send a read request on that accesspoint, which is binded to the default GAD
+        # this datapoint should use for read/write on bus
+        if flags.init:
+            accesspoint.groupValueRead(self._address, self._priority)
+
 
 if __name__ == '__main__':
     import unittest

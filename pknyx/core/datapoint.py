@@ -300,7 +300,7 @@ class Datapoint(DatapointListener):
 
         # If the flag init is set, send a read request on that accesspoint, which is binded to the default GAD
         # this datapoint should use for read/write on bus
-        if flags.init:
+        if self._flags.init:
             accesspoint.groupValueRead(self._address, self._priority)
 
 

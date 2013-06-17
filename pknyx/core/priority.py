@@ -105,8 +105,11 @@ class Priority(object):
         self._level = level
 
     def __repr__(self):
-        s = "<Priority(\'%s\')>" % self.strLevel
+        s = "<Priority(\"%s\")>" % self.strLevel
         return s
+
+    def __str__(self):
+        return self.strLevel
 
     #def __cmp__(self, other):
 
@@ -140,6 +143,10 @@ if __name__ == '__main__':
 
         def tearDown(self):
             pass
+
+        def test_display(self):
+            print repr(self.priority1)
+            print self.priority1
 
         def test_constructor(self):
             with self.assertRaises(PriorityValueError):

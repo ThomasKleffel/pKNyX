@@ -260,6 +260,10 @@ if __name__ == '__main__':
             with self.assertRaises(GroupAddressValueError):
                 GroupAddress("0/2048")
 
+        def test_cmp(self):
+            self.assertNotEqual(self.ad1, self.ad2)
+            self.assertEqual(self.ad1, self.ad3)
+
         def test_address3(self):
             self.assertEqual(self.ad1.address, "1/2/3")
             self.assertEqual(self.ad2.address, "1/0/2")

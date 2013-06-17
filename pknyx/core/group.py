@@ -97,10 +97,24 @@ class Group(object):
 
         self._listeners = set()
 
+    def __repr__(self):
+        return "<Group(%r)>" % self._gad
+
+    def __str__(self):
+        return "<Group(gad=\"%s\")>" % self._gad
+
+    @property
+    def gad(self):
+        return self._gad
+
+    @property
+    def listeners(self):
+        return self._listeners
+
     def createAP(self, listener):
         """ Create an accesspoint to communicate with this group
 
-        The given listener is also added to the listenders binded with the GAD handled by this group.
+        The given listener is also added to the listenders bound with the GAD handled by this group.
 
         @param listener: Listener
         @type listener: L{GroupDataListener<pknyx.core.groupDataListener>}
@@ -168,15 +182,6 @@ class Group(object):
             except:
                 Logger().exception("Group.onGroupValueResponse()")
 
-    def computeMapTable(self):
-        """
-        """
-        dpNames = []
-        for dp in self._listeners:
-            dpNames.append((dp.name, dp.owner.name))
-
-        return {self._gad: dpNames}
-
 
 if __name__ == '__main__':
     import unittest
@@ -188,10 +193,14 @@ if __name__ == '__main__':
     class GroupTestCase(unittest.TestCase):
 
         def setUp(self):
-            pass
+            self.group = Group("1/1/1", None)
 
         def tearDown(self):
             pass
+
+        def test_display(self):
+            print repr(self.group)
+            print self.group
 
         def test_constructor(self):
             pass

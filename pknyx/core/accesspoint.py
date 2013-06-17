@@ -40,6 +40,8 @@ Documentation
 
 B{Accesspoint} are used by L{Datapoint<pknyx.core.datapoint>} to communicate over the bus using group data service.
 
+Is it really usefull? DP could directly use Group object...
+
 Usage
 =====
 

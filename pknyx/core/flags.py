@@ -61,8 +61,8 @@ should send it's value to the KNX bus even if linknx maintains the same value. T
 Setting scene value to 'on' should send this value to KNX every time action is triggered to make the scene happen.
 
 ETS:
-S         K   L   E   T   Act
 S         C   R   W   T   U
+S         K   L   E   T   Act
 
  - S -> le DP envoie sa valeur sur la GA ayant ce flag (première GA associée à ce DP)
  - K -> communication : si pas présent, le DP n'envoie rien sur le bus (à utiliser pour com.interne au framework)
@@ -73,6 +73,16 @@ S         C   R   W   T   U
         valeur sur le bus, sur la GA ayant le flag S associé
  - Act -> update : le DP met à jour sa valeur s'il voit passer un télégramme en réponse à une demande de lecture sur
           l'une des GA associée à ce DP
+
+ - C -> communication: the DP will interact with the bus
+ - R -> read: the DP will send back its internal value on the bus if he receives a read request on one of its bound GAD.
+        Only 1 DP per GAD should have this flag set
+ - W -> write: the DP will update its internal value if he receives a write request on one of its bound GAD
+ - T -> tansmit: when its internal value changes, the DP will send its new value on the first bounded GAD
+ - U -> update: the DP will send back its internal value on the bus if he receives a response request on one of its
+        bound GAD.
+ - S -> stateless: like T, but transmits its value even if it didn't changed
+ - I -> init: send a read request
 
 Usage
 =====
@@ -174,6 +184,10 @@ if __name__ == '__main__':
 
         def tearDown(self):
             pass
+
+        def test_display(self):
+            print repr(self.flags)
+            print self.flags
 
         def test_constructor(self):
             with self.assertRaises(FlagsValueError):

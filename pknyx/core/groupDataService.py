@@ -138,20 +138,22 @@ class GroupDataService(A_GroupDataListener):
         if not isinstance(gad, GroupAddress):
             gad = GroupAddress(gad)
 
-        if not self._groups.has_key(gad):
-            self._groups[gad] = Group(gad, self)
-        accesspoint = self._groups[gad].createAP(listener)
+        try:
+            group = self._groups[gad.address]
+        except KeyError:
+            group = self._groups[gad.address] = Group(gad, self)
+        accesspoint = group.createAP(listener)
 
         return accesspoint
 
-    def computeMapTable(self):
-        """
-        """
-        mapTable = {}
-        for gad, group in self._groups.iteritems():
-            mapTable.update(group.computeMapTable())
+    #def computeMapTable(self):
+        #"""
+        #"""
+        #mapTable = {}
+        #for gad, group in self._groups.iteritems:
+            #mapTable[gad] = group.listeners
 
-        return mapTable
+        #return mapTable
 
 
 if __name__ == '__main__':

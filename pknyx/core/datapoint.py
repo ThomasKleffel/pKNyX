@@ -104,8 +104,8 @@ class Datapoint(DatapointListener):
     @type _dptXlator: L{DPTXlator<pknyx.core.dptXlator>}
 
     @ivar _accesspoint : Accesspoint to use to communicate with the bus
-                         A Datapoint can be linked to several GAD (by the way of L{Group}), but can only transmit (write)
-                         data to the first GAD. This Accespoint belongs to the Group handling that GAD.
+                         A Datapoint can be linked to several GAD (by the way of L{Group}), but can only send requests
+                        (write/read/response) to the first GAD. This Accespoint belongs to the Group handling that GAD.
     @type _accesspoint : L{Accesspoint}
 
     @todo: add desc. param
@@ -159,8 +159,13 @@ class Datapoint(DatapointListener):
         self._accesspoint = None
 
     def __repr__(self):
-        s = "<Datapoint(\"%s\", %s, flags=\"%s\", %s)>" % \
-             (self._name, repr(self._dptId), self._flags, repr(self._priority))
+        s = "<Datapoint(name=\"%s\", %r, %r, %r)>" % \
+             (self._name, self._dptId, self._flags, self._priority)
+        return s
+
+    def __str__(self):
+        s = "<Datapoint(name=\"%s\", dptId=\"%s\", flags=\"%s\", priority=\"%s\")>" % \
+             (self._name, self._dptId, self._flags, self._priority)
         return s
 
     def onGroupValueWrite(self, cEMI):
@@ -298,7 +303,7 @@ class Datapoint(DatapointListener):
     def accesspoint(self, accesspoint):
         self._accesspoint = accesspoint
 
-        # If the flag init is set, send a read request on that accesspoint, which is binded to the default GAD
+        # If the flag init is set, send a read request on that accesspoint, which is bound to the default GAD
         # this datapoint should use for read/write on bus
         if self._flags.init:
             accesspoint.groupValueRead(self._address, self._priority)
@@ -314,26 +319,28 @@ if __name__ == '__main__':
     class DPTestCase(unittest.TestCase):
 
         def setUp(self):
-            self.dp = Datapoint("test")
+            self.dp = Datapoint(self, name="dp1", dptId="1.001", flags="CRT", priority="low", defaultValue=0.)
 
         def tearDown(self):
             pass
 
+        def test_display(self):
+            print repr(self.dp)
+            print self.dp
+
         def test_constructor(self):
-            #with self.assertRaises(DPValueError):
-                #Datapoint("name")
             DP_01 = dict(name="temperature", dptId="9.001", flags="CRT", priority="low", defaultValue=0.)
             DP_02 = dict(name="humidity", dptId="9.007", flags="CRT", priority="low", defaultValue=0.)
             DP_03 = dict(name="wind_speed", dptId="9.005", flags="CRT", priority="low", defaultValue=0.)
             DP_04 = dict(name="wind_alarm", dptId="1.005", flags="CRT", priority="urgent", defaultValue="No alarm")
             DP_05 = dict(name="wind_speed_limit", dptId="9.005", flags="CWTU", priority="low", defaultValue=15.)
             DP_06 = dict(name="wind_alarm_enable", dptId="1.003", flags="CWTU", priority="low", defaultValue="Disable")
-            Datapoint(**DP_01)
-            Datapoint(**DP_02)
-            Datapoint(**DP_03)
-            Datapoint(**DP_04)
-            Datapoint(**DP_05)
-            Datapoint(**DP_06)
+            Datapoint(self, **DP_01)
+            Datapoint(self, **DP_02)
+            Datapoint(self, **DP_03)
+            Datapoint(self, **DP_04)
+            Datapoint(self, **DP_05)
+            Datapoint(self, **DP_06)
 
 
     unittest.main()

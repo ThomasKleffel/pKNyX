@@ -118,6 +118,9 @@ class IndividualAddress(KnxAddress):
         s = "<IndividualAddress(\"%s\")>" % self.address
         return s
 
+    def __str__(self):
+        return self.address
+
     @property
     def address(self):
         address = []
@@ -152,6 +155,7 @@ if __name__ == '__main__':
         def setUp(self):
             self.ad1 = IndividualAddress("1.2.3")
             self.ad2 = IndividualAddress((1, 2, 3))
+            self.ad3 = IndividualAddress((1, 2, 4))
 
         def tearDown(self):
             pass
@@ -194,6 +198,10 @@ if __name__ == '__main__':
                 IndividualAddress((0, 0, 256))
             with self.assertRaises(IndividualAddressValueError):
                 IndividualAddress("0.0.256")
+
+        def test_cmp(self):
+            self.assertNotEqual(self.ad1, self.ad3)
+            self.assertEqual(self.ad1, self.ad2)
 
         def test_address(self):
             self.assertEqual(self.ad1.address, "1.2.3")

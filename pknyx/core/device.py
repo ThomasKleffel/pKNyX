@@ -88,17 +88,20 @@ class Device(object):
         added to the B{_dp} dict.
         """
         self = object.__new__(cls, *args, **kwargs)
-        cls._dp = {}
+        self._dp = {}
+        self._desc = None
         for key, value in cls.__dict__.iteritems():
             if key.startswith("DP_"):
                 name = value['name']
                 if self._dp.has_key(key):
                     raise DeviceValueError("duplicated Datapoint (%s)" % repr(key))
                 self._dp[name] = Datapoint(self, **value)
+            elif key == "DESC":
+                self._desc = value
 
         return self
 
-    def __init__(self, name, desc="", address=IndividualAddress()):
+    def __init__(self, name, desc=None, address=IndividualAddress()):
         """
 
         @param name: name of the device
@@ -115,11 +118,23 @@ class Device(object):
         super(Device, self).__init__()
 
         self._name = name
-        self._desc = desc
+
+        if desc is not None:
+            self._desc = "%s - %s" % (desc, self._desc)
 
         if not isinstance(address, IndividualAddress):
             address = IndividualAddress(address)
         self._address = address
+
+    def __repr__(self):
+        s = "<Device(name=\"%s\", desc=\"%s\", %r)>" % \
+             (self._name, self._desc, self._address)
+        return s
+
+    def __str__(self):
+        s = "<Device(name=\"%s\", desc=\"%s\", address=\"%s\")>" % \
+             (self._name, self._desc, self._address)
+        return s
 
     @property
     def name(self):
@@ -148,20 +163,28 @@ if __name__ == '__main__':
     class DeviceTestCase(unittest.TestCase):
 
         class TestDevice(Device):
-            DP_01 = dict(name="temperature", dptId="9.001", flags="CRT", priority="low", initValue=0.)
-            DP_02 = dict(name="humidity", dptId="9.007", flags="CRT", priority="low", initValue=0.)
-            DP_03 = dict(name="wind_speed", dptId="9.005", flags="CRT", priority="low", initValue=0.)
-            DP_04 = dict(name="wind_alarm", dptId="1.005", flags="CRT", priority="urgent", initValue="No alarm")
-            DP_05 = dict(name="wind_speed_limit", dptId="9.005", flags="CWTU", priority="low", initValue=15.)
-            DP_06 = dict(name="wind_alarm_enable", dptId="1.003", flags="CWTU", priority="low", initValue="Disable")
+            DP_01 = dict(name="temperature", dptId="9.001", flags="CRT", priority="low", defaultValue=0.)
+            DP_02 = dict(name="humidity", dptId="9.007", flags="CRT", priority="low", defaultValue=0.)
+            DP_03 = dict(name="wind_speed", dptId="9.005", flags="CRT", priority="low", defaultValue=0.)
+            DP_04 = dict(name="wind_alarm", dptId="1.005", flags="CRT", priority="urgent", defaultValue="No alarm")
+            DP_05 = dict(name="wind_speed_limit", dptId="9.005", flags="CWTU", priority="low", defaultValue=15.)
+            DP_06 = dict(name="wind_alarm_enable", dptId="1.003", flags="CWTU", priority="low", defaultValue="Disable")
+
+            DESC = "Dummy description"
 
         def setUp(self):
-            self._dev = TestDevice("test")
+            self.dev1 = DeviceTestCase.TestDevice("test1")
+            self.dev2 = DeviceTestCase.TestDevice("test2", desc="pipo")
 
         def tearDown(self):
             pass
 
+        def test_display(self):
+            print repr(self.dev1)
+            print self.dev2
+
         def test_constructor(self):
             pass
+
 
     unittest.main()

@@ -102,8 +102,11 @@ class KnxAddress(object):
         self._raw = raw
 
     def __repr__(self):
-        s = "<KnxAddress(%s)>" % hex(self._raw)
+        s = "<KnxAddress(\"%s\")>" % hex(self._raw)
         return s
+
+    def __cmp__(self, other):
+        return cmp(self.raw, other.raw)
 
     @property
     def raw(self):
@@ -134,6 +137,7 @@ if __name__ == '__main__':
         def setUp(self):
             self.ad1 = KnxAddress(123)
             self.ad2 = KnxAddress("\x22\x31")
+            self.ad3 = KnxAddress(123)
 
         def tearDown(self):
             pass
@@ -148,6 +152,10 @@ if __name__ == '__main__':
 
         def test_raw(self):
             self.assertEqual(self.ad2.raw, 8753)
+
+        def test_cmp(self):
+            self.assertNotEqual(self.ad1, self.ad2)
+            self.assertEqual(self.ad1, self.ad3)
 
         def test_frame(self):
             self.assertEqual(self.ad1.frame, "\x00\x7b")

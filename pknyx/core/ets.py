@@ -52,6 +52,7 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.stack import Stack
 from pknyx.core.device import Device
+from pknyx.core.groupAddress import GroupAddress, GroupAddressValueError
 
 
 class ETSValueError(PKNyXValueError):
@@ -92,6 +93,14 @@ class ETS(object):
     def devices(self):
         return [device.name for device in self._devices]
 
+    @property
+    def datapoints(self):
+        dps = []
+        for device in self._devices:
+            dps.append(device.dp.values())
+
+        return dps
+
     def link(self, dev, dp, gad):
         """ Link a datapoint to a GAD
 
@@ -101,27 +110,41 @@ class ETS(object):
         @param dp: name of the datapoint to link
         @type dp: str
 
-        @param gad : Groupaddress to link to
-        @type gad : str or L{GroupAddress}
+        @param gad : Group address to link to
+        @type gad : str or L{GroupAddress} (or sequence of...)
+
+        @todo: check for duplicate individual address
 
         raise ETSValueError:
         """
-        #if not isinstance(Device, dev):
             #raise ValueError("invalid device (%s)" % repr(dev)
 
         # Get datapoint
         datapoint = dev.dp[dp]
 
-        # Ask the group data service to subscribe this datapoint to the given gad
-        # In return, get the created accesspoint
-        accesspoint = self._stack.gds.subscribe(gad, datapoint)
+        # Check if gad is a single GAD or a sequence of GAD
+        if isinstance(gad[0], GroupAddress):
+            gads = gad
+        else:
+            try:
+                GroupAddress(gad[0])
+            except GroupAddressValueError:
+                gads = (gad,)
+            else:
+                gads = gad
 
-        # If the datapoint does not already have an accesspoint, set it
-        # This accesspoint will be used by the datapoint to send datas to the default GAD
-        # This mimics the S flag of ETS real application
-        # @todo: find a way to change it later? Or let the datapoint manage this?
-        if datapoint.accesspoint is None:
-            datapoint.accesspoint = accesspoint
+        for gad in gads:
+
+            # Ask the group data service to subscribe this datapoint to the given gad
+            # In return, get the created accesspoint
+            accesspoint = self._stack.gds.subscribe(gad, datapoint)
+
+            # If the datapoint does not already have an accesspoint, set it
+            # This accesspoint will be used by the datapoint to send datas to the default GAD
+            # This mimics the S flag of ETS real application
+            # @todo: find a way to change it later? Or let the datapoint manage this?
+            if datapoint.accesspoint is None:
+                datapoint.accesspoint = accesspoint
 
         # Add the device to the known devices
         self._devices.add(dev)
@@ -129,26 +152,69 @@ class ETS(object):
     def computeMapTable(self):
         """
         """
-        mapTable = self._stack.gds.computeMapTable()
-
         mapByGAD = {}
-        for gad, dps in mapTable.iteritems():
-            mapByGAD[str(gad)] = []
-            for dpName, devName in dps:
-                #mapByGAD[gad].append("%s.%s" % (devName, dpName))
-                mapByGAD[str(gad)].append("%s (%s)" % (dpName, devName))
+        for gad, group in self._stack.gds.groups.iteritems():
+            mapByGAD[gad] = []
+            for dp in group.listeners:
+                mapByGAD[gad].append("%s (%s)" % (dp.name, dp.owner.name))
 
+        # Retreive all datapoints, not only bound ones
         mapByDP = {}
-        for gad, dps in mapTable.iteritems():
-            for dpName, devName in dps:
-                try:
-                    #mapByDP["%s.%s" % (devName, dpName)].append(str(gad))
-                    mapByDP["%s (%s)" % (dpName, devName)].append(str(gad))
-                except KeyError:
-                    #mapByDP["%s.%s" % (devName, dpName)] = [str(gad)]
-                    mapByDP["%s (%s)" % (dpName, devName)] = [str(gad)]
+        for device in self._devices:
+            for dp in device.dp.values():
+                gads = []
+                for gad, dps in mapByGAD.iteritems():
+                    if "%s (%s)" % (dp.name, device.name) in dps:
+                        gads.append(gad)
+                mapByDP["%s (%s)" % (dp.name, device.name)] = gads
 
         return {'byGAD': mapByGAD, 'byDP': mapByDP}
+
+    def printMapTable(self, by="gad", outFormatLevel=3):
+        """
+        """
+        if by == "gad":
+
+            # Retreive all bound gad
+            gads = []
+            for gad in self._stack.gds.groups.keys():
+                gads.append(GroupAddress(gad, outFormatLevel=outFormatLevel))
+            gads.sort()
+
+            gadMain = gadMiddle = gadSub = -1
+            for gad in gads:
+                if gadMain != gad.main:
+                    print " % 2d %-10s" % (gad.main, self._gadName[gad.main]['name'])
+                    gadMain = gad.main
+                if gadMiddle != gad.middle:
+                    print "  ├── % 2d %-10s" % (gad.middle, self._gadName[gad.main][gad.middle]['name'])
+                    gadMiddle = gad.middle
+                if gadSub != gad.sub:
+                    print "  │    ├── % 3d %-10s" % (gad.sub, self._gadName[gad.main][gad.middle][gad.sub]),
+                    gadSub = gad.sub
+
+                for i, dp in enumerate(self._stack.gds.groups[gad.address].listeners):
+                    if not i:
+                        print " %-10s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
+                    else:
+                        print "  │    │                   %-10s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
+
+                gad_ = gad
+
+        elif by == "dp":
+
+            # Retreive all datapoints, not only bound ones
+            mapByDP = {}
+            for device in self._devices:
+                for dp in device.dp.values():
+                    gads = []
+                    for gad, dps in mapByGAD.iteritems():
+                        if "%s (%s)" % (dp.name, device.name) in dps:
+                            gads.append(GroupAddress(gad, outFormatLevel=outFormatLevel))
+                    mapByDP["%s (%s)" % (dp.name, device.name)] = gads
+
+        else:
+            raise ETSValueError("by param. must be in ('gad', 'dp')")
 
 
 if __name__ == '__main__':

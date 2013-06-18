@@ -158,10 +158,12 @@ class DPT(object):
 
     def __repr__(self):
         if self._unit is not None:
-            s = "<DPT(id=\"%r\", desc=\"%s\", limits=%s, unit=\"%s\")>" % (self._id, self._desc, repr(self._limits), self._unit)
+            return "<DPT(id='%s', desc='%s', limits=%s, unit='%s')>" % (self._id, self._desc, repr(self._limits), self._unit)
         else:
-            s = "<DPT(id=\"%r\", desc=\"%s\", limits=%s)>" % (self._id, self._desc, repr(self._limits))
-        return s
+            return "<DPT(id='%s', desc='%s', limits=%s)>" % (self._id, self._desc, repr(self._limits))
+
+    def __str__(self):
+        return "<DPT('%s\)>" % self._id
 
     @property
     def id(self):
@@ -201,6 +203,9 @@ if __name__ == '__main__':
             pass
 
         def tearDown(self):
+            pass
+
+        def test_display(self):
             pass
 
         def test_constructor(self):

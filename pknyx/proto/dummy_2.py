@@ -18,6 +18,9 @@ class Dev(Device):
 dev1 = Dev(name="dev1", desc="Device 1", address="1.1.1")
 dev2 = Dev(name="dev2", desc="Device 2", address="1.1.2")
 
+ets.register(dev1)
+ets.register(dev2)
+
 ets.link(dev=dev1, dp="dp_1", gad=("1/1/1", "2/1/1"))
 ets.link(dev=dev1, dp="dp_2", gad="1/1/2")
 ets.link(dev=dev1, dp="dp_3", gad="1/1/3")
@@ -26,7 +29,7 @@ ets.link(dev=dev1, dp="dp_4", gad="1/1/4")
 ets.link(dev=dev2, dp="dp_1", gad="1/2/1")
 ets.link(dev=dev2, dp="dp_2", gad=("1/2/2", "2/2/2"))
 ets.link(dev=dev2, dp="dp_3", gad="1/1/3")
-ets.link(dev=dev2, dp="dp_4", gad="1/1/4")
+#ets.link(dev=dev2, dp="dp_4", gad="1/1/4")
 
 ets._gadName = {1: {'name': "heating",
                     1: {'name': "setpoint",
@@ -55,4 +58,6 @@ ets._gadName = {1: {'name': "heating",
 
 #pprint(ets.computeMapTable())
 ets.printMapTable(by="gad")
+print
+print
 ets.printMapTable(by="dp")

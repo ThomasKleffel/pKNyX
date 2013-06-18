@@ -159,14 +159,11 @@ class Datapoint(DatapointListener):
         self._accesspoint = None
 
     def __repr__(self):
-        s = "<Datapoint(name=\"%s\", %r, %r, %r)>" % \
-             (self._name, self._dptId, self._flags, self._priority)
-        return s
+        return "<Datapoint(name='%s', dptId='%s', flags='%s', priority='%s')>" % \
+               (self._name, self._dptId, self._flags, self._priority)
 
     def __str__(self):
-        s = "<Datapoint(name=\"%s\", dptId=\"%s\", flags=\"%s\", priority=\"%s\")>" % \
-             (self._name, self._dptId, self._flags, self._priority)
-        return s
+        return "<Datapoint('%s')>" % self._name
 
     def onGroupValueWrite(self, cEMI):
         Logger().debug("Datapoint.onGroupWrite(): cEMI=%s" % repr(cEMI))

@@ -115,8 +115,7 @@ class IndividualAddress(KnxAddress):
         super(IndividualAddress, self).__init__(address)
 
     def __repr__(self):
-        s = "<IndividualAddress(\"%s\")>" % self.address
-        return s
+        return "<IndividualAddress('%s')>" % self.address
 
     def __str__(self):
         return self.address
@@ -159,6 +158,10 @@ if __name__ == '__main__':
 
         def tearDown(self):
             pass
+
+        def test_display(self):
+            print repr(self.ad1)
+            print self.ad2
 
         def test_constructor(self):
             with self.assertRaises(IndividualAddressValueError):

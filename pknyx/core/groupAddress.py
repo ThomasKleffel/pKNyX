@@ -144,8 +144,7 @@ class GroupAddress(KnxAddress):
         super(GroupAddress, self).__init__(raw)
 
     def __repr__(self):
-        s = "<GroupAddress(\"%s\")>" % self.address
-        return s
+        return "<GroupAddress('%s')>" % self.address
 
     def __str__(self):
         return self.address
@@ -207,6 +206,10 @@ if __name__ == '__main__':
 
         def tearDown(self):
             pass
+
+        def test_display(self):
+            print repr(self.ad1)
+            print self.ad3
 
         def test_constructor(self):
             with self.assertRaises(GroupAddressValueError):

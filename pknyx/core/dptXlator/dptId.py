@@ -101,14 +101,13 @@ class DPTID(object):
             Logger().exception("Flags.__init__()", debug=True)
             raise DPTIDValueError("invalid Datapoint Type ID (%r)" % repr(dptId))
 
-
         self._id = dptId
 
     def __repr__(self):
-        return "<DPTID(\"%s\")>" % self._id
+        return "<DPTID('%s')>" % self._id
 
     def __str__(self):
-        return str(self._id)
+        return self._id
 
     def __lt__(self, other):
         return self._cmp(other) == -1
@@ -203,6 +202,10 @@ if __name__ == '__main__':
 
         def tearDown(self):
             pass
+
+        def test_display(self):
+            print repr(self.dptId)
+            print self.dptId1
 
         def test_constructor(self):
             with self.assertRaises(DPTIDValueError):

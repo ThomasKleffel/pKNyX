@@ -98,10 +98,10 @@ class Group(object):
         self._listeners = set()
 
     def __repr__(self):
-        return "<Group(%r)>" % self._gad
+        return "<Group(gad='%s')>" % self._gad
 
     def __str__(self):
-        return "<Group(gad=\"%s\")>" % self._gad
+        return "<Group('%s')>" % self._gad
 
     @property
     def gad(self):

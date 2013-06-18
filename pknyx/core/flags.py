@@ -132,7 +132,7 @@ class Flags(object):
         self._raw = raw
 
     def __repr__(self):
-        return "<Flags(\"%s\")>" % self._raw
+        return "<Flags('%s')>" % self._raw
 
     def __str__(self):
         return self._raw

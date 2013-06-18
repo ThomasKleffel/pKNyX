@@ -120,6 +120,9 @@ class DPTXlatorBase(object):
             data_ = None
         return "<%s(dpt='%s', data=%r)>" % (reprStr(self.__class__), self._dpt.id, data_)
 
+    def __str__(self):
+        return "<%s('%s'>" % (reprStr(self.__class__), self._dpt.id)
+
     @property
     def handledDPT(self):
         handledDPT = self._handledDPT.keys()
@@ -226,6 +229,9 @@ if __name__ == '__main__':
             pass
 
         def tearDown(self):
+            pass
+
+        def test_display(self):
             pass
 
         def test_constructor(self):

@@ -127,14 +127,10 @@ class Device(object):
         self._address = address
 
     def __repr__(self):
-        s = "<Device(name=\"%s\", desc=\"%s\", %r)>" % \
-             (self._name, self._desc, self._address)
-        return s
+        return "<Device(name='%s', desc='%s', address='%s')>" % (self._name, self._desc, self._address)
 
     def __str__(self):
-        s = "<Device(name=\"%s\", desc=\"%s\", address=\"%s\")>" % \
-             (self._name, self._desc, self._address)
-        return s
+        return "<Device('%s')>" % self._name
 
     @property
     def name(self):

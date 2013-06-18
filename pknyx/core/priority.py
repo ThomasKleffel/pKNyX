@@ -105,8 +105,7 @@ class Priority(object):
         self._level = level
 
     def __repr__(self):
-        s = "<Priority(\"%s\")>" % self.strLevel
-        return s
+        return "<Priority('%s')>" % self.strLevel
 
     def __str__(self):
         return self.strLevel

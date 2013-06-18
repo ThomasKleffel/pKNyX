@@ -101,6 +101,17 @@ class ETS(object):
 
         return dps
 
+    def register(self, device, building='root'):
+        """ Register a device
+
+        @param device: device to register
+        @type device: L{Device}
+        """
+        if device in self._devices:
+            raise ETSValueError("device already registered (%s)" % repr(device))
+
+        self._devices.add(device)
+
     def link(self, dev, dp, gad):
         """ Link a datapoint to a GAD
 
@@ -117,7 +128,8 @@ class ETS(object):
 
         raise ETSValueError:
         """
-            #raise ValueError("invalid device (%s)" % repr(dev)
+        if dev not in self._devices:
+            raise ETSValueError("unregistered device (%s)" % dev)
 
         # Get datapoint
         datapoint = dev.dp[dp]
@@ -173,14 +185,14 @@ class ETS(object):
     def printMapTable(self, by="gad", outFormatLevel=3):
         """
         """
+
+        # Retreive all bound gad
+        gads = []
+        for gad in self._stack.gds.groups.keys():
+            gads.append(GroupAddress(gad, outFormatLevel=outFormatLevel))
+        gads.sort()
+
         if by == "gad":
-
-            # Retreive all bound gad
-            gads = []
-            for gad in self._stack.gds.groups.keys():
-                gads.append(GroupAddress(gad, outFormatLevel=outFormatLevel))
-            gads.sort()
-
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
@@ -204,14 +216,19 @@ class ETS(object):
         elif by == "dp":
 
             # Retreive all datapoints, not only bound ones
+            # Use building presentation
             mapByDP = {}
             for device in self._devices:
+                print " %-9s %-10s" % (device.address, device.name)
                 for dp in device.dp.values():
-                    gads = []
-                    for gad, dps in mapByGAD.iteritems():
-                        if "%s (%s)" % (dp.name, device.name) in dps:
-                            gads.append(GroupAddress(gad, outFormatLevel=outFormatLevel))
-                    mapByDP["%s (%s)" % (dp.name, device.name)] = gads
+                    gads_ = []
+                    for gad in gads:
+                        if dp in self._stack.gds.groups[gad.address].listeners:
+                            gads_.append(gad.address)
+                    if gads_:
+                        print " %-10s %-8s %-27s %-8s %-8s" % (dp.name, dp.dptId, ", ".join(gads_), dp.flags, dp.priority)
+                    else:
+                        print " %-10s %-8s %-27s %-8s %-8s" % (dp.name, dp.dptId, "", dp.flags, dp.priority)
 
         else:
             raise ETSValueError("by param. must be in ('gad', 'dp')")

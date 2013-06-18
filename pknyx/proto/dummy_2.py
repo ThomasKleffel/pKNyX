@@ -54,4 +54,5 @@ ets._gadName = {1: {'name': "heating",
                 }
 
 #pprint(ets.computeMapTable())
-ets.printMapTable("gad")
+ets.printMapTable(by="gad")
+ets.printMapTable(by="dp")

@@ -52,6 +52,7 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.group import Group
 from pknyx.core.groupAddress import GroupAddress
+from pknyx.core.groupDataListener import GroupDataListener
 from pknyx.core.layer7.a_groupDataListener import A_GroupDataListener
 
 
@@ -80,11 +81,12 @@ class GroupDataService(A_GroupDataListener):
         super(GroupDataService, self).__init__()
 
         self._agds = agds
+
         self._groups = {}
 
+        agds.setListener(self)
+
     def groupValueWriteInd(self, src, gad, data, priority):
-        """
-        """
         Logger().debug("GroupDataService.groupValueWriteInd(): src=%s, gad=%s, data=%s, priority=%s" % \
                        (repr(src), repr(gad), repr(data), repr(priority)))
         try:
@@ -95,8 +97,6 @@ class GroupDataService(A_GroupDataListener):
             Logger().debug("GroupDataService.groupValueWriteInd(): no registered group for that GAD (%s)" % repr(gad))
 
     def groupValueReadInd(self, src, gad, priority):
-        """
-        """
         Logger().debug("GroupDataService.groupValueReadInd(): src=%s, gad=%s, priority=%s" % \
                        (repr(src), repr(gad), repr(priority)))
         try:
@@ -107,8 +107,6 @@ class GroupDataService(A_GroupDataListener):
             Logger().debug("GroupDataService.groupValueReadInd(): no registered group for that GAD (%s)" % repr(gad))
 
     def groupValueReadCon(self, src, gad, data, priority):
-        """
-        """
         Logger().debug("GroupDataService.groupValue_ReadCon(): src=%s, gad=%s, data=%s, priority=%s" % \
                        (repr(src), repr(gad), repr(data), repr(priority)))
         try:

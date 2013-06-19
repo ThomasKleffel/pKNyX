@@ -28,10 +28,13 @@ or see:
 Module purpose
 ==============
 
+Application layer group data management
+
 Implements
 ==========
 
- - B{}
+ - B{APDU}
+ - B{APDUValueError}
 
 Documentation
 =============
@@ -48,7 +51,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-#from pknyx.core.transceiver.tFrame import TFrame
+from pknyx.core.transceiver.tFrame import TFrame
 
 
 class APDUValueError(PKNyXValueError):
@@ -82,9 +85,10 @@ class APDU(object):
             raise APDUValueError("empty data")
 
         aPDU = TFrame.create(len(data))
-        aPDU[TFrame.APDU_START + 0] = (apci >> 24) & 0xff
-        aPDU[TFrame.APDU_START + 1] = (apci >> 16) & 0xff
-        System.arraycopy(data, 1, aPDU, TFrame.APDU_START + 2, len(data) - 1)
+        aPDU[TFrame.APDU_START+0] = (apci >> 24) & 0xff
+        aPDU[TFrame.APDU_START+1] = (apci >> 16) & 0xff
+        #System.arraycopy(data, 1, aPDU, TFrame.APDU_START + 2, len(data) - 1)
+        aPDU[TFrame.APDU_START+2:TFrame.APDU_START+2+len(data)-1] = data[1:]
 
         return aPDU
 
@@ -92,7 +96,8 @@ class APDU(object):
         """
         """
         data = bytearray(length)
-        System.arraycopy(aPDU, TFrame.APDU_START + 1, data, 0, length)
+        #System.arraycopy(aPDU, TFrame.APDU_START + 1, data, 0, length)
+        data = aPDU[TFrame.APDU_START+1:TFrame.APDU_START+1+length]
         data[0] &= 0x3f
 
         return data

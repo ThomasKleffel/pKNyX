@@ -60,49 +60,46 @@ class TFrameValueError(PKNyXValueError):
 
 class TFrame(object):
     """ TFrame class
-
-    @ivar :
-    @type :
     """
     L2_START = Transceiver.OVERHEAD
 
-    LTP_BYTE  = L2_START;
-    LTP_MASK  = 0x80;
-    LTP_BYTES = 0x80;
-    LTP_TABLE = 0x00;
-    CF_BYTE   = L2_START;
-    CF_MASK   = 0x73;
-    CF_L_DATA = 0x10;
-    CF_L_POLL = 0x50;
-    PR_BYTE   = L2_START;
-    PR_MASK   = 0x0C;
-    PR_SYSTEM = 0x00;
-    PR_ALARM  = 0x08;
-    PR_HIGH   = 0x04;
-    PR_LOW    = 0x0C;
+    LTP_BYTE  = L2_START
+    LTP_MASK  = 0x80
+    LTP_BYTES = 0x80
+    LTP_TABLE = 0x00
+    CF_BYTE   = L2_START
+    CF_MASK   = 0x73
+    CF_L_DATA = 0x10
+    CF_L_POLL = 0x50
+    PR_BYTE   = L2_START
+    PR_MASK   = 0x0c
+    PR_SYSTEM = 0x00
+    PR_ALARM  = 0x08
+    PR_HIGH   = 0x04
+    PR_LOW    = 0x0c
     PR_CODE = (PR_SYSTEM, PR_ALARM, PR_HIGH, PR_LOW)
 
-    SAH_BYTE = L2_START + 1;
-    SAL_BYTE = L2_START + 2;
-    DAH_BYTE = L2_START + 3;
-    DAL_BYTE = L2_START + 4;
+    SAH_BYTE = L2_START + 1
+    SAL_BYTE = L2_START + 2
+    DAH_BYTE = L2_START + 3
+    DAL_BYTE = L2_START + 4
 
-    DAF_BYTE   = L2_START + 5;
-    DAF_MASK   = 0x80;
-    DAF_PA     = 0x00;
-    DAF_GA     = 0x80;
-    HC_BYTE    = L2_START + 5;
-    HC_MASK    = 0x70;
-    HC_BITPOS  = 4;
-    LEN_BYTE   = L2_START + 5;
-    LEN_MASK   = 0x0F;
-    LEN_BITPOS = 0;
+    DAF_BYTE   = L2_START + 5
+    DAF_MASK   = 0x80
+    DAF_PA     = 0x00
+    DAF_GA     = 0x80
+    HC_BYTE    = L2_START + 5
+    HC_MASK    = 0x70
+    HC_BITPOS  = 4
+    LEN_BYTE   = L2_START + 5
+    LEN_MASK   = 0x0f
+    LEN_BITPOS = 0
 
-    TPCI_BYTE  = L2_START + 6;
-    APDU_START = L2_START + 6;
+    TPCI_BYTE  = L2_START + 6
+    APDU_START = L2_START + 6
 
-    MIN_LENGTH = L2_START + 7;
-    MAX_LENGTH = MIN_LENGTH + 244;
+    MIN_LENGTH = L2_START + 7
+    MAX_LENGTH = MIN_LENGTH + 244
 
     LEN_TAB = (16, 17, 18, 19, 20, 22, 25, 29, 34, 40, 80, 120, 160, 200, 244)
 
@@ -149,7 +146,7 @@ if __name__ == '__main__':
     Logger().setLevel('error')
 
 
-    class XxxTestCase(unittest.TestCase):
+    class TFrameTestCase(unittest.TestCase):
 
         def setUp(self):
             pass

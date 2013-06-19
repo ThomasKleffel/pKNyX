@@ -1,29 +1,29 @@
-# 
+#
 #   EIBD client library
 #   Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
-# 
+#
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; either version 2 of the License, or
 #   (at your option) any later version.
-# 
-#   In addition to the permissions in the GNU General Public License, 
+#
+#   In addition to the permissions in the GNU General Public License,
 #   you may link the compiled version of this file into combinations
-#   with other programs, and distribute those combinations without any 
-#   restriction coming from the use of this file. (The General Public 
-#   License restrictions do apply in other respects; for example, they 
-#   cover modification of the file, and distribution when not linked into 
+#   with other programs, and distribute those combinations without any
+#   restriction coming from the use of this file. (The General Public
+#   License restrictions do apply in other respects; for example, they
+#   cover modification of the file, and distribution when not linked into
 #   a combine executable.)
-# 
+#
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-# 
+#
 #   You should have received a copy of the GNU General Public License
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-# 
+#
 
 import errno;
 import socket;
@@ -164,7 +164,7 @@ class EIBConnection:
       for a in result:
         self.data.append(ord(a))
       self.readlen += len(result)
-    return 0      
+    return 0
 
   def __EIBGetAPDU_Complete(self):
     self.__complete = None;
@@ -187,7 +187,7 @@ class EIBConnection:
   def EIBGetAPDU(self, buf):
     if self.EIBGetAPDU_async (buf) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBGetAPDU_Src_Complete(self):
     self.__complete = None;
@@ -213,7 +213,7 @@ class EIBConnection:
   def EIBGetAPDU_Src(self, buf, src):
     if self.EIBGetAPDU_Src_async (buf, src) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBGetBusmonitorPacket_Complete(self):
     self.__complete = None;
@@ -236,7 +236,7 @@ class EIBConnection:
   def EIBGetBusmonitorPacket(self, buf):
     if self.EIBGetBusmonitorPacket_async (buf) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBGetGroup_Src_Complete(self):
     self.__complete = None;
@@ -265,7 +265,7 @@ class EIBConnection:
   def EIBGetGroup_Src(self, buf, src, dest):
     if self.EIBGetGroup_Src_async (buf, src, dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBGetTPDU_Complete(self):
     self.__complete = None;
@@ -291,7 +291,7 @@ class EIBConnection:
   def EIBGetTPDU(self, buf, src):
     if self.EIBGetTPDU_async (buf, src) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_Cache_Clear_Complete(self):
     self.__complete = None;
@@ -316,7 +316,7 @@ class EIBConnection:
   def EIB_Cache_Clear(self):
     if self.EIB_Cache_Clear_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_Cache_Disable_Complete(self):
     self.__complete = None;
@@ -341,7 +341,7 @@ class EIBConnection:
   def EIB_Cache_Disable(self):
     if self.EIB_Cache_Disable_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_Cache_Enable_Complete(self):
     self.__complete = None;
@@ -369,7 +369,7 @@ class EIBConnection:
   def EIB_Cache_Enable(self):
     if self.EIB_Cache_Enable_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_Cache_Read_Complete(self):
     self.__complete = None;
@@ -407,7 +407,7 @@ class EIBConnection:
   def EIB_Cache_Read(self, dst, src, buf):
     if self.EIB_Cache_Read_async (dst, src, buf) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_Cache_Read_Sync_Complete(self):
     self.__complete = None;
@@ -447,7 +447,7 @@ class EIBConnection:
   def EIB_Cache_Read_Sync(self, dst, src, buf, age):
     if self.EIB_Cache_Read_Sync_async (dst, src, buf, age) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_Cache_Remove_Complete(self):
     self.__complete = None;
@@ -474,7 +474,7 @@ class EIBConnection:
   def EIB_Cache_Remove(self, dest):
     if self.EIB_Cache_Remove_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_Cache_LastUpdates_Complete(self):
     self.__complete = None;
@@ -507,7 +507,7 @@ class EIBConnection:
   def EIB_Cache_LastUpdates(self, start, timeout, buf, ende):
     if self.EIB_Cache_LastUpdates_async (start, timeout, buf, ende) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_LoadImage_Complete(self):
     self.__complete = None;
@@ -537,7 +537,7 @@ class EIBConnection:
   def EIB_LoadImage(self, image):
     if self.EIB_LoadImage_async (image) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Authorize_Complete(self):
     self.__complete = None;
@@ -566,7 +566,7 @@ class EIBConnection:
   def EIB_MC_Authorize(self, key):
     if self.EIB_MC_Authorize_async (key) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Connect_Complete(self):
     self.__complete = None;
@@ -593,7 +593,7 @@ class EIBConnection:
   def EIB_MC_Connect(self, dest):
     if self.EIB_MC_Connect_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Individual_Open_Complete(self):
     self.__complete = None;
@@ -620,7 +620,7 @@ class EIBConnection:
   def EIB_MC_Individual_Open(self, dest):
     if self.EIB_MC_Individual_Open_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_GetMaskVersion_Complete(self):
     self.__complete = None;
@@ -645,7 +645,7 @@ class EIBConnection:
   def EIB_MC_GetMaskVersion(self):
     if self.EIB_MC_GetMaskVersion_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_GetPEIType_Complete(self):
     self.__complete = None;
@@ -670,7 +670,7 @@ class EIBConnection:
   def EIB_MC_GetPEIType(self):
     if self.EIB_MC_GetPEIType_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Progmode_Off_Complete(self):
     self.__complete = None;
@@ -696,7 +696,7 @@ class EIBConnection:
   def EIB_MC_Progmode_Off(self):
     if self.EIB_MC_Progmode_Off_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Progmode_On_Complete(self):
     self.__complete = None;
@@ -722,7 +722,7 @@ class EIBConnection:
   def EIB_MC_Progmode_On(self):
     if self.EIB_MC_Progmode_On_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Progmode_Status_Complete(self):
     self.__complete = None;
@@ -748,7 +748,7 @@ class EIBConnection:
   def EIB_MC_Progmode_Status(self):
     if self.EIB_MC_Progmode_Status_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Progmode_Toggle_Complete(self):
     self.__complete = None;
@@ -774,7 +774,7 @@ class EIBConnection:
   def EIB_MC_Progmode_Toggle(self):
     if self.EIB_MC_Progmode_Toggle_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_PropertyDesc_Complete(self):
     self.__complete = None;
@@ -810,7 +810,7 @@ class EIBConnection:
   def EIB_MC_PropertyDesc(self, obj, propertyno, proptype, max_nr_of_elem, access):
     if self.EIB_MC_PropertyDesc_async (obj, propertyno, proptype, max_nr_of_elem, access) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_PropertyRead_Complete(self):
     self.__complete = None;
@@ -842,7 +842,7 @@ class EIBConnection:
   def EIB_MC_PropertyRead(self, obj, propertyno, start, nr_of_elem, buf):
     if self.EIB_MC_PropertyRead_async (obj, propertyno, start, nr_of_elem, buf) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_PropertyScan_Complete(self):
     self.__complete = None;
@@ -869,7 +869,7 @@ class EIBConnection:
   def EIB_MC_PropertyScan(self, buf):
     if self.EIB_MC_PropertyScan_async (buf) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_PropertyWrite_Complete(self):
     self.__complete = None;
@@ -906,7 +906,7 @@ class EIBConnection:
   def EIB_MC_PropertyWrite(self, obj, propertyno, start, nr_of_elem, buf, res):
     if self.EIB_MC_PropertyWrite_async (obj, propertyno, start, nr_of_elem, buf, res) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_ReadADC_Complete(self):
     self.__complete = None;
@@ -936,7 +936,7 @@ class EIBConnection:
   def EIB_MC_ReadADC(self, channel, count, val):
     if self.EIB_MC_ReadADC_async (channel, count, val) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Read_Complete(self):
     self.__complete = None;
@@ -967,7 +967,7 @@ class EIBConnection:
   def EIB_MC_Read(self, addr, buf_len, buf):
     if self.EIB_MC_Read_async (addr, buf_len, buf) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Restart_Complete(self):
     self.__complete = None;
@@ -992,7 +992,7 @@ class EIBConnection:
   def EIB_MC_Restart(self):
     if self.EIB_MC_Restart_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_SetKey_Complete(self):
     self.__complete = None;
@@ -1025,7 +1025,7 @@ class EIBConnection:
   def EIB_MC_SetKey(self, key, level):
     if self.EIB_MC_SetKey_async (key, level) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Write_Complete(self):
     self.__complete = None;
@@ -1062,7 +1062,7 @@ class EIBConnection:
   def EIB_MC_Write(self, addr, buf):
     if self.EIB_MC_Write_async (addr, buf) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_MC_Write_Plain_Complete(self):
     self.__complete = None;
@@ -1096,7 +1096,7 @@ class EIBConnection:
   def EIB_MC_Write_Plain(self, addr, buf):
     if self.EIB_MC_Write_Plain_async (addr, buf) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_M_GetMaskVersion_Complete(self):
     self.__complete = None;
@@ -1123,7 +1123,7 @@ class EIBConnection:
   def EIB_M_GetMaskVersion(self, dest):
     if self.EIB_M_GetMaskVersion_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_M_Progmode_Off_Complete(self):
     self.__complete = None;
@@ -1151,7 +1151,7 @@ class EIBConnection:
   def EIB_M_Progmode_Off(self, dest):
     if self.EIB_M_Progmode_Off_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_M_Progmode_On_Complete(self):
     self.__complete = None;
@@ -1179,7 +1179,7 @@ class EIBConnection:
   def EIB_M_Progmode_On(self, dest):
     if self.EIB_M_Progmode_On_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_M_Progmode_Status_Complete(self):
     self.__complete = None;
@@ -1207,7 +1207,7 @@ class EIBConnection:
   def EIB_M_Progmode_Status(self, dest):
     if self.EIB_M_Progmode_Status_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_M_Progmode_Toggle_Complete(self):
     self.__complete = None;
@@ -1235,7 +1235,7 @@ class EIBConnection:
   def EIB_M_Progmode_Toggle(self, dest):
     if self.EIB_M_Progmode_Toggle_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_M_ReadIndividualAddresses_Complete(self):
     self.__complete = None;
@@ -1262,7 +1262,7 @@ class EIBConnection:
   def EIB_M_ReadIndividualAddresses(self, buf):
     if self.EIB_M_ReadIndividualAddresses_async (buf) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIB_M_WriteIndividualAddress_Complete(self):
     self.__complete = None;
@@ -1298,7 +1298,7 @@ class EIBConnection:
   def EIB_M_WriteIndividualAddress(self, dest):
     if self.EIB_M_WriteIndividualAddress_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpenBusmonitor_Complete(self):
     self.__complete = None;
@@ -1326,7 +1326,7 @@ class EIBConnection:
   def EIBOpenBusmonitor(self):
     if self.EIBOpenBusmonitor_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpenBusmonitorText_Complete(self):
     self.__complete = None;
@@ -1354,7 +1354,7 @@ class EIBConnection:
   def EIBOpenBusmonitorText(self):
     if self.EIBOpenBusmonitorText_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpen_GroupSocket_Complete(self):
     self.__complete = None;
@@ -1383,7 +1383,7 @@ class EIBConnection:
   def EIBOpen_GroupSocket(self, write_only):
     if self.EIBOpen_GroupSocket_async (write_only) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpenT_Broadcast_Complete(self):
     self.__complete = None;
@@ -1412,7 +1412,7 @@ class EIBConnection:
   def EIBOpenT_Broadcast(self, write_only):
     if self.EIBOpenT_Broadcast_async (write_only) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpenT_Connection_Complete(self):
     self.__complete = None;
@@ -1439,7 +1439,7 @@ class EIBConnection:
   def EIBOpenT_Connection(self, dest):
     if self.EIBOpenT_Connection_async (dest) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpenT_Group_Complete(self):
     self.__complete = None;
@@ -1470,7 +1470,7 @@ class EIBConnection:
   def EIBOpenT_Group(self, dest, write_only):
     if self.EIBOpenT_Group_async (dest, write_only) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpenT_Individual_Complete(self):
     self.__complete = None;
@@ -1501,7 +1501,7 @@ class EIBConnection:
   def EIBOpenT_Individual(self, dest, write_only):
     if self.EIBOpenT_Individual_async (dest, write_only) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpenT_TPDU_Complete(self):
     self.__complete = None;
@@ -1528,7 +1528,7 @@ class EIBConnection:
   def EIBOpenT_TPDU(self, src):
     if self.EIBOpenT_TPDU_async (src) == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpenVBusmonitor_Complete(self):
     self.__complete = None;
@@ -1556,7 +1556,7 @@ class EIBConnection:
   def EIBOpenVBusmonitor(self):
     if self.EIBOpenVBusmonitor_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBOpenVBusmonitorText_Complete(self):
     self.__complete = None;
@@ -1584,7 +1584,7 @@ class EIBConnection:
   def EIBOpenVBusmonitorText(self):
     if self.EIBOpenVBusmonitorText_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def __EIBReset_Complete(self):
     self.__complete = None;
@@ -1609,7 +1609,7 @@ class EIBConnection:
   def EIBReset(self):
     if self.EIBReset_async () == -1:
       return -1
-    return self.EIBComplete ()
+    return self.EIBComplete()
 
   def EIBSendAPDU(self, data):
     ibuf = [0] * 2;

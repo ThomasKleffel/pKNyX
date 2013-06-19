@@ -38,6 +38,13 @@ Implements
 Documentation
 =============
 
+@todo: subclass and add building/GA tree nodes (as class vars).
+
+class MOB(ETS):
+
+    BUILDINGS =
+    GADS =
+
 Usage
 =====
 
@@ -196,20 +203,20 @@ class ETS(object):
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
-                    print " % 2d %-10s" % (gad.main, self._gadName[gad.main]['name'])
+                    print "% 2d %-10s" % (gad.main, self._gadName[gad.main]['name'])
                     gadMain = gad.main
                 if gadMiddle != gad.middle:
-                    print "  ├── % 2d %-10s" % (gad.middle, self._gadName[gad.main][gad.middle]['name'])
+                    print " ├── % 2d %-10s" % (gad.middle, self._gadName[gad.main][gad.middle]['name'])
                     gadMiddle = gad.middle
                 if gadSub != gad.sub:
-                    print "  │    ├── % 3d %-10s" % (gad.sub, self._gadName[gad.main][gad.middle][gad.sub]),
+                    print " │    ├── % 3d %-10s" % (gad.sub, self._gadName[gad.main][gad.middle][gad.sub]),
                     gadSub = gad.sub
 
                 for i, dp in enumerate(self._stack.gds.groups[gad.address].listeners):
                     if not i:
-                        print " %-10s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
+                        print "%-10s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
                     else:
-                        print "  │    │                   %-10s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
+                        print " │    │                  %-10s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
 
                 gad_ = gad
 

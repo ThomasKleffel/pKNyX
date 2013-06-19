@@ -50,6 +50,10 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
+from pknyx.core.layer7.apci import APCI
+from pknyx.core.layer7.apdu import APDU
+from pknyx.core.layer3.t_groupDataListener import T_GroupDataListener
+from pknyx.core.transceiver.tFrame import TFrame
 
 
 class A_GDSValueError(PKNyXValueError):
@@ -57,33 +61,87 @@ class A_GDSValueError(PKNyXValueError):
     """
 
 
-class A_GroupDataService(object):
+class A_GroupDataService(T_GroupDataListener):
     """ A_GroupDataService class
+
+    @ivar _tgds: Transport group data service object
+    @type _tgds: L{T_GroupDataService<pknyx.core.layer4.t_groupDataService>}
     """
-    def __init__(self):
+    def __init__(self, tgds):
         """
+
+        @param tgds: Transport group data service object
+        @type tgds: L{T_GroupDataService<pknyx.core.layer4.t_groupDataService>}
 
         raise A_GDSValueError:
         """
         super(A_GroupDataService, self).__init__()
 
+        self._tgds = tgds
+
+        self._agdl = None
+
+        tgds.setListener(self)
+
+    def groupDataInd(src, gad, priority, tSDU):
+        Logger().debug("A_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, tSDU=%s" % \
+                       (src, gad, priority, repr(tSDU)))
+
+        if self._agdl is None:
+            Logger().warning("A_GroupDataService.groupDataInd(): not listener defined")
+        else:
+            length = tSDU.length - TFrame.MIN_LENGTH
+            if length >= 1:
+                apci = ((tSDU[TFrame.APDU_START+0] & 0x03) << 24) + ((tSDU[TFrame.APDU_START+1] & 0xff) << 16)
+
+                if (apci & APCI._4) == APCI.GROUPVALUE_WRITE:
+                    if length >= 1:
+                        data = APDU.getGroupValueData(tSDU, length)
+                        self._agdl.groupValueWriteInd(src, gad, priority, data)
+
+                elif (apci & APCI._4) == APCI.GROUPVALUE_READ:
+                    if length == 1:
+                        self._agdl.groupValue_ReadInd(src, gad, priority)
+
+                elif (apci & APCI._4) == APCI.GROUPVALUE_RES:
+                    if length >= 1:
+                        data = APDU.getGroupValueData(tSDU, length)
+                        self._agdl.groupValue_ReadCon(src, gad, priority, data)
+
+    def setListener(self, agdl):
+        """
+
+        @param agdl: listener to use to transmit data
+        @type agdl: L{A_GroupDataListener<pknyx.core.layer7.a_groupDataListener>}
+        """
+        self._agdl = agdl
+
     def groupValueWriteReq(self, src, gad, priority, data):
         """
         """
         Logger().debug("A_GroupDataService.groupValueWriteReq(): src=%s, gad=%s, priority=%s, data=%s" % \
-                       (repr(src), repr(gad), repr(priority), repr(data)))
+                       (src, gad, priority, repr(data)))
+
+        aPDU = APDU.makeGroupValue(APCI.GROUPVALUE_WRITE, data)
+        return self._tgds.groupDataReq(src, gad, priority, aPDU)
 
     def groupValueReadReq(self, src, gad, priority):
         """
         """
         Logger().debug("A_GroupDataService.groupValueReadReq(): src=%s, gad=%s, priority=%s" % \
-                       (repr(src), repr(gad), repr(priority)))
+                       (src, gad, priority))
+
+        aPDU = APDU.makeNoParamsReq(PCI.GROUPVALUE_READ)
+        return self._tgds.groupDataReq(src, gad, priority, aPDU)
 
     def groupValueReadRes(self, src, gad, priority, data):
         """
         """
         Logger().debug("A_GroupDataService.groupValueReadRes(): src=%s, gad=%s, priority=%s, data=%s" % \
-                       (repr(src), repr(gad), repr(priority), repr(data)))
+                       (src, gad, priority, repr(data)))
+
+        aPDU = APDU.makeGroupValue(APCI.GROUPVALUE_RES, data)
+        return self._tgds.groupDataReq(src, gad, priority, aPDU)
 
 
 if __name__ == '__main__':

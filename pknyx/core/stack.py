@@ -52,6 +52,10 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.groupDataService import GroupDataService
 from pknyx.core.layer7.a_groupDataService import A_GroupDataService
+from pknyx.core.layer4.t_groupDataService import T_GroupDataService
+from pknyx.core.layer3.n_groupDataService import N_GroupDataService
+from pknyx.core.layer2.l_dataService import L_DataService
+from pknyx.core.transceiver. import A_GroupDataService
 
 
 class StackValueError(PKNyXValueError):
@@ -68,6 +72,8 @@ class Stack(object):
     @ivar _gds: Group data service object
     @type _gds: L{GroupDataService}
     """
+    PRIORITY_DISTRIBUTION = (-1, 3, 2)
+
     def __init__(self):
         """
 
@@ -75,13 +81,11 @@ class Stack(object):
         """
         super(Stack, self).__init__()
 
-        #self._lgds = L_GroupDataService()
-        #self._ngds = N_GroupDataService(self._lgds)
-        #self._tgds = T_GroupDataService(self._ngds)
-        #self._agds = A_GroupDataService(self._tgds)
-
-        self._agds = A_GroupDataService()
-        self._gds = GroupDataService(self._agds)
+        self._lds = L_DataService(PRIORITY_DISTRIBUTION)
+        self._ngds = N_GroupDataService(self._lds)
+        self._tgds = T_GroupDataService(self._ngds)
+        self._agds = A_GroupDataService(self._tgds)
+        self._tc = UDPTransceiver(self._lds, domainAddr, physAddr)
 
     @property
     def agds(self):

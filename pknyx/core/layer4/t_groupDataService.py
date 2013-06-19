@@ -28,7 +28,7 @@ or see:
 Module purpose
 ==============
 
-Application layer group data management
+Transport layer group data management
 
 Implements
 ==========
@@ -46,11 +46,12 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: a_groupDataService.py 95 2013-06-14 14:18:16Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.layer3.n_groupDataListener import N_GroupDataListener
+from pknyx.core.transceiver.tFrame import TFrame
 
 
 class T_GDSValueError(PKNyXValueError):
@@ -61,8 +62,11 @@ class T_GDSValueError(PKNyXValueError):
 class T_GroupDataService(N_GroupDataListener):
     """ T_GroupDataService class
 
-    @ivar _ngds: Network group data service object
+    @ivar _ngds: network group data service object
     @type _ngds: L{N_GroupDataService<pknyx.core.layer3.n_groupDataService>}
+
+    @ivar _tgdl: transport group data listener
+    @type _tgdl: L{T_GroupDataListener<pknyx.core.layer4.t_groupDataListener>}
     """
     UNNUMBERED_DATA = 0x00
     NUMBERED_DATA   = 0x40
@@ -121,26 +125,28 @@ class T_GroupDataService(N_GroupDataListener):
         return packetType
 
     def groupDataInd(self, src, gad, priority, nSDU):
-        Logger().debug("T_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s,nSDU=%s" % \
+        Logger().debug("T_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, nSDU=%s" % \
                        (src, gad, priority, repr(nSDU)))
 
         if self._tgdl = None:
             Logger().warning("T_GroupDataService.groupDataInd(): not listener defined")
-        elif self._getPacketType(nSDU) == T_GroupDataService.UNNUMBERED_DATA:
+            return
+
+        if self._getPacketType(nSDU) == T_GroupDataService.UNNUMBERED_DATA:
             self._tgdl.groupDataInd(src.gad, priority, nSDU)
 
     def setListener(self, tgdl):
         """
 
-        @param agdl: listener to use to transmit data
-        @type agdl: L{T_GroupDataListener<pknyx.core.layer4.t_groupDataListener>}
+        @param tgdl: listener to use to transmit data
+        @type tgdl: L{T_GroupDataListener<pknyx.core.layer4.t_groupDataListener>}
         """
         self._tgdl = tgdl
 
     def groupDataReq(self, src, gad, priority, tSDU):
         """
         """
-        Logger().debug("T_GroupDataService.groupDataReq(): src=%s, gad=%s, priority=%s,tSDU=%s" % \
+        Logger().debug("T_GroupDataService.groupDataReq(): src=%s, gad=%s, priority=%s, tSDU=%s" % \
                        (src, gad, priority, repr(tSDU)))
 
         self._setTPCI(tSDU, T_GroupDataService.UNNUMBERED_DATA, 0)

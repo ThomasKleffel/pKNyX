@@ -109,7 +109,7 @@ class KnxAddress(object):
 
     @property
     def raw(self):
-        """ return the raw address
+        """ Return the raw address
         """
         return self._raw
 
@@ -119,10 +119,15 @@ class KnxAddress(object):
 
     @property
     def frame(self):
-        """ return the address as frame
+        """ Return the address as frame
         """
         return struct.pack(">H", self._raw)
 
+    def isNull(self):
+        """ Check if adress is null
+
+        @return: True if address is null, False otherwise
+        @rtype: bool
 
 if __name__ == '__main__':
     import unittest

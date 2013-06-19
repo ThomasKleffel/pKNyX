@@ -64,8 +64,11 @@ class A_GDSValueError(PKNyXValueError):
 class A_GroupDataService(T_GroupDataListener):
     """ A_GroupDataService class
 
-    @ivar _tgds: Transport group data service object
+    @ivar _tgds: transport group data service object
     @type _tgds: L{T_GroupDataService<pknyx.core.layer4.t_groupDataService>}
+
+    @ivar _agdl: application group data listener
+    @type _agdl: L{A_GroupDataListener<pknyx.core.layer7.a_groupDataListener>}
     """
     def __init__(self, tgds):
         """
@@ -89,24 +92,25 @@ class A_GroupDataService(T_GroupDataListener):
 
         if self._agdl is None:
             Logger().warning("A_GroupDataService.groupDataInd(): not listener defined")
-        else:
-            length = tSDU.length - TFrame.MIN_LENGTH
-            if length >= 1:
-                apci = ((tSDU[TFrame.APDU_START+0] & 0x03) << 24) + ((tSDU[TFrame.APDU_START+1] & 0xff) << 16)
+            return
 
-                if (apci & APCI._4) == APCI.GROUPVALUE_WRITE:
-                    if length >= 1:
-                        data = APDU.getGroupValueData(tSDU, length)
-                        self._agdl.groupValueWriteInd(src, gad, priority, data)
+        length = len(tSDU) - TFrame.MIN_LENGTH
+        if length >= 1:
+            apci = ((tSDU[TFrame.APDU_START+0] & 0x03) << 24) + ((tSDU[TFrame.APDU_START+1] & 0xff) << 16)
 
-                elif (apci & APCI._4) == APCI.GROUPVALUE_READ:
-                    if length == 1:
-                        self._agdl.groupValue_ReadInd(src, gad, priority)
+            if (apci & APCI._4) == APCI.GROUPVALUE_WRITE:
+                if length >= 1:
+                    data = APDU.getGroupValueData(tSDU, length)
+                    self._agdl.groupValueWriteInd(src, gad, priority, data)
 
-                elif (apci & APCI._4) == APCI.GROUPVALUE_RES:
-                    if length >= 1:
-                        data = APDU.getGroupValueData(tSDU, length)
-                        self._agdl.groupValue_ReadCon(src, gad, priority, data)
+            elif (apci & APCI._4) == APCI.GROUPVALUE_READ:
+                if length == 1:
+                    self._agdl.groupValue_ReadInd(src, gad, priority)
+
+            elif (apci & APCI._4) == APCI.GROUPVALUE_RES:
+                if length >= 1:
+                    data = APDU.getGroupValueData(tSDU, length)
+                    self._agdl.groupValue_ReadCon(src, gad, priority, data)
 
     def setListener(self, agdl):
         """

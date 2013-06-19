@@ -28,6 +28,8 @@ or see:
 Module purpose
 ==============
 
+Transceiver management
+
 Implements
 ==========
 
@@ -44,7 +46,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: apdu.py 95 2013-06-14 14:18:16Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
@@ -52,17 +54,35 @@ from pknyx.common.loggingServices import Logger
 
 class Transceiver(object):
     """
+
+    @ivar _tLSAP:
+    @type _tLSAP:
+
+    @ivar _domainAddress:
+    @type _domainAddress:
+
+    @ivar _individualAddress: own Individual Address
+    @type _individualAddress: L{IndividualAddress<pknyx.core.individualAddress>}
     """
     OVERHEAD = 2
 
-    def __init__(self, tLSAP, da, ia):
+    def __init__(self, tLSAP, domainAddress, individualAddress):
         """
+
+        @param tLSAP:
+        @type tLSAP:
+
+        @param domainAddress:
+        @type domainAddress:
+
+        @param individualAddress: own Individual Address (use when not source address is given in lSDU)
+        @type individualAddress: L{IndividualAddress<pknyx.core.individualAddress>}
         """
         super(Transceiver, self).__init__()
 
         self._tLSAP = tLSAP
-        self._domainAddress = da
-        self._individualAddress = ia
+        self._domainAddress = domainAddress
+        self._individualAddress = individualAddress
 
     def cleanup(self):
         raise NotImplementedError

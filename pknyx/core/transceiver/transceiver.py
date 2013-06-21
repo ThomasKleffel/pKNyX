@@ -50,6 +50,8 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
+from pknyx.core.knxAddress import KnxAddress
+from pknyx.core.individualAddress import IndividualAddress
 
 
 class Transceiver(object):
@@ -58,31 +60,35 @@ class Transceiver(object):
     @ivar _tLSAP:
     @type _tLSAP:
 
-    @ivar _domainAddress:
-    @type _domainAddress:
+    @ivar _domainAddr:
+    @type _domainAddr:
 
-    @ivar _individualAddress: own Individual Address
-    @type _individualAddress: L{IndividualAddress<pknyx.core.individualAddress>}
+    @ivar _indivAddr: own Individual Address
+    @type _indivAddr: L{IndividualAddress}
     """
     OVERHEAD = 2
 
-    def __init__(self, tLSAP, domainAddress, individualAddress):
+    def __init__(self, tLSAP, domainAddr="0.0.0", indivAddr="0.0.0"):
         """
 
         @param tLSAP:
         @type tLSAP:
 
-        @param domainAddress:
-        @type domainAddress:
+        @param domainAddr:
+        @type domainAddr:
 
-        @param individualAddress: own Individual Address (use when not source address is given in lSDU)
-        @type individualAddress: L{IndividualAddress<pknyx.core.individualAddress>}
+        @param indivAddr: own Individual Address (use when not source address is given in lSDU)
+        @type indivAddr: L{IndividualAddress<pknyx.core.individualAddress>}
         """
         super(Transceiver, self).__init__()
 
         self._tLSAP = tLSAP
-        self._domainAddress = domainAddress
-        self._individualAddress = individualAddress
+        if not isinstance(KnxAddress, domainAddr):
+            domainAddr = KnxAddress(domainAddr)
+        self._domainAddr = domainAddr
+        if not isinstance(IndividualAddress, indivAddr):
+            indivAddr = IndividualAddress(indivAddr)
+        self._individualAddress = indivAddr
 
     def cleanup(self):
         raise NotImplementedError

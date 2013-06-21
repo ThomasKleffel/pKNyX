@@ -47,7 +47,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: template.py 83 2013-06-05 14:30:02Z fma $"
+__revision__ = "$Id$"
 
 import threading
 import socket
@@ -55,6 +55,7 @@ import socket
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.groupAddress import GroupAddress
+from pknyx.core.multicast import MulticastSocket
 from pknyx.core.transceiver.transceiver import Transceiver
 from pknyx.core.transceiver.tFrame import TFrame
 
@@ -69,10 +70,10 @@ class GadSet(threading.Condition, set):
 
 
 class Transmitter(threading.Thread):
-    """
+    """ Transmitter thread of the transceiver
 
-    @ivar _sock:
-    @type _sock: L{socket<socket>}
+    @ivar _sock: multicast socket
+    @type _sock: L{MulticastSocket}
 
     @ivar _running: True if thread is running
     @type _running: bool
@@ -80,20 +81,23 @@ class Transmitter(threading.Thread):
     @ivar _localPort: local port used by the socket
     @type _localPort: int
     """
-    def __init__(self, tLSAP, mcastAddr, mcastPort):
+    def __init__(self, parent, tLSAP, mcastAddr, mcastPort):
         """
 
+        @param parent:
+        @type parent:
+
         @param tLSAP:
-        @type tLSAP:
+        @type tLSAP: L{TransceiverLSAP}
         """
         super(Transmitter, self).__init__(name="EIBStack UDP Transmitter")
 
+        self._parent = parent
         self._tLSAP = tLSAP
+        self._mcastAddr = mcastAddr
+        self._mcastPort = mcastPort
 
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  #, socket.IPPROTO_UDP)
-        #self._sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-        self._sock.connect((mcastAddr, mcastPort))
-        self._localPort = self._sock.getsockname()[1]  # getsockname() returns (host, port)
+        self._sock = MulticastSocket(mcastPort, mcastAddr)
 
         self._running = False
 
@@ -102,68 +106,62 @@ class Transmitter(threading.Thread):
 
     @property
     def localPort(self):
-        return setl._localPort
+        return setl._sock.localPort
 
     def run(self):
         """
         """
-        outFrame = DatagramPacket(bytearray(0), 0, mcastAddr, mcastPort)
-
         self._running = True
         while self._running:
-            trm = self._tLSAP.getOutFrame()
-            if trm is not None:
-                lPDU = trm.frame
-
+            transmission = self._tLSAP.getOutFrame()
+            if transmission is not None:
+                lPDU = transmission.frame
                 lPDU[TFrame.CF_BYTE] |= TFrame.CF_L_DATA
-                lPDU[TFrame.SAL_BYTE] = self._parent.individualAddress & 0xFF
-                lPDU[TFrame.SAH_BYTE] = self._parent.individual >> 8
-                checkSum = 0x00
+                lPDU[TFrame.SAH_BYTE] = self._parent.indivAddr.high
+                lPDU[TFrame.SAL_BYTE] = self._parent.indivAddr.low
+
+                checksum = 0x00
                 for i in range(self.OVERHEAD, len(lPDU)):
-                    checkSum ^= lPDU[i]
-                    checkSum &= 0xff
+                    checksum ^= lPDU[i]
+                    checksum &= 0xff
 
                 #System.arraycopy(lPDU, self.OVERHEAD, lPDU, self.OVERHEAD-1, len(lPDU)-self.OVERHEAD )
                 lPDU[self.OVERHEAD:] = lPDU[self.OVERHEAD-1:-1]
-                lPDU[lPDU.length-1] = checkSum ^ 0xff  # What is ~ in java? Python inverts sign...
+                lPDU[lPDU.length-1] = checksum ^ 0xff  # What is ~ in java? Python inverts sign...
 
-                outFrame.setData(lPDU, self.OVERHEAD-1, len(lPDU)-self.OVERHEAD+1)
+                outFrame = lPDU[self.OVERHEAD-1:]
                 try:
                     self._sock.send(outFrame)
-                    trm.result = Result.OK
+                    transmission.result = Result.OK
                 except IOException:
-                    trm.result = Result.ERROR
+                    transmission.result = Result.ERROR
 
-                if trm.waitConfirm:
-                    trm.acquire()
+                if transmission.waitConfirm:
+                    transmission.acquire()
                     try:
-                        trm.waitConfirm = False
-                        trm.notify()
+                        transmission.waitConfirm = False
+                        transmission.notify()
                     finally:
-                        trm.release()
+                        transmission.release()
 
         self._sock.close()
 
     def cleanup(self):
+        """
+        """
         self.stop()
         self.join()
 
     def finalize(self):
-        if self._running:
+        """
+        """
+        if self.isAlive():
             self.cleanup()
 
     def stop(self):
         """ stop thread
         """
         self._running = False
-
-    def isRunning(self):
-        """ test if thread is running
-
-        @return: True if running, False otherwise
-        @rtype: bool
-        """
-        return self._running
 
 
 class Receiver(threading.Thread):
@@ -172,25 +170,21 @@ class Receiver(threading.Thread):
     @ivar _localPort: local port used by the socket
     @type _localPort: int
     """
-    def __init__(self, tLSAP, mcastAddr, mcastPort, localPort):
+    def __init__(self, parent):
         """
 
-        @param tLSAP:
-        @type tLSAP:
-
-        @param localPort: local port used by the socket
-        @type localPort: int
+        @param parent:
+        @type parent:
         """
         super(Receiver, self).__init__(name="EIBStack UDP Receiver")
 
-        self._tLSAP = tLSAP
-        self._localPort = localPort
+        self._parent = parent
 
-        mSocket = new MulticastSocket(mcastPort)
+        self._mSock = MulticastSocket(self._parent.mcastPort)
         try:
-            mSocket.joinGroup(mcastAddr)
+            self._mSock.joinGroup(self._parent.mcastAddr)
         except:
-            mSocket.close();
+            self._mSock.close();
             raise
 
         self._running = False
@@ -201,56 +195,59 @@ class Receiver(threading.Thread):
     def run(self):
         """
         """
-        inFrame = DatagramPacket( new byte[TFrame.MAX_LENGTH], TFrame.MAX_LENGTH )
-
         self._running = True
         while self._running:
-            try {
-                inFrame.setLength( TFrame.MAX_LENGTH )
-                mSocket.receive( inFrame )
+            try:
+                inFrame = self._mSock.receive()
+                data, (fromAddr, fromPort) = inFrame
 
-                byte[] data = inFrame.getData()
-                int length  = inFrame.getLength()
-                byte checkSum = 0;
-                for (byte i = 0; i < length; i++) {
-                    checkSum = (byte)(checkSum ^ data[i]);
-                }
-                length--;
-                if (   (checkSum == (byte)0xFF)
-                    && (length >= TFrame.MIN_LENGTH - self.OVERHEAD)
-                    && (length <= TFrame.MAX_LENGTH - self.OVERHEAD)
-                    && (   (inFrame.getPort() != self._localPort)
-                        || !inFrame.getAddress().equals( localAddr ))) {
+                checksum = 0x00
+                for i in range(len(data)):
+                    checksum ^= data[i]
+                    checksum &= 0xff
 
-                    byte[] lPDU = new byte[length + self.OVERHEAD];
-                    System.arraycopy( data, 0, lPDU, self.OVERHEAD, length );
+                length = len(data) - 1
+                if checksum == 0xff and \
+                   TFrame.MIN_LENGTH - self.OVERHEAD <= length <= TFrame.MAX_LENGTH - self.OVERHEAD and \
+                   (fromPort != self._parent.localPort or fromAddr != self._parent.localAddr):
+                    lPDU = bytearray(length + self.OVERHEAD)
+                    lPDU[self.OVERHEAD:] = data
+                    domainAddr = lPDU[TFrame.DAL_BYTE] | lPDU[TFrame.DAH_BYTE] << 8
+                    if lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK == TFrame.DAF_IA:
+                        if domainAddr == self._parent.indivAddr:
+                            self._parent.tLSAP.putInFrame(lPDU)
+                    else:
+                        self._parent.gadSet.acquire()
+                        try:
+                            if domainAddr in self._parent.gadSet:
+                                self._parent.tLSAP.putInFrame(lPDU)
+                        finally:
+                            self._parent.gadSet.release()
 
-                    int da = (   ((lPDU[TFrame.DAL_BYTE] + 0x100) % 0x100)
-                              + (((lPDU[TFrame.DAH_BYTE] + 0x100) % 0x100) << 8))
-                    if ((lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_PA) {
-                        if (da == ownPhysicalAddress) tLSAP.putInFrame( lPDU )
-                    } else {
-                        synchronized (gaSet) {
-                            if (gaSet.contains( new Integer( da ) )) self._tLSAP.putInFrame( lPDU );
-                        }
-                    }
-                }
-            } catch (IOException e) {}
-        }
-    }
+            except Exception:
+                Logger().exception("Receiver.run()", debug=True)
 
-    private void cleanup() {
-        running = false;
-        try {
-            mSocket.leaveGroup( mcastAddr );
-        } catch (IOException e) {}
-        mSocket.close();
-    }
+    def cleanup(self):
+        """
+        """
+        self.stop()
+        #self.join()
+        try:
+            self._mSock.leaveGroup(self._mcastAddr)
+        except Exception:
+            Logger().exception("Receiver.cleanup()", debug=True)
+        self._mSock.close()
 
-    protected void finalize() {
-        if (running) cleanup();
-    }
-}
+    def finalize(self):
+        """
+        """
+        if self.isAlive():
+            cleanup();
+
+    def stop(self):
+        """ stop thread
+        """
+        self._running = False
 
 
 
@@ -262,92 +259,89 @@ class UDPTransceiverValueError(PKNyXValueError):
 class UDPTransceiver(Transceiver):
     """ UDPTransceiver class
 
-    @ivar _localAddr:
-    @type _localAddr:
-
-    @ivar _localPort:
-    @type _localPort:
-
     @ivar _mcastAddr:
     @type _mcastAddr:
 
     @ivar _mcastPort:
     @type _mcastPort:
 
-    @ivar _transmitter:
-    @type _transmitter:
+    @ivar _transmitter: multicast transmitter
+    @type _transmitter: L{Transmitter]
 
-    @ivar _receiver:
-    @type _receiver:
+    @ivar _receiver: multicast receiver
+    @type _receiver: L{Receiver}
 
-    @ivar _gadSet: Set of GAD
+    @ivar _gadSet: set of GAD
     @type _gadSet: L{GadSet}
     """
-    #MAX_LEN = TFrame.MAX_LENGTH
-
-    def __init__(self, tLSAP, domainAddress, individualAddress, mcastURL="230.0.0.1"):
+    def __init__(self, tLSAP, domainAddr="0.0.0", indivAddr="0.0.0", mcastAddr="230.0.0.1", mcastPort=0xf625):
         """
 
         @param tLSAP:
-        @type tLSAP:
+        @type tLSAP: L{TransceiverLSAP}
 
-        @param domainAddress:
-        @type domainAddress:
+        @param domainAddr:
+        @type domainAddr:
 
-        @param individualAddress: own Individual Address (use when not source address is given in lSDU)
-        @type individualAddress: L{IndividualAddress<pknyx.core.individualAddress>}
+        @param indivAddr: own Individual Address (used when no source address is given in lSDU)
+        @type indivAddr: L{IndividualAddress<pknyx.core.individualAddress>}
 
-        @param mcastURL:
-        @type mcastURL:
+        @param mcastAddr: multicast address to bind to
+        @type mcastAddr: str
+
+        @param mcastPort: multicast address to bind to
+        @type mcastPort: str
 
         raise UDPTransceiverValueError:
         """
-        super(UDPTransceiver, self).__init__(tLSAP, domainAddress, individualAddress)
+        super(UDPTransceiver, self).__init__(tLSAP, domainAddr, indivAddr)
 
-        self._tLSAP = tLSAP
-
-        colonIdx = mcastURL.indexOf(':')
-        if colonIdx < 0:
-            mcastAddr = InetAddress.getByName(mcastURL)
-            mcastPort = 0xF625;
-        else:
-            mcastAddr = InetAddress.getByName(mcastURL.substring( 0, colonIdx ))
-            try:
-                mcastPort = Integer.parseInt( mcastURL.substring( colonIdx+1 ) );
-            except NumberFormatException:
-                raise IllegalArgumentException( "Malformed port number specified!" );
-
-        if not mcastAddr.isMulticastAddress():
-            raise IllegalArgumentException("Specified ip-address is not a multicast address!")
-
-        if (mcastPort & 0xFFFF0000) != 0:
-            raise IllegalArgumentException("Specified port out of range!")
-
-        self._localAddr = InetAddress.getLocalHost()
-        self._localPort = None
+        self._mcastAddr = mcastAddr
+        self._mcastPort = mcastPort
 
         # create transmitter and receiver
-        transmitter = Transmitter(self, tLSAP, mcastAddr, mcastPort)
+        transmitter = Transmitter(self)
+        self._localPort = transmitter.localPort
         try:
-            receiver = Receiver(self, tLSAP, mcastAddr, mcastPort, transmitter.localPort)
+            receiver = Receiver(self)
         except:
             transmitter.cleanup()
             raise
 
         self._gadSet = GadSet()
-        self._addGroupAddress(0, false)
+        self._addGroupAddress(GroupAddress("0/0/0"), false)  # ????
 
     @property
     def tLSAP(self):
         return self._tLSAP
 
     @property
+    def domainAddr(self):
+        return self._domainAddr
+
+    @property
+    def indivAddr(self):
+        return self._indivAddr
+
+    @property
+    def mcastAddr(self):
+        return self._mcastAddr
+
+    @property
+    def mcastPort(self):
+        return self._mcastPort
+
+    @property
+    def localAddr(self):
+        return self._localAddr
+
+    @property
     def localPort(self):
         return self._localPort
 
-    @localPort.setter
-    def localPort(self, port):
-        self._localPort = port
+    @property
+    def gadSet(self):
+        return self._gadSet
 
     def cleanup(self, ):
         """ Cleanup transmission
@@ -367,10 +361,9 @@ class UDPTransceiver(Transceiver):
         finally:
             self._gadSet.release()
 
-
-   def removeGroupAddress(self, gad):
-       """
-       """
+    def removeGroupAddress(self, gad):
+        """
+        """
         self._gadSet.acquire()
         try:
             self._gadSet.remove(gad)

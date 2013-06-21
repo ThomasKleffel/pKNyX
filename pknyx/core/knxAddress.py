@@ -109,9 +109,15 @@ class KnxAddress(object):
 
     @property
     def raw(self):
-        """ Return the raw address
-        """
         return self._raw
+
+    @property
+    def low(self):
+        return self._raw & 0xff
+
+    @property
+    def high(self):
+        return (self._raw >> 8) & 0xff
 
     @property
     def address(self):
@@ -128,6 +134,9 @@ class KnxAddress(object):
 
         @return: True if address is null, False otherwise
         @rtype: bool
+        """
+        return self._raw == 0x0000
+
 
 if __name__ == '__main__':
     import unittest
@@ -160,6 +169,10 @@ if __name__ == '__main__':
 
         def test_raw(self):
             self.assertEqual(self.ad2.raw, 8753)
+
+        def test_lowhigh(self):
+            self.assertEqual(self.ad2.low, 0x31)
+            self.assertEqual(self.ad2.high, 0x22)
 
         def test_cmp(self):
             self.assertNotEqual(self.ad1, self.ad2)

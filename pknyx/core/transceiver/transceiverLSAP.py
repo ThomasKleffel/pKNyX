@@ -62,15 +62,10 @@ class TransceiverLSAP(object):
 
     def getOutFrame(self):
         """ Get output frame
-
-        Blocks until there is a transmission pending in outQueue, then returns this transmission
-
-        @return: pending transmission in outQueue
-        @rtype: L{Transmission}
         """
         raise NotImplementedError
 
     def putInFrame(self, lPDU):
-        """
+        """ Set input frame
         """
         raise NotImplementedError

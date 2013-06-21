@@ -101,21 +101,33 @@ class L_DataService(TransceiverLSAP, threading.Thread):
         #self.start()
 
     def getOutFrame(self):
-        trm = None
+        """ Get output frame
+
+        Blocks until there is a transmission pending in outQueue, then returns this transmission
+
+        @return: pending transmission in outQueue
+        @rtype: L{Transmission}
+        """
+        transmission = None
 
         # test outQueue for frames to transmit, else go sleeping
         self._outQueue.acquire()
         try:
-            trm = self._outQueue.remove()
-            while trm is None:
+            transmission = self._outQueue.remove()
+            while transmission is None:
                 self._outQueue.wait()
-                trm = self._outQueue.remove()
+                transmission = self._outQueue.remove()
         finally:
             self._outQueue.release()
 
-        return trm
+        return transmission
 
     def putInFrame(self, lPDU):
+        """ Set input frame
+
+        @param lPDU: Link Pxxx Data Unit
+        @type: bytearray
+        """
 
         # test Control Field (CF) - not necessary cause should be done by the transceiver or BCU
         # if (lPDU[TFrame.CF_BYTE] & TFrame.CF_MASK) != TFrame.CF_L_DATA:
@@ -178,26 +190,26 @@ class L_DataService(TransceiverLSAP, threading.Thread):
         lSDU[TFrame.DAH_BYTE] = (dest >> 8) & 0xff
         lSDU[TFrame.DAL_BYTE] = dest & 0xff
 
-        lSDU[TFrame.DAF_BYTE] |= isGAD ? TFrame.DAF_GA : TFrame.DAF_PA
+        lSDU[TFrame.DAF_BYTE] |= isGAD ? TFrame.DAF_GAD : TFrame.DAF_IA
         lSDU[TFrame.LEN_BYTE] |= ((length > 15) ? TFrame.len2LenCode(length) : length) << TFrame.LEN_BITPOS
 
         waitL2Con = True
-        trm = Transmission(lSDU, waitL2Con)
-        trm.acquire()
+        transmission = Transmission(lSDU, waitL2Con)
+        transmission.acquire()
         try:
             self._outQueue.acquire()
             try:
-                self._outQueue.add(trm, priority)
+                self._outQueue.add(transmission, priority)
                 self._outQueue.notifyAll()
             finally:
                 self._outQueue.release()
 
-            while trm.waitConfirm:
-                trm.wait()
+            while transmission.waitConfirm:
+                transmission.wait()
         finally:
-            trm.release()
+            transmission.release()
 
-        return trm.result
+        return transmission.result
 
     def run(sefl):
         """ inQueue handler main loop
@@ -221,7 +233,7 @@ class L_DataService(TransceiverLSAP, threading.Thread):
             #handle frame
             src = ((lPDU[TFrame.SAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.SAL_BYTE] & 0xff)
             dest = ((lPDU[TFrame.DAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.DAL_BYTE] & 0xff)
-            isGA = (lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_GA
+            isGA = (lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_GAD
             priority = lPDU[TFrame.PR_BYTE]
             if self._ldl:
                 self.lgdl.dataInd(src, dest, isGA, priority, lPDU)

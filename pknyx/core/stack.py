@@ -74,7 +74,7 @@ class Stack(object):
     """
     PRIORITY_DISTRIBUTION = (-1, 3, 2)
 
-    def __init__(self):
+    def __init__(self, indivAddr, domainAddr="0.0.0", serNo=-1, transType=UDPTransceiver, transParams=dict(mcastAddr="230.0.0.1", mcastPort=0xf625)):
         """
 
         raise StackValueError:
@@ -85,7 +85,7 @@ class Stack(object):
         self._ngds = N_GroupDataService(self._lds)
         self._tgds = T_GroupDataService(self._ngds)
         self._agds = A_GroupDataService(self._tgds)
-        self._tc = UDPTransceiver(self._lds, domainAddr, physAddr)
+        self._tc = UDPTransceiver(self._lds, domainAddr, indivAddr)
 
     @property
     def agds(self):

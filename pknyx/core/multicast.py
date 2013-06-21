@@ -1,263 +1,141 @@
-#!/bin/env python
+# -*- coding: utf-8 -*-
+
+""" Python KNX framework
+
+License
+=======
+
+ - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
+  - (C) 2013 Frédéric Mantegazza
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+or see:
+
+ - U{http://www.gnu.org/licenses/gpl.html}
+
+Module purpose
+==============
+
+Implements
+==========
+
+ - B{}
+
+Documentation
+=============
+
+Usage
+=====
+
+@author: Frédéric Mantegazza
+@copyright: (C) 2013 Frédéric Mantegazza
+@license: GPL
+"""
+
+__revision__ = "$Id$"
 
 import socket
 import struct
-import platform
-import array
-try:
-    import fcntl
-    NO_FCNTL = False
-except ImportError:
-    NO_FCNTL = True
 
-SIOCGIFCONF = 0x8912
-SIOCGIFFLAGS = 0x8913
-
-IFF_MULTICAST = 0x1000
+from pknyx.common.exception import PKNyXValueError
+from pknyx.common.loggingServices import Logger
 
 
-class IfConfigNotSupported(Exception):
+class McastSockValueError(PKNyXValueError):
     """
     """
 
 
-def ifconfig():
-    """ Fetch network stack configuration
+class MulticastSocket(socket.socket):
+    """ Multicast socket
     """
-    if NO_FCNTL:
-        raise IfConfigNotSupported ("No fcntl")
+    def __init__(self, port, address=""):
+        """
 
-    class _interface:
+        If address is given, the socket will acts as sender to this address, otherwise the socket will acts as receiver.
+        In this case, call joinGroup() to tell which address to listen to.
+        """
+        super(MulticastSocket, self).__init__(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+
+        self._port = port
+        self._address = address
+
+        self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        except AttributeError:
+            Logger().exception("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT", debug=True)
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 20)
+
+        self.bind(("", port))
+
+    @property
+    def port(self):
+        return self._port
+
+    @property
+    def address(self):
+        return self._address
+
+    @property
+    def localPort(self):
+        raise NotImplementedError
+
+    @property
+    def localAddress(self):
+        raise NotImplementedError
+
+    def joinGroup(self, address):
+        """ Listen to the given multicast address
+        """
+        if self._address:
+            Logger().warning("MulticastSocket.joinGroup(): socket already used as sender (bound to %s)" % self._address)
+
+        multicast = ord(socket.inet_aton(address)[0]) in range(224, 240)
+        if not multicast:
+            raise McastSockValueError("address is not a multicast destination (%s)" % repr(address))
+
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
+
+        value = struct.pack("=4sl", socket.inet_aton(adress), socket.INADDR_ANY)
+        self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, value)
+        #iface = "127.0.0.1"
+        #self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(address) + socket.inet_aton(iface))
+
+    def leaveGroup(self, address):
         """
         """
-        def __init__(self, name):
-            """
-            """
-            self.name = name
-            self.addresses = []
-            self.up = False
-            self.multicast = False
+        raise NotImplementedError
 
-        @property
-        def ip(self):
-            try:
-                return self.addresses[0]
-            except IndexError:
-                return None
-
-    # An ugly hack to account for different ifreq sizes on different architectures
-    arch = platform.architecture()[0]
-    if arch == "32bit":
-        offsets = (32, 32)
-    elif arch == "64bit":
-        offsets = (16, 40)
-    else:
-        raise OSError("unsupported architecture: %s" % (arch))
-
-    # Get the list of all network interfaces
-    _socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    buffer = array.array ('B', '\0' * 128 * offsets[1])
-    reply_length = struct.unpack ('iL', fcntl.ioctl(_socket.fileno(), SIOCGIFCONF, struct.pack('iL', 4096, buffer.buffer_info()[0])))[0]
-    if_list = buffer.tostring()
-    if_list = filter(lambda x: len(x[0]) > 0, [(if_list[i:i+offsets[0]].split('\0', 1)[0], socket.inet_ntoa(if_list[i+20:i+24])) for i in range(0, 4096, offsets[1])])
-
-    iff = {}
-
-    # Get ip addresses for each interface
-    for (ifname, addr) in if_list:
-        iff[ifname] = iff.get(ifname, _interface(ifname))
-        flags, = struct.unpack('H', fcntl.ioctl(_socket.fileno(), SIOCGIFFLAGS, ifname + '\0'*256)[16:18])
-        iff[ifname].addresses.append(addr)
-        iff[ifname].up = bool(flags & 1)
-        iff[ifname].multicast = bool(flags & IFF_MULTICAST)
-
-    _socket.close()
-
-    return iff
-
-
-class InterfaceNotFound(Exception):
-    """
-    """
-
-
-class DatagramReceiver(object):
-    """A datagram socket wrapper.
-    """
-    iflist = None
-
-    def __init__(self, address, port):
-        """ Init DatagramReceiver object
-
-        @param address:
-        @type address:
-
-        @param port:
-        @type port:
-
-        raise InterfaceNotFound:
+    def send(self, data, address=0):
         """
-        super(DatagramReceiver, self).__init__()
-
-        if address is not None and len(address) > 0:
-            try:
-                socket.inet_aton (address)
-            except socket.error:
-                try:
-                    ifcfg = ifconfig()
-                except IfConfigNotSupported:
-                    raise InterfaceNotFound(address)
-
-                if address in ifcfg:
-                    iff = ifcfg[address]
-                else:
-                    raise InterfaceNotFound(address)
-                self.localAddress = iff.ip
-            else:
-                self.localAddress = address
+        """
+        if address:
+            self._address = address
+        if self._address:
+            length = 0
+            while length < len(data):
+                l = self.sendto(data, (self._address, self._port))
+                length += l
         else:
-            self.localAddress = None
+            raise McastSockValueError("destination address not set")
 
-        if self.localAddress is None:
-            self.localAddress = ""
-
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        self.address = address
-        self.port = port
-        self.multicast = False
-
-        self.bind()
-
-    def __unicast__(self):
+    def receive(self):
         """
         """
-        return "DatagramReceiver [{0}] {1}:{2}".format(self._socket, self.localAddress, self.port)
+        #if self._address:
+            #Logger().warning("MulticastSocket.joinGroup(): socket used as sender (bound to %s)" % self._address)
 
-    def bind(self):
-        """
-        """
-        self._socket.bind ((self.localAddress, self.port))
-
-    def pipe(self, ostream):
-        """
-
-        @param ostream:
-        @type ostream:
-        """
-        while True:
-            self.pipeone (ostream)
-
-    def pipeone(self, ostream, size=1500):
-        """
-
-        @param ostream:
-        @type ostream:
-
-        @param size:
-        @type size: int
-        """
-        data, addr = self._socket.recvfrom(size)
-
-        if ostream is not None:
-            if callable(ostream): target = ostream
-            else: target = ostream.write
-            return target (data)
-        else:
-            return data
-
-    def read(self, size=1500):
-        """
-
-        @param size:
-        @type size: int
-        """
-        return self.pipeone (None, size)
-    recv = read
-
-    def cleanup(self):
-        """
-        """
-        pass
-
-    def close(self):
-        """
-        """
-        self.cleanup()
-        self._socket.close()
-
-
-class Multicast(ReceiverDatagram):
-    """
-    """
-    def __init__(self, bindAddrOrIface, mcastAddr, mcastPort, ttl=32, loop=1):
-        """
-        """
-        super(Multicast, self).__init__ (bindAddrOrIface, mcastPort)
-
-        self.ttl = ttl
-        self.loop = loop
-        self.mcastAddr = mcastAddr
-        self.multicast = True
-
-        self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, self.ttl)
-        self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, self.loop)
-
-        self._socket.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(self.localAddress))
-        self._socket.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton (self.mcastAddr) + socket.inet_aton(self.localAddress))
-
-    def __unicast__(self):
-        """
-        """
-        return "MulticastReceiver [{0}] {1}:{2} @ {3}".format (self._socket, self.mcastAddr, self.port, self.localAddress)
-
-    def bind(self):
-        """
-        """
-        self._socket.bind(('', self.port))
-
-    def cleanup(self):
-        """
-        """
-        self._socket.setsockopt(socket.SOL_IP, socket.IP_DROP_MEMBERSHIP, socket.inet_aton (self.mcastAddr) + socket.inet_aton(self.localAddress))
-
-
-def datagramReceiver(destination_address, destination_port, source_interface=None, ttl=32):
-    multicast = ord(socket.inet_aton(destination_address)[0]) in range(224, 240)
-
-    if multicast:
-        receiver = Multicast(source_interface, destination_address, destination_port, ttl=ttl)
-    else:
-        receiver = DatagramReceiver(destination_address, destination_port)
-
-    return receiver
-
-
-class DatagramSender(DatagramReceiver):
-    """
-    """
-    def __init__(self, srcAddr, srcPort, destAddr, destPort, ttl=32, loop=1):
-        """
-        """
-        super(DatagramSender, self).__init__(srcAddr, srcPort)
-
-        isMulticast = ord(socket.inet_aton(destAddr)[0]) in range(224, 240)
-        if not isMulticast:
-            raise Exception("invalid multicast address (%s)" % repr(destAddr))
-
-        self._ttl = ttl
-        self._loop = loop
-        self._destAddr = destAddr
-        self._destPort = destPort
-
-        self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, self._ttl)
-        self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, self._loop)
-
-    def write(self, data, *args):
-        """
-
-        @param data:
-        @type data:
-        """
-        self._socket.sendto(data, (self._destAddr, self._destPort))
+        return self.recvfrom(1024)

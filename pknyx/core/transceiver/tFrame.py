@@ -86,8 +86,8 @@ class TFrame(object):
 
     DAF_BYTE   = L2_START + 5
     DAF_MASK   = 0x80
-    DAF_PA     = 0x00
-    DAF_GA     = 0x80
+    DAF_IA     = 0x00
+    DAF_GAD    = 0x80
     HC_BYTE    = L2_START + 5
     HC_MASK    = 0x70
     HC_BITPOS  = 4

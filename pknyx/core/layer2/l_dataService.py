@@ -214,32 +214,42 @@ class L_DataService(threading.Thread, TransceiverLSAP):
     def run(self):
         """ inQueue handler main loop
         """
-        lPDU = bytearray()
+        Logger().info("Start")
 
         self._running = True
         while self._running:
-
-            # test inQueue for frames to handle, else go sleeping
-            self._inQueue.acquire()
             try:
-                lPDU = self._inQueue.remove()
-                while lPDU == None:
-                    self._inQueue.wait()
-                    lPDU = self._inQueue.remove()
-            finally:
-                self._inQueue.release()
 
-            #handle frame
-            src = ((lPDU[TFrame.SAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.SAL_BYTE] & 0xff)
-            dest = ((lPDU[TFrame.DAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.DAL_BYTE] & 0xff)
-            isGA = (lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_GAD
-            priority = lPDU[TFrame.PR_BYTE]
-            if self._ldl:
-                self.lgdl.dataInd(src, dest, isGA, priority, lPDU)
+                # test inQueue for frames to handle, else go sleeping
+                self._inQueue.acquire()
+                try:
+                    lPDU = self._inQueue.remove()
+                    while lPDU == None:
+                        self._inQueue.wait()
+                        lPDU = self._inQueue.remove()
+                finally:
+                    self._inQueue.release()
+
+                #handle frame
+                src = ((lPDU[TFrame.SAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.SAL_BYTE] & 0xff)
+                dest = ((lPDU[TFrame.DAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.DAL_BYTE] & 0xff)
+                isGA = (lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_GAD
+                priority = lPDU[TFrame.PR_BYTE]
+                if self._ldl:
+                    self.lgdl.dataInd(src, dest, isGA, priority, lPDU)
+
+                print "alive"
+
+            except:
+                Logger().exception("L_DataService.run()", debug=True)
+
+        Logger().info("Stop")
 
     def stop(self):
         """ stop thread
         """
+        Logger().info("Stopping L_DataService")
+
         self._running = False
 
     def isRunning(self):

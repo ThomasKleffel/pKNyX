@@ -102,7 +102,8 @@ class Stack(object):
 
         @todo: name it 'server_forever()'?
         """
-        Logger().info("Starting Stack")
+        Logger().info("Start Stack")
+
         self._lds.start()
         self._tc.start()
 

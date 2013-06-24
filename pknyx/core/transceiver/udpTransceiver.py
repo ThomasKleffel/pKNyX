@@ -125,40 +125,52 @@ class Transmitter(threading.Thread):
     def run(self):
         """
         """
+        Logger().info("Start")
+
         self._running = True
         while self._running:
-            transmission = self._parent.tLSAP.getOutFrame()
-            if transmission is not None:
-                lPDU = transmission.lPDU
-                lPDU[TFrame.CF_BYTE] |= TFrame.CF_L_DATA
-                lPDU[TFrame.SAH_BYTE] = self._parent.indivAddr.high
-                lPDU[TFrame.SAL_BYTE] = self._parent.indivAddr.low
+            try:
+                transmission = self._parent.tLSAP.getOutFrame()
+                if transmission is not None:
+                    lPDU = transmission.lPDU
+                    lPDU[TFrame.CF_BYTE] |= TFrame.CF_L_DATA
+                    lPDU[TFrame.SAH_BYTE] = self._parent.indivAddr.high
+                    lPDU[TFrame.SAL_BYTE] = self._parent.indivAddr.low
 
-                checksum = 0x00
-                for i in range(self.OVERHEAD, len(lPDU)):
-                    checksum ^= lPDU[i]
-                    checksum &= 0xff
+                    checksum = 0x00
+                    for i in range(self.OVERHEAD, len(lPDU)):
+                        #checkSum = (byte)(checkSum ^ lPDU[i]);
+                        checksum = (checksum ^ lPDU[i]) & 0xff
 
-                #System.arraycopy(lPDU, self.OVERHEAD, lPDU, self.OVERHEAD-1, len(lPDU)-self.OVERHEAD )
-                lPDU[self.OVERHEAD:] = lPDU[self.OVERHEAD-1:-1]
-                lPDU[lPDU.length-1] = checksum ^ 0xff  # What is ~ in java? Python inverts sign...
+                    #System.arraycopy(lPDU, self.OVERHEAD, lPDU, self.OVERHEAD-1, len(lPDU)-self.OVERHEAD)
+                    lPDU[self.OVERHEAD:] = lPDU[self.OVERHEAD-1:-1]
+                    #lPDU[lPDU.length-1] = (byte)~checkSum;
+                    lPDU[len(lPDU)-1] = checksum ^ 0xff
 
-                outFrame = lPDU[self.OVERHEAD-1:]
-                try:
-                    self._sock.send(outFrame)
-                    transmission.result = Result.OK
-                except IOException:
-                    transmission.result = Result.ERROR
-
-                if transmission.waitConfirm:
-                    transmission.acquire()
+                    outFrame = lPDU[self.OVERHEAD-1:]
+                    Logger().debug("Transmitter.run(): outFrame= %s" % repr(outFrame))
                     try:
-                        transmission.waitConfirm = False
-                        transmission.notify()
-                    finally:
-                        transmission.release()
+                        self._sock.send(outFrame)
+                        transmission.result = Result.OK
+                    except IOException:
+                        transmission.result = Result.ERROR
+
+                    if transmission.waitConfirm:
+                        transmission.acquire()
+                        try:
+                            transmission.waitConfirm = False
+                            transmission.notify()
+                        finally:
+                            transmission.release()
+
+                print "alive"
+
+            except:
+                Logger().exception("Transmitter.run()", debug=True)
 
         self._sock.close()
+
+        Logger().info("Stop")
 
     def cleanup(self):
         """
@@ -194,11 +206,11 @@ class Receiver(threading.Thread):
 
         self._parent = parent
 
-        self._mSock = MulticastSocket(self._parent.mcastPort)
+        self._sock = MulticastSocket(self._parent.mcastPort)
         try:
-            self._mSock.joinGroup(self._parent.mcastAddr)
+            self._sock.joinGroup(self._parent.mcastAddr)
         except:
-            self._mSock.close();
+            self._sock.close();
             raise
 
         self._running = False
@@ -209,28 +221,35 @@ class Receiver(threading.Thread):
     def run(self):
         """
         """
+        Logger().info("Start")
+
         self._running = True
         while self._running:
             try:
-                inFrame = self._mSock.receive()
-                data, (fromAddr, fromPort) = inFrame
+                inFrame, (fromAddr, fromPort) = self._sock.receive()
+                Logger().debug("Receiver.run(): inFrame=%s" % repr(inFrame))
 
+                data = bytearray(inFrame)
+                length = len(data)
                 checksum = 0x00
-                for i in range(len(data)):
-                    checksum ^= data[i]
-                    checksum &= 0xff
+                for i in range(length):
+                    #checkSum = (byte)(checkSum ^ data[i]);
+                    checksum = (checksum ^ data[i]) & 0xff
 
-                length = len(data) - 1
+                length -= 1
                 if checksum == 0xff and \
                    TFrame.MIN_LENGTH - self.OVERHEAD <= length <= TFrame.MAX_LENGTH - self.OVERHEAD and \
                    (fromPort != self._parent.localPort or fromAddr != self._parent.localAddr):
-                    lPDU = bytearray(length + self.OVERHEAD)
+                    #byte[] lPDU = new byte[length + OVERHEAD];
+                    #System.arraycopy(data, 0, lPDU, OVERHEAD, length);
+                    lPDU = bytearray(self.OVERHEAD + length)
                     lPDU[self.OVERHEAD:] = data
+
                     domainAddr = lPDU[TFrame.DAL_BYTE] | lPDU[TFrame.DAH_BYTE] << 8
-                    if lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK == TFrame.DAF_IA:
-                        if domainAddr == self._parent.indivAddr:
+                    if lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK == TFrame.DAF_IA:  # domainAddr is an Individual Address
+                        if domainAddr == self._parent.indivAddr:  # destination matches
                             self._parent.tLSAP.putInFrame(lPDU)
-                    else:
+                    else:  # domainAddr is an Group Address
                         self._parent.gadSet.acquire()
                         try:
                             if domainAddr in self._parent.gadSet:
@@ -238,8 +257,13 @@ class Receiver(threading.Thread):
                         finally:
                             self._parent.gadSet.release()
 
-            except Exception:
+                else:
+                    Logger().error("Receiver.run(): invalid checksum (%s)" % hex(checksum))
+
+            except:
                 Logger().exception("Receiver.run()", debug=True)
+
+        Logger().info("Stop")
 
     def cleanup(self):
         """
@@ -248,10 +272,10 @@ class Receiver(threading.Thread):
             self.stop()
             self.join()
         try:
-            self._mSock.leaveGroup(self._mcastAddr)
+            self._sock.leaveGroup(self._mcastAddr)
         except Exception:
             Logger().exception("Receiver.cleanup()", debug=True)
-        self._mSock.close()
+        self._sock.close()
 
     def finalize(self):
         """
@@ -387,7 +411,8 @@ class UDPTransceiver(Transceiver):
     def start(self):
         """
         """
-        Logger().info("Starting UDPTransceiver")
+        Logger().info("Start UDP Transceiver")
+
         self._transmitter.start()
         self._receiver.start()
 

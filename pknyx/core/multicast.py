@@ -77,10 +77,9 @@ class MulticastSocket(socket.socket):
             self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         except AttributeError:
             Logger().exception("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT", debug=True)
-        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 20)
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 255)
 
-        #self.bind(("127.0.0.1", port))
-        self.bind(("tatooine", port))
+        self.bind(("", port))
 
     @property
     def port(self):
@@ -110,10 +109,11 @@ class MulticastSocket(socket.socket):
 
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
 
+        #local = socket.gethostbyname(socket.gethostname)
+        #value = struct.pack("=4sl", socket.inet_aton(address), socket.inet_aton(local))
         value = struct.pack("=4sl", socket.inet_aton(address), socket.INADDR_ANY)
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, value)
         self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, value)
-        #iface = "127.0.0.1"
-        #self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(address) + socket.inet_aton(iface))
 
     def leaveGroup(self, address):
         """

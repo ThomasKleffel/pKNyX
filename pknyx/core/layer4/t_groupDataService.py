@@ -128,7 +128,7 @@ class T_GroupDataService(N_GroupDataListener):
         Logger().debug("T_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, nSDU=%s" % \
                        (src, gad, priority, repr(nSDU)))
 
-        if self._tgdl = None:
+        if self._tgdl is None:
             Logger().warning("T_GroupDataService.groupDataInd(): not listener defined")
             return
 

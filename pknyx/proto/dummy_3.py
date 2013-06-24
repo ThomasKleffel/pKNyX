@@ -1,4 +1,5 @@
-from pprint import pprint
+
+import time
 
 from pknyx.api import Device, Stack, ETS
 
@@ -65,3 +66,6 @@ mob.printMapTable(by="gad")
 print
 print
 mob.printMapTable(by="dp")
+
+stack.start()
+time.sleep(60)

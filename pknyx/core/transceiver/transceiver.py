@@ -68,7 +68,7 @@ class Transceiver(object):
     """
     OVERHEAD = 2
 
-    def __init__(self, tLSAP, domainAddr="0.0.0", indivAddr="0.0.0"):
+    def __init__(self, tLSAP, domainAddr=0, indivAddr="0.0.0"):
         """
 
         @param tLSAP:
@@ -83,10 +83,10 @@ class Transceiver(object):
         super(Transceiver, self).__init__()
 
         self._tLSAP = tLSAP
-        if not isinstance(KnxAddress, domainAddr):
+        if not isinstance(domainAddr, KnxAddress):
             domainAddr = KnxAddress(domainAddr)
         self._domainAddr = domainAddr
-        if not isinstance(IndividualAddress, indivAddr):
+        if not isinstance(indivAddr, IndividualAddress):
             indivAddr = IndividualAddress(indivAddr)
         self._individualAddress = indivAddr
 

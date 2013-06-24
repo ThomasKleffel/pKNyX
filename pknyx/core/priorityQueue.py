@@ -82,7 +82,7 @@ class PriorityQueueValueError(PKNyXValueError):
     """
 
 
-class PriorityQueue(threading.Condition):
+class PriorityQueue(object):
     """ PriorityQueue class
 
     @ivar _priorityDistribution: determines the handling of the different priorities
@@ -106,14 +106,15 @@ class PriorityQueue(threading.Condition):
         if prioritySteps < 1:
             raise PriorityQueueValueError("there must be a least one priority step")
 
-        if len(priorityDistribution) + 1 != noPrioritySteps:
-            raise PriorityQueueValueError("size of array 'priorityDistribution' must be smaller by one than 'noPrioritySteps'")
+        if len(priorityDistribution) + 1 != prioritySteps:
+            raise PriorityQueueValueError("size of array 'priorityDistribution' must be smaller by one than 'prioritySteps'")
 
         self._priorityDistribution = priorityDistribution
 
         self._count = copy.copy(priorityDistribution)
-        self._queue = noPrioritySteps * [[]]
+        self._queue = prioritySteps * [[]]
 
+        self._condition = threading.Condition()
 
     def add(self, obj, priority):
         """ Add an element to the queue
@@ -134,20 +135,36 @@ class PriorityQueue(threading.Condition):
 
         @return  The next element from this queue (None if queue is empty)
         """
-        for i in range(len(queue) - 1):
-            if count[i] == 0:
-                count[i] = distr[i]
-            elif queue[i].size() != 0:
-                if count[i] > 0:
-                    count[i] -= 1
-                return queue[i].removeFirst()
+        for i in range(len(self._queue) - 1):
+            if self._count[i] == 0:
+                self._count[i] = distr[i]
+            elif len(self._queue[i]):
+                if self._count[i] > 0:
+                    self._count[i] -= 1
+                return self._queue[i].removeFirst()
 
         while i >= 0:
-            if queue[i].size() != 0:
-                return queue[i].removeFirst()
+            if len(self._queue[i]):
+                return self._queue[i].removeFirst()
             i -= 1
 
         return None
+
+    def acquire(self):
+        self._condition.acquire()
+
+    def release(self):
+        self._condition.release()
+
+    def wait(self):
+        self._condition.wait()
+
+    def notify(self):
+        self._condition.notify()
+
+    def notifyAll(self):
+        self._condition.notifyAll()
+
 
 
 if __name__ == '__main__':

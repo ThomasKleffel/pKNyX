@@ -68,21 +68,21 @@ class N_GroupDataService(L_DataListener):
     @ivar _ngdl: network group data listener
     @type _ngdl: L{N_GroupDataListener<pknyx.core.layer3.n_groupDataListener>}
     """
-    def __init__(self, lgds):
+    def __init__(self, lds):
         """
 
-        @param lgds: Network group data service object
-        @type lgds: L{L_GroupDataService<pknyx.core.layer3.n_groupDataService>}
+        @param lds: Link data service object
+        @type lds: L{L_DataService<pknyx.core.layer2.l_dataService>}
 
         raise N_GDSValueError:
         """
         super(N_GroupDataService, self).__init__()
 
-        self._lds = lgds
+        self._lds = lds
 
         self._ngdl = None
 
-        ngds.setListener(self)
+        lds.setListener(self)
 
     def _setHopCount(self, nPDU, hc):
         """
@@ -102,7 +102,7 @@ class N_GroupDataService(L_DataListener):
         Logger().debug("N_GroupDataService.groupDataInd(): src=%s, dest=%s, isGAD=%s, priority=%s, lSDU=%s" % \
                        (src, dest, isGAD, priority, repr(lSDU)))
 
-        if self._ngdl = None:
+        if self._ngdl is None:
             Logger().warning("N_GroupDataService.dataInd(): not listener defined")
             return
 

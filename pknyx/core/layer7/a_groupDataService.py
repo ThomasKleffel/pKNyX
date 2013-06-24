@@ -52,7 +52,7 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.layer7.apci import APCI
 from pknyx.core.layer7.apdu import APDU
-from pknyx.core.layer3.t_groupDataListener import T_GroupDataListener
+from pknyx.core.layer4.t_groupDataListener import T_GroupDataListener
 from pknyx.core.transceiver.tFrame import TFrame
 
 

@@ -55,7 +55,7 @@ from pknyx.core.layer7.a_groupDataService import A_GroupDataService
 from pknyx.core.layer4.t_groupDataService import T_GroupDataService
 from pknyx.core.layer3.n_groupDataService import N_GroupDataService
 from pknyx.core.layer2.l_dataService import L_DataService
-from pknyx.core.transceiver. import A_GroupDataService
+from pknyx.core.transceiver.udpTransceiver import UDPTransceiver
 
 
 class StackValueError(PKNyXValueError):
@@ -74,18 +74,20 @@ class Stack(object):
     """
     PRIORITY_DISTRIBUTION = (-1, 3, 2)
 
-    def __init__(self, indivAddr, domainAddr="0.0.0", serNo=-1, transType=UDPTransceiver, transParams=dict(mcastAddr="230.0.0.1", mcastPort=0xf625)):
+    def __init__(self, domainAddr=0, indivAddr="0.0.0", serNo=-1,
+                 transType=UDPTransceiver, transParams=dict(mcastAddr="224.0.23.12", mcastPort=3671)):
         """
 
         raise StackValueError:
         """
         super(Stack, self).__init__()
 
-        self._lds = L_DataService(PRIORITY_DISTRIBUTION)
+        self._lds = L_DataService(Stack.PRIORITY_DISTRIBUTION)
         self._ngds = N_GroupDataService(self._lds)
         self._tgds = T_GroupDataService(self._ngds)
         self._agds = A_GroupDataService(self._tgds)
-        self._tc = UDPTransceiver(self._lds, domainAddr, indivAddr)
+        self._gds = GroupDataService(self._agds)
+        self._tc = transType(self._lds, domainAddr, indivAddr, **transParams)
 
     @property
     def agds(self):
@@ -100,6 +102,15 @@ class Stack(object):
 
         @todo: name it 'server_forever()'?
         """
+        Logger().info("Starting Stack")
+        self._lds.start()
+        self._tc.start()
+
+    def stop():
+        """
+        """
+        self._tc.stop()
+        self._lds.stop()
 
 
 if __name__ == '__main__':

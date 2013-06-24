@@ -65,7 +65,7 @@ class L_DSValueError(PKNyXValueError):
     """
 
 
-class L_DataService(TransceiverLSAP, threading.Thread):
+class L_DataService(threading.Thread, TransceiverLSAP):
     """ L_DataService class
 
     @ivar _ldl: link data listener
@@ -88,7 +88,7 @@ class L_DataService(TransceiverLSAP, threading.Thread):
 
         raise L_DSValueError:
         """
-        super(L_DataService, self).__init__(name="EIBStack LinkLayer")
+        super(L_DataService, self).__init__(name="KNX Stack LinkLayer")
 
         self._ldl = None
 
@@ -145,11 +145,11 @@ class L_DataService(TransceiverLSAP, threading.Thread):
         # get priority from lPDU (move test in Priority object)
         if (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_SYSTEM:
             priority = Priority('system')
-        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == case TFrame.PR_ALARM:
+        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_ALARM:
             priority = Priority('alarm')
-        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == case TFrame.PR_HIGH:
+        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_HIGH:
             priority = Priority('high')
-        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == case TFrame.PR_LOW:
+        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_LOW:
             priority = Priority('low')
         else:
             priority = Priority('low')
@@ -182,7 +182,7 @@ class L_DataService(TransceiverLSAP, threading.Thread):
 
         length = len(lSDU) - TFrame.MIN_LENGTH
 
-        lSDU[TFrame.LTP_BYTE] = (length > 15) ? TFrame.LTP_TABLE : TFrame.LTP_BYTES
+        lSDU[TFrame.LTP_BYTE] = TFrame.LTP_TABLE if length > 15 else TFrame.LTP_BYTES
         lSDU[TFrame.PR_BYTE] |= TFrame.PR_CODE[pr]
 
         lSDU[TFrame.SAH_BYTE] = (src >> 8) & 0xff
@@ -190,8 +190,8 @@ class L_DataService(TransceiverLSAP, threading.Thread):
         lSDU[TFrame.DAH_BYTE] = (dest >> 8) & 0xff
         lSDU[TFrame.DAL_BYTE] = dest & 0xff
 
-        lSDU[TFrame.DAF_BYTE] |= isGAD ? TFrame.DAF_GAD : TFrame.DAF_IA
-        lSDU[TFrame.LEN_BYTE] |= ((length > 15) ? TFrame.len2LenCode(length) : length) << TFrame.LEN_BITPOS
+        lSDU[TFrame.DAF_BYTE] |= TFrame.DAF_GAD if isGAD else TFrame.DAF_IA
+        lSDU[TFrame.LEN_BYTE] |= (TFrame.len2LenCode(length) if length > 15 else length) << TFrame.LEN_BITPOS
 
         waitL2Con = True
         transmission = Transmission(lSDU, waitL2Con)
@@ -211,7 +211,7 @@ class L_DataService(TransceiverLSAP, threading.Thread):
 
         return transmission.result
 
-    def run(sefl):
+    def run(self):
         """ inQueue handler main loop
         """
         lPDU = bytearray()
@@ -228,7 +228,6 @@ class L_DataService(TransceiverLSAP, threading.Thread):
                     lPDU = self._inQueue.remove()
             finally:
                 self._inQueue.release()
-            }
 
             #handle frame
             src = ((lPDU[TFrame.SAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.SAL_BYTE] & 0xff)

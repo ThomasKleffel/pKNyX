@@ -91,7 +91,7 @@ class MulticastSocket(socket.socket):
 
     @property
     def localPort(self):
-        raise NotImplementedError
+        return 0
 
     @property
     def localAddress(self):
@@ -109,7 +109,7 @@ class MulticastSocket(socket.socket):
 
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
 
-        value = struct.pack("=4sl", socket.inet_aton(adress), socket.INADDR_ANY)
+        value = struct.pack("=4sl", socket.inet_aton(address), socket.INADDR_ANY)
         self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, value)
         #iface = "127.0.0.1"
         #self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(address) + socket.inet_aton(iface))
@@ -119,7 +119,7 @@ class MulticastSocket(socket.socket):
         """
         raise NotImplementedError
 
-    def send(self, data, address=0):
+    def transmit(self, data, address=0):
         """
         """
         if address:

@@ -84,13 +84,13 @@ class Transmission(object):
         """
         super(Transmission, self).__init__()
 
-        self._frame = lPDU
+        self._lPDU = lPDU
         self._waitConfirm = waitConfirm
         self._result = Result.OK
 
     @property
-    def frame(self):
-        return self._frame
+    def lPDU(self):
+        return self._lPDU
 
     @property
     def waitConfirm(self):

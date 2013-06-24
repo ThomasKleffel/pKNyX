@@ -79,7 +79,8 @@ class MulticastSocket(socket.socket):
             Logger().exception("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT", debug=True)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 20)
 
-        self.bind(("", port))
+        #self.bind(("127.0.0.1", port))
+        self.bind(("tatooine", port))
 
     @property
     def port(self):
@@ -91,7 +92,7 @@ class MulticastSocket(socket.socket):
 
     @property
     def localPort(self):
-        return 0
+        raise NotImplementedError
 
     @property
     def localAddress(self):

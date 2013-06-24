@@ -315,7 +315,6 @@ class UDPTransceiver(Transceiver):
 
         # create transmitter and receiver
         self._transmitter = Transmitter(self)
-        #self._localPort = self._transmitter.localPort
         try:
             self._receiver = Receiver(self)
         except:

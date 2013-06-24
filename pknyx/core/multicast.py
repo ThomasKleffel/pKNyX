@@ -118,7 +118,10 @@ class MulticastSocket(socket.socket):
     def leaveGroup(self, address):
         """
         """
-        raise NotImplementedError
+        #local = socket.gethostbyname(socket.gethostname)
+        #value = struct.pack("=4sl", socket.inet_aton(address), socket.inet_aton(local))
+        value = struct.pack("=4sl", socket.inet_aton(address), socket.INADDR_ANY)
+        self.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, value)
 
     def transmit(self, data, address=0):
         """

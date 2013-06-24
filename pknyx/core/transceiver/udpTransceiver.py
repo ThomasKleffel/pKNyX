@@ -55,18 +55,35 @@ import socket
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.groupAddress import GroupAddress
-from pknyx.core.multicast import MulticastSocket
+from pknyx.core.multicast2 import MulticastSocket
 from pknyx.core.transceiver.transceiver import Transceiver
 from pknyx.core.transceiver.tFrame import TFrame
 
 
-class GadSet(threading.Condition, set):
+class GadSet(set):
     """
     """
     def __init__(self):
         """
         """
         super(GadSet, self).__init__()
+
+        self._condition = threading.Condition()
+
+    def acquire(self):
+        self._condition.acquire()
+
+    def release(self):
+        self._condition.release()
+
+    def wait(self):
+        self._condition.wait()
+
+    def notify(self):
+        self._condition.notify()
+
+    def notifyAll(self):
+        self._condition.notifyAll()
 
 
 class Transmitter(threading.Thread):
@@ -81,7 +98,7 @@ class Transmitter(threading.Thread):
     @ivar _localPort: local port used by the socket
     @type _localPort: int
     """
-    def __init__(self, parent, tLSAP, mcastAddr, mcastPort):
+    def __init__(self, parent):
         """
 
         @param parent:
@@ -90,14 +107,11 @@ class Transmitter(threading.Thread):
         @param tLSAP:
         @type tLSAP: L{TransceiverLSAP}
         """
-        super(Transmitter, self).__init__(name="EIBStack UDP Transmitter")
+        super(Transmitter, self).__init__(name="KNX Stack UDP Transmitter")
 
         self._parent = parent
-        self._tLSAP = tLSAP
-        self._mcastAddr = mcastAddr
-        self._mcastPort = mcastPort
 
-        self._sock = MulticastSocket(mcastPort, mcastAddr)
+        self._sock = MulticastSocket(self._parent.mcastPort, self._parent.mcastAddr)
 
         self._running = False
 
@@ -106,16 +120,16 @@ class Transmitter(threading.Thread):
 
     @property
     def localPort(self):
-        return setl._sock.localPort
+        return self._sock.localPort
 
     def run(self):
         """
         """
         self._running = True
         while self._running:
-            transmission = self._tLSAP.getOutFrame()
+            transmission = self._parent.tLSAP.getOutFrame()
             if transmission is not None:
-                lPDU = transmission.frame
+                lPDU = transmission.lPDU
                 lPDU[TFrame.CF_BYTE] |= TFrame.CF_L_DATA
                 lPDU[TFrame.SAH_BYTE] = self._parent.indivAddr.high
                 lPDU[TFrame.SAL_BYTE] = self._parent.indivAddr.low
@@ -149,14 +163,14 @@ class Transmitter(threading.Thread):
     def cleanup(self):
         """
         """
-        self.stop()
-        self.join()
+        if self.isAlive():
+            self.stop()
+            self.join()
 
     def finalize(self):
         """
         """
-        if self.isAlive():
-            self.cleanup()
+        self.cleanup()
 
     def stop(self):
         """ stop thread
@@ -176,7 +190,7 @@ class Receiver(threading.Thread):
         @param parent:
         @type parent:
         """
-        super(Receiver, self).__init__(name="EIBStack UDP Receiver")
+        super(Receiver, self).__init__(name="KNX Stack UDP Receiver")
 
         self._parent = parent
 
@@ -207,7 +221,7 @@ class Receiver(threading.Thread):
                     checksum &= 0xff
 
                 length = len(data) - 1
-                if checksum == 0xff and \
+                if checksum == 0xff and \
                    TFrame.MIN_LENGTH - self.OVERHEAD <= length <= TFrame.MAX_LENGTH - self.OVERHEAD and \
                    (fromPort != self._parent.localPort or fromAddr != self._parent.localAddr):
                     lPDU = bytearray(length + self.OVERHEAD)
@@ -230,8 +244,9 @@ class Receiver(threading.Thread):
     def cleanup(self):
         """
         """
-        self.stop()
-        #self.join()
+        if self.isAlive():
+            self.stop()
+            self.join()
         try:
             self._mSock.leaveGroup(self._mcastAddr)
         except Exception:
@@ -241,8 +256,7 @@ class Receiver(threading.Thread):
     def finalize(self):
         """
         """
-        if self.isAlive():
-            cleanup();
+        cleanup()
 
     def stop(self):
         """ stop thread
@@ -274,7 +288,7 @@ class UDPTransceiver(Transceiver):
     @ivar _gadSet: set of GAD
     @type _gadSet: L{GadSet}
     """
-    def __init__(self, tLSAP, domainAddr="0.0.0", indivAddr="0.0.0", mcastAddr="230.0.0.1", mcastPort=0xf625):
+    def __init__(self, tLSAP, domainAddr=0, indivAddr="0.0.0", mcastAddr="224.0.23.12", mcastPort=3671):
         """
 
         @param tLSAP:
@@ -300,16 +314,17 @@ class UDPTransceiver(Transceiver):
         self._mcastPort = mcastPort
 
         # create transmitter and receiver
-        transmitter = Transmitter(self)
-        self._localPort = transmitter.localPort
+        self._transmitter = Transmitter(self)
+        #self._localPort = self._transmitter.localPort
         try:
-            receiver = Receiver(self)
+            self._receiver = Receiver(self)
         except:
-            transmitter.cleanup()
+            Logger().exception("UDPTransceiver.__init__()")
+            self._transmitter.cleanup()
             raise
 
         self._gadSet = GadSet()
-        self._addGroupAddress(GroupAddress("0/0/0"), false)  # ????
+        self.addGroupAddress(GroupAddress("0/0/0"), False)  # ????
 
     @property
     def tLSAP(self):
@@ -337,7 +352,7 @@ class UDPTransceiver(Transceiver):
 
     @property
     def localPort(self):
-        return self._localPort
+        return self._transmitter.localPort
 
     @property
     def gadSet(self):
@@ -352,7 +367,7 @@ class UDPTransceiver(Transceiver):
     def addGroupAddress(self, gad, sendL2Ack=True):  ## WTF?
         """
         """
-        if not isinstance(GroupAddress, gad):
+        if not isinstance(gad, GroupAddress):
             gad = GroupAddress(gad)
 
         self._gadSet.acquire()
@@ -369,6 +384,13 @@ class UDPTransceiver(Transceiver):
             self._gadSet.remove(gad)
         finally:
             self._gadSet.release()
+
+    def start(self):
+        """
+        """
+        Logger().info("Starting UDPTransceiver")
+        self._transmitter.start()
+        self._receiver.start()
 
 
 if __name__ == '__main__':

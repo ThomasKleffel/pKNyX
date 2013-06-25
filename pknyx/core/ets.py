@@ -91,6 +91,7 @@ class ETS(object):
         self._stack = stack
 
         self._devices = set()
+        self._gadMap = None
 
     @property
     def stack(self):
@@ -107,6 +108,14 @@ class ETS(object):
             dps.append(device.dp.values())
 
         return dps
+
+    @property
+    def gadMap(self):
+        return self._gadMap
+
+    @gadMap.setter
+    def gadMap(self, gadMap):
+        self._gadMap = gadMap
 
     def register(self, device, building='root'):
         """ Register a device
@@ -200,16 +209,27 @@ class ETS(object):
         gads.sort()
 
         if by == "gad":
+            print "Ordered by GAD:\n"
+            print "%-24s %-10s %-20s %-8s %-8s %-8s" % ("GAD", "Datapoint", "Device", "DPTID", "Flags", "Priority")
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
-                    print "% 2d %-10s" % (gad.main, self._gadName[gad.main]['name'])
+                    try:
+                        print "%2d %-10s" % (gad.main, self._gadMap[gad.main]['root'])
+                    except (TypeError, KeyError):
+                        print "%2d %-10s" % (gad.main, "")
                     gadMain = gad.main
                 if gadMiddle != gad.middle:
-                    print " ├── % 2d %-10s" % (gad.middle, self._gadName[gad.main][gad.middle]['name'])
+                    try:
+                        print " ├── %2d %-10s" % (gad.middle, self._gadMap[gad.main][gad.middle]['root'])
+                    except (TypeError, KeyError):
+                        print " ├── %2d %-10s" % (gad.middle, "")
                     gadMiddle = gad.middle
                 if gadSub != gad.sub:
-                    print " │    ├── % 3d %-10s" % (gad.sub, self._gadName[gad.main][gad.middle][gad.sub]),
+                    try:
+                        print " │    ├── %3d %-10s" % (gad.sub, self._gadMap[gad.main][gad.middle][gad.sub]),
+                    except (TypeError, KeyError):
+                        print " │    ├── %3d %-10s" % (gad.sub, ""),
                     gadSub = gad.sub
 
                 for i, dp in enumerate(self._stack.gds.groups[gad.address].listeners):
@@ -225,17 +245,21 @@ class ETS(object):
             # Retreive all datapoints, not only bound ones
             # Use building presentation
             mapByDP = {}
+            print "Ordered by Datapoint:\n"
+            print "%-20s %-10s %-10s %-27s %-8s %-8s\n" % ("Device", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
             for device in self._devices:
-                print " %-9s %-10s" % (device.address, device.name)
-                for dp in device.dp.values():
+                print "%9s %-10s" % (device.address, device.name),
+                for i, dp in enumerate(device.dp.values()):
+                    if i:
+                        print "%9s %-10s" % ("", ""),
                     gads_ = []
                     for gad in gads:
                         if dp in self._stack.gds.groups[gad.address].listeners:
                             gads_.append(gad.address)
                     if gads_:
-                        print " %-10s %-8s %-27s %-8s %-8s" % (dp.name, dp.dptId, ", ".join(gads_), dp.flags, dp.priority)
+                        print "%-10s %-10s %-27s %-8s %-8s" % (dp.name, dp.dptId, ", ".join(gads_), dp.flags, dp.priority)
                     else:
-                        print " %-10s %-8s %-27s %-8s %-8s" % (dp.name, dp.dptId, "", dp.flags, dp.priority)
+                        print "%-10s %-10s %-27s %-8s %-8s" % (dp.name, dp.dptId, "", dp.flags, dp.priority)
 
         else:
             raise ETSValueError("by param. must be in ('gad', 'dp')")

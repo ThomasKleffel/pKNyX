@@ -3,33 +3,30 @@ import time
 
 from pknyx.api import Device, Stack, ETS
 
-
-class MOB(ETS):
-
-    _gadName = {1: {'name': "heating",
-                    1: {'name': "setpoint",
-                        1: "living",
-                        2: "bedroom 1",
-                        3: "bedroom 2",
-                        4: "bedroom 3"
-                        },
-                    2: {'name': "temperature",
-                        1: "living",
-                        2: "bedroom 1",
-                        3: "bedroom 2",
-                        4: "bedroom 3"
-                        }
-                    },
-                2: {'name': "lights",
-                    1: {'name': None,
-                        1: 'living',
-                       },
-                    2: {'name': "etage",
-                        1: None,
-                        2: "bedroom 1"
-                       }
-                    }
-                }
+GAD_MAP = {1: {'root': "heating",
+               1: {'root': "setpoint",
+                   1: "living",
+                   2: "bedroom 1",
+                   3: "bedroom 2",
+                   4: "bedroom 3"
+                  },
+               2: {'root': "temperature",
+                   1: "living",
+                   2: "bedroom 1",
+                   3: "bedroom 2",
+                   4: "bedroom 3"
+                  }
+              },
+           2: {'root': "lights",
+               1: {'root': None,
+                   1: 'living',
+                 },
+               2: {'root': "etage",
+                   1: None,
+                   2: "bedroom 1"
+                 }
+              }
+          }
 
 
 class Dev(Device):
@@ -44,28 +41,28 @@ class Dev(Device):
 
 
 stack = Stack()   # Borg
-mob = MOB(stack)  # Borg
+ets = ETS(stack)  # Borg
 
 dev1 = Dev(name="dev1", desc="Device 1", address="1.1.1")
 dev2 = Dev(name="dev2", desc="Device 2", address="1.1.2")
 
-mob.register(dev1)
-mob.register(dev2)
+ets.register(dev1)
+ets.register(dev2)
 
-mob.link(dev=dev1, dp="dp_1", gad=("1/1/1", "2/1/1"))
-mob.link(dev=dev1, dp="dp_2", gad="1/1/2")
-mob.link(dev=dev1, dp="dp_3", gad="1/1/3")
-mob.link(dev=dev1, dp="dp_4", gad="1/1/4")
+ets.link(dev=dev1, dp="dp_1", gad=("1/1/1", "2/1/1"))
+ets.link(dev=dev1, dp="dp_2", gad="1/1/2")
+ets.link(dev=dev1, dp="dp_3", gad="1/1/3")
+ets.link(dev=dev1, dp="dp_4", gad="1/1/4")
 
-mob.link(dev=dev2, dp="dp_1", gad="1/2/1")
-mob.link(dev=dev2, dp="dp_2", gad=("1/2/2", "2/2/2"))
-mob.link(dev=dev2, dp="dp_3", gad="1/1/3")
-#mob.link(dev=dev2, dp="dp_4", gad="1/1/4")
+ets.link(dev=dev2, dp="dp_1", gad="1/2/1")
+ets.link(dev=dev2, dp="dp_2", gad=("1/2/2", "2/2/2"))
+ets.link(dev=dev2, dp="dp_3", gad="1/1/3")
+#ets.link(dev=dev2, dp="dp_4", gad="1/1/4")
 
-mob.printMapTable(by="gad")
+ets.printMapTable(by="gad")
 print
 print
-mob.printMapTable(by="dp")
+ets.printMapTable(by="dp")
 
-stack.start()
-time.sleep(60)
+#stack.start()
+#time.sleep(60)

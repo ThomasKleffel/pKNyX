@@ -57,9 +57,8 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.stack import Stack
 from pknyx.core.device import Device
-from pknyx.core.groupAddress import GroupAddress, GroupAddressValueError
+from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
 
 
 class ETSValueError(PKNyXValueError):
@@ -71,7 +70,7 @@ class ETS(object):
     """ ETS class
 
     @ivar _stack: KNX stack object
-    @type _stack: L{Stack<pknyx.core.stack>}
+    @type _stack: L{Stack<pknyx.stack.stack>}
 
     @ivar _devices: registered devices
     @type _devices: set of L{Device}
@@ -82,7 +81,7 @@ class ETS(object):
         """
 
         @param stack: KNX stack object
-        @type stack: L{Stack<pknyx.core.stack>}
+        @type stack: L{Stack<pknyx.stack.stack>}
 
         raise ETSValueError:
         """
@@ -210,7 +209,7 @@ class ETS(object):
 
         if by == "gad":
             print "Ordered by GAD:\n"
-            print "%-24s %-10s %-20s %-8s %-8s %-8s" % ("GAD", "Datapoint", "Device", "DPTID", "Flags", "Priority")
+            print "%-24s %-25s %-20s %-8s %-8s %-8s" % ("GAD", "Datapoint", "Device", "DPTID", "Flags", "Priority")
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
@@ -219,6 +218,7 @@ class ETS(object):
                     except (TypeError, KeyError):
                         print "%2d %-10s" % (gad.main, "")
                     gadMain = gad.main
+                    gadMiddle = gadSub = -1
                 if gadMiddle != gad.middle:
                     try:
                         print " ├── %2d %-10s" % (gad.middle, self._gadMap[gad.main][gad.middle]['root'])
@@ -231,12 +231,13 @@ class ETS(object):
                     except (TypeError, KeyError):
                         print " │    ├── %3d %-10s" % (gad.sub, ""),
                     gadSub = gad.sub
+                    gadSub = -1
 
                 for i, dp in enumerate(self._stack.gds.groups[gad.address].listeners):
                     if not i:
-                        print "%-10s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
+                        print "%-25s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
                     else:
-                        print " │    │                  %-10s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
+                        print " │    │                  %-25s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
 
                 gad_ = gad
 
@@ -246,7 +247,7 @@ class ETS(object):
             # Use building presentation
             mapByDP = {}
             print "Ordered by Datapoint:\n"
-            print "%-20s %-10s %-10s %-27s %-8s %-8s\n" % ("Device", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
+            print "%-20s %-25s %-10s %-27s %-8s %-8s\n" % ("Device", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
             for device in self._devices:
                 print "%9s %-10s" % (device.address, device.name),
                 for i, dp in enumerate(device.dp.values()):
@@ -257,9 +258,9 @@ class ETS(object):
                         if dp in self._stack.gds.groups[gad.address].listeners:
                             gads_.append(gad.address)
                     if gads_:
-                        print "%-10s %-10s %-27s %-8s %-8s" % (dp.name, dp.dptId, ", ".join(gads_), dp.flags, dp.priority)
+                        print "%-25s %-10s %-27s %-8s %-8s" % (dp.name, dp.dptId, ", ".join(gads_), dp.flags, dp.priority)
                     else:
-                        print "%-10s %-10s %-27s %-8s %-8s" % (dp.name, dp.dptId, "", dp.flags, dp.priority)
+                        print "%-25s %-10s %-27s %-8s %-8s" % (dp.name, dp.dptId, "", dp.flags, dp.priority)
 
         else:
             raise ETSValueError("by param. must be in ('gad', 'dp')")

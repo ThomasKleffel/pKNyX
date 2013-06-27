@@ -50,7 +50,6 @@ __revision__ = "$Id$"
 import re
 
 from pknyx.common.loggingServices import Logger
-from pknyx.common.helpers import reprStr
 from pknyx.core.dptXlator.dptId import DPTID
 #from pknyx.core.dptXlator.dpt import DPT
 from pknyx.core.dptXlator.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
@@ -106,7 +105,7 @@ class DPTMainTypeMapper(object):
         super(DPTMainTypeMapper, self).__init__()
 
         if not issubclass(dptXlatorClass, DPTXlatorBase):
-            raise DPTXlatorValueError("dptXlatorClass %s not a sub-class of DPT" % reprStr(dptXlatorClass))
+            raise DPTXlatorValueError("dptXlatorClass %s not a sub-class of DPT" % repr(dptXlatorClass))
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         self._dptId = dptId

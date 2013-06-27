@@ -53,7 +53,7 @@ import threading
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.priorityQueue import PriorityQueue
+from pknyx.stack.priorityQueue import PriorityQueue
 from pknyx.stack.layer3.n_groupDataListener import N_GroupDataListener
 from pknyx.stack.transceiver.transceiverLSAP import TransceiverLSAP
 from pknyx.stack.transceiver.transmission import Transmission
@@ -100,27 +100,13 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         self.setDaemon(True)
         #self.start()
 
-    def getOutFrame(self):
-        """ Get output frame
-
-        Blocks until there is a transmission pending in outQueue, then returns this transmission
-
-        @return: pending transmission in outQueue
-        @rtype: L{Transmission}
+    def setListener(self, lgdl):
         """
-        transmission = None
 
-        # test outQueue for frames to transmit, else go sleeping
-        self._outQueue.acquire()
-        try:
-            transmission = self._outQueue.remove()
-            while transmission is None:
-                self._outQueue.wait()
-                transmission = self._outQueue.remove()
-        finally:
-            self._outQueue.release()
-
-        return transmission
+        @param ngdl: listener to use to transmit data
+        @type ngdl: L{L_GroupDataListener<pknyx.core.layer2.l_groupDataListener>}
+        """
+        self._ldl = lgdl
 
     def putInFrame(self, lPDU):
         """ Set input frame
@@ -164,13 +150,27 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         finally:
             self._inQueue.release()
 
-    def setListener(self, lgdl):
-        """
+    def getOutFrame(self):
+        """ Get output frame
 
-        @param ngdl: listener to use to transmit data
-        @type ngdl: L{L_GroupDataListener<pknyx.core.layer2.l_groupDataListener>}
+        Blocks until there is a transmission pending in outQueue, then returns this transmission
+
+        @return: pending transmission in outQueue
+        @rtype: L{Transmission}
         """
-        self._ldl = lgdl
+        transmission = None
+
+        # test outQueue for frames to transmit, else go sleeping
+        self._outQueue.acquire()
+        try:
+            transmission = self._outQueue.remove()
+            while transmission is None:
+                self._outQueue.wait()
+                transmission = self._outQueue.remove()
+        finally:
+            self._outQueue.release()
+
+        return transmission
 
     def dataReq(self, src, dest, isGAD, priority, lSDU):
         """
@@ -250,14 +250,6 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         Logger().info("Stop L_DataService")
 
         self._running = False
-
-    def isRunning(self):
-        """ test if thread is running
-
-        @return: True if running, False otherwise
-        @rtype: bool
-        """
-        return self._running
 
 
 if __name__ == '__main__':

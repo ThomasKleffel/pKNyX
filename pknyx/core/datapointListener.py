@@ -51,7 +51,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
-from pknyx.core.groupDataListener import GroupDataListener, GDLValueError
+from pknyx.stack.groupDataListener import GroupDataListener, GDLValueError
 
 
 class DPLValueError(GDLValueError):

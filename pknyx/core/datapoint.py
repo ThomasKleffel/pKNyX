@@ -65,10 +65,10 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
-from pknyx.core.flags import Flags
 from pknyx.core.datapointListener import DatapointListener
-from pknyx.core.accesspoint import Accesspoint
-from pknyx.core.priority import Priority
+from pknyx.stack.flags import Flags
+from pknyx.stack.accesspoint import Accesspoint
+from pknyx.stack.priority import Priority
 
 
 class DPValueError(PKNyXValueError):

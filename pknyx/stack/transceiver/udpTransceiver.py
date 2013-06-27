@@ -172,18 +172,6 @@ class UDPTransmitter(threading.Thread):
 
         Logger().info("Stop")
 
-    def cleanup(self):
-        """
-        """
-        if self.isAlive():
-            self.stop()
-            self.join()
-
-    def finalize(self):
-        """
-        """
-        self.cleanup()
-
     def stop(self):
         """ stop thread
         """
@@ -220,28 +208,21 @@ class UDPReceiver(threading.Thread):
         self.setDaemon(True)
         #self.start()
 
-    def _onReceive(self, frame, fromAddr, fromPort):
-        """ Frame receive handler
-
-        @param frame: received frame
-        @type frame: sequence
+    def run(self):
         """
-        frame = bytearray(frame)
-        try:
-            header = KnxnetIPHeader(frame)
-            if (h.getTotalLength() > length):
-                logger.warn("received frame length " + length + " for " + h + " - ignored");
-            elif (h.getServiceType() == 0):
+        """
+        Logger().info("Start")
 
-            # check service type for 0 (invalid type),
-            # so unused service types of us can stay 0 by default
-            logger.warn("received frame with service type 0 - ignored")
-            elif (!conn.handleServiceType(h, data, offset + h.getStructLength(), source.getAddress(), source.getPort())):
-                logger.warn("received unknown frame, service type 0x" + Integer.toHexString(h.getServiceType()) + " - ignored");
-
-        except KnxnetIPHeaderValueError:
-            Logger().exception("UDPReceiver.onReceive()", debug=True)
-
+        self._running = True
+        while self._running:
+            try:
+                inFrame, (fromAddr, fromPort) = self._sock.receive()
+                Logger().debug("UDPReceiver.run(): inFrame=%s" % repr(inFrame))
+                frame = bytearray(frame)
+                try:
+                    header = KnxnetIPHeader(frame)
+                except KnxnetIPHeaderValueError:
+                    Logger().exception("UDPReceiver.run()", debug=True)
 
 
         #length = len(data)
@@ -267,7 +248,7 @@ class UDPReceiver(threading.Thread):
             #else:  # domainAddr is an Group Address
                 #self._parent.gadSet.acquire()
                 #try:
-                    #if domainAddr in self._parent.gadSet:
+                    #if domainAddr in self._parent.gadSet or GroupAddress("0/0/0") in self._parent.gadSet:
                         #self._parent.tLSAP.putInFrame(lPDU)
                 #finally:
                     #self._parent.gadSet.release()
@@ -275,42 +256,11 @@ class UDPReceiver(threading.Thread):
         #else:
             #Logger().error("UDPReceiver.run(): invalid checksum (%s)" % hex(checksum))
 
-    def run(self):
-        """
-        """
-        Logger().info("Start")
-
-        self._running = True
-        while self._running:
-            try:
-                inFrame, (fromAddr, fromPort) = self._sock.receive()
-                Logger().debug("UDPReceiver.run(): inFrame=%s" % repr(inFrame))
-                frame = bytearray(frame)
-                try:
-                    header = KnxnetIPHeader(frame)
 
             except:
                 Logger().exception("UDPReceiver.run()", debug=True)
 
         Logger().info("Stop")
-
-
-    def cleanup(self):
-        """
-        """
-        if self.isAlive():
-            self.stop()
-            self.join()
-        try:
-            self._sock.leaveGroup(self._mcastAddr)
-        except Exception:
-            Logger().exception("UDPReceiver.cleanup()", debug=True)
-        self._sock.close()
-
-    def finalize(self):
-        """
-        """
-        cleanup()
 
     def stop(self):
         """ stop thread
@@ -381,7 +331,7 @@ class UDPTransceiver(Transceiver):
             raise
 
         self._gadSet = GadSet()
-        self.addGroupAddress(GroupAddress("0/0/0"), False)  # ????
+        self.addGroupAddress(GroupAddress("0/0/0"))
 
     @property
     def tLSAP(self):
@@ -415,13 +365,7 @@ class UDPTransceiver(Transceiver):
     def gadSet(self):
         return self._gadSet
 
-    def cleanup(self, ):
-        """ Cleanup transmission
-        """
-        self._transmitter.cleanup()
-        self._receiver.cleanup()
-
-    def addGroupAddress(self, gad, sendL2Ack=True):  ## WTF?
+    def addGroupAddress(self, gad):
         """
         """
         if not isinstance(gad, GroupAddress):
@@ -441,6 +385,21 @@ class UDPTransceiver(Transceiver):
             self._gadSet.remove(gad)
         finally:
             self._gadSet.release()
+
+    #def onReceive(self, frame, fromAddr, fromPort):
+        #""" Frame receive handler
+
+        #@param frame: received frame
+        #@type frame: sequence
+        #"""
+        #frame = bytearray(frame)
+        #try:
+            #header = KnxnetIPHeader(frame)
+
+        #conn.handleServiceType(h, data, offset + h.getStructLength(), fromAddr, fromPort)
+
+        #except KnxnetIPHeaderValueError:
+            #Logger().exception("UDPTransceiver.onReceive()", debug=True)
 
     def start(self):
         """

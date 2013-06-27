@@ -63,6 +63,13 @@ ets.printMapTable(by="gad")
 print
 print
 ets.printMapTable(by="dp")
+print
+print
 
-#stack.start()
-#time.sleep(60)
+stack.start()
+while True:
+    try:
+        time.sleep(0.1)
+    except KeyboardInterrupt:
+        stack.stop()
+        break

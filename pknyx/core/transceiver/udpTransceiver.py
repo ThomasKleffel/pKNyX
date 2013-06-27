@@ -55,6 +55,7 @@ import socket
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.groupAddress import GroupAddress
+from pknyx.core.individualAddress import IndividualAddress
 from pknyx.core.multicast2 import MulticastSocket
 from pknyx.core.transceiver.transceiver import Transceiver
 from pknyx.core.transceiver.tFrame import TFrame
@@ -163,8 +164,6 @@ class Transmitter(threading.Thread):
                         finally:
                             transmission.release()
 
-                print "alive"
-
             except:
                 Logger().exception("Transmitter.run()", debug=True)
 
@@ -187,6 +186,8 @@ class Transmitter(threading.Thread):
     def stop(self):
         """ stop thread
         """
+        Logger().info("Stop Transmitter")
+
         self._running = False
 
 
@@ -237,15 +238,16 @@ class Receiver(threading.Thread):
                     checksum = (checksum ^ data[i]) & 0xff
 
                 length -= 1
-                if checksum == 0xff and \
-                   TFrame.MIN_LENGTH - self.OVERHEAD <= length <= TFrame.MAX_LENGTH - self.OVERHEAD and \
+                #if checksum == 0xff and \
+                if TFrame.MIN_LENGTH - self._parent.OVERHEAD <= length <= TFrame.MAX_LENGTH - self._parent.OVERHEAD and \
                    (fromPort != self._parent.localPort or fromAddr != self._parent.localAddr):
                     #byte[] lPDU = new byte[length + OVERHEAD];
                     #System.arraycopy(data, 0, lPDU, OVERHEAD, length);
-                    lPDU = bytearray(self.OVERHEAD + length)
-                    lPDU[self.OVERHEAD:] = data
+                    lPDU = bytearray(self._parent.OVERHEAD + length)
+                    lPDU[self._parent.OVERHEAD:] = data
 
                     domainAddr = lPDU[TFrame.DAL_BYTE] | lPDU[TFrame.DAH_BYTE] << 8
+                    Logger().debug("Receiver.run(): domainAddr=%s - %s" % (GroupAddress(domainAddr), IndividualAddress(domainAddr)))
                     if lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK == TFrame.DAF_IA:  # domainAddr is an Individual Address
                         if domainAddr == self._parent.indivAddr:  # destination matches
                             self._parent.tLSAP.putInFrame(lPDU)
@@ -285,6 +287,8 @@ class Receiver(threading.Thread):
     def stop(self):
         """ stop thread
         """
+        Logger().info("Stop Receiver")
+
         self._running = False
 
 
@@ -334,6 +338,8 @@ class UDPTransceiver(Transceiver):
         """
         super(UDPTransceiver, self).__init__(tLSAP, domainAddr, indivAddr)
 
+        self._domainAddr = domainAddr
+        self._indivAddr = indivAddr
         self._mcastAddr = mcastAddr
         self._mcastPort = mcastPort
 
@@ -415,6 +421,14 @@ class UDPTransceiver(Transceiver):
 
         self._transmitter.start()
         self._receiver.start()
+
+    def stop(self):
+        """
+        """
+        Logger().info("Stop UDP Transceiver")
+
+        self._transmitter.stop()
+        self._receiver.stop()
 
 
 if __name__ == '__main__':

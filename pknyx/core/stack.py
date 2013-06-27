@@ -107,7 +107,7 @@ class Stack(object):
         self._lds.start()
         self._tc.start()
 
-    def stop():
+    def stop(self):
         """
         """
         self._tc.stop()

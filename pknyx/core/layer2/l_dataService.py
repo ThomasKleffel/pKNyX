@@ -128,6 +128,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         @param lPDU: Link Pxxx Data Unit
         @type: bytearray
         """
+        Logger().debug("L_DataService.putInFrame(): lPDU=%s" % repr(lPDU))
 
         # test Control Field (CF) - not necessary cause should be done by the transceiver or BCU
         # if (lPDU[TFrame.CF_BYTE] & TFrame.CF_MASK) != TFrame.CF_L_DATA:
@@ -230,15 +231,13 @@ class L_DataService(threading.Thread, TransceiverLSAP):
                 finally:
                     self._inQueue.release()
 
-                #handle frame
+                # handle frame
                 src = ((lPDU[TFrame.SAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.SAL_BYTE] & 0xff)
                 dest = ((lPDU[TFrame.DAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.DAL_BYTE] & 0xff)
                 isGA = (lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_GAD
                 priority = lPDU[TFrame.PR_BYTE]
                 if self._ldl:
                     self.lgdl.dataInd(src, dest, isGA, priority, lPDU)
-
-                print "alive"
 
             except:
                 Logger().exception("L_DataService.run()", debug=True)
@@ -248,7 +247,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
     def stop(self):
         """ stop thread
         """
-        Logger().info("Stopping L_DataService")
+        Logger().info("Stop L_DataService")
 
         self._running = False
 

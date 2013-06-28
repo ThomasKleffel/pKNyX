@@ -65,7 +65,6 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
-from pknyx.core.datapointListener import DatapointListener
 from pknyx.stack.flags import Flags
 from pknyx.stack.accesspoint import Accesspoint
 from pknyx.stack.priority import Priority

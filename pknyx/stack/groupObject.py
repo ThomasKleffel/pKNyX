@@ -33,14 +33,12 @@ Group data service management
 Implements
 ==========
 
- - B{Accesspoint}
+ - B{GroupObject}
 
 Documentation
 =============
 
-B{Accesspoint} are used by L{Datapoint<pknyx.core.datapoint>} to communicate over the bus using group data service.
-
-Is it really usefull? DP could directly use Group object...
+B{GroupObject} are used by L{Datapoint<pknyx.core.datapoint>} to communicate over the bus using group data service.
 
 Usage
 =====
@@ -56,26 +54,26 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.common.loggingServices import Logger
 
 
-class AccesspointValueError(PKNyXValueError):
+class GroupObjectValueError(PKNyXValueError):
     """
     """
 
 
-class Accesspoint(object):
-    """ Accesspoint class
+class GroupObject(object):
+    """ GroupObject class
 
-    @ivar _group: group that access poit belong to
+    @ivar _group: group where this group object belongs
     @type _group: L{Group<pknyx.core.group>}
     """
     def __init__(self, group):
         """
 
-        @param group: group that access poit belong to
+        @param group: group to add this group object to
         @type group: L{Group<pknyx.core.group>}
 
-        raise AccesspointValueError:
+        raise GroupObjectValueError:
         """
-        super(Accesspoint, self).__init__()
+        super(GroupObject, self).__init__()
 
         self._group = group
 
@@ -102,7 +100,7 @@ if __name__ == '__main__':
     Logger().setLevel('error')
 
 
-    class AccesspointTestCase(unittest.TestCase):
+    class GroupObjectTestCase(unittest.TestCase):
 
         def setUp(self):
             pass

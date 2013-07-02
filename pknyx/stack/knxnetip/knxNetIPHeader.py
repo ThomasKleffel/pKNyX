@@ -68,7 +68,7 @@ bytearray(b'\x06\x10\x05\x30\x00\x12')
 @author: Frédéric Mantegazza
 @author: B. Malinowsky
 @copyright: (C) 2013 Frédéric Mantegazza
-@Copyright: (C) 2006, 2011 B. Malinowsky
+@copyright: (C) 2006, 2011 B. Malinowsky
 @license: GPL
 """
 

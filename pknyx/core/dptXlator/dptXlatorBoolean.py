@@ -63,7 +63,9 @@ ValueError: value 3 not in ("Off", "On")
 <DPTID("1.018")>, <DPTID("1.019")>, <DPTID("1.021")>, <DPTID("1.022")>, <DPTID("1.023")>]
 
 @author: Frédéric Mantegazza
+@author: B. Malinowsky
 @copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2006, 2011 B. Malinowsky
 @license: GPL
 """
 

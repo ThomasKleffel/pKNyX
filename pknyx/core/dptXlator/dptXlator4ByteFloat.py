@@ -43,7 +43,9 @@ see L{DPTXlatorBoolean}
 @todo: handle NaN
 
 @author: Frédéric Mantegazza
+@author: B. Malinowsky
 @copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2006, 2011 B. Malinowsky
 @license: GPL
 """
 

@@ -56,7 +56,9 @@ Python time module does not encode century the same way:
 The DPTXlatorDate class follows the python encoding.
 
 @author: Frédéric Mantegazza
+@author: B. Malinowsky
 @copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2006, 2011 B. Malinowsky
 @license: GPL
 """
 

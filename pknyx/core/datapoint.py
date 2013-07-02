@@ -62,11 +62,12 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.common.loggingServices import Logger
+from pknyx.logging.loggingServices import Logger
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
 from pknyx.stack.flags import Flags
-from pknyx.stack.accesspoint import Accesspoint
+from pknyx.stack.groupObject import GroupObject
+from pknyx.stack.groupDataListener import GroupDataListener
 from pknyx.stack.priority import Priority
 
 
@@ -75,7 +76,7 @@ class DPValueError(PKNyXValueError):
     """
 
 
-class Datapoint(DatapointListener):
+class Datapoint(GroupDataListener):
     """ Datapoint handling class
 
     The term B{data} refers to the KNX representation of the python type B{value}. It is stored in this object.

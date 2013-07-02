@@ -50,7 +50,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.common.loggingServices import Logger
+from pknyx.logging.loggingServices import Logger
 from pknyx.stack.groupDataListener import GroupDataListener, GDLValueError
 
 

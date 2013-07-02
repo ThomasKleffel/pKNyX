@@ -65,7 +65,7 @@ PriorityValueError: priority level 15 not in (0x00, 0x01, 0x02, 0x03)
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.common.loggingServices import Logger
+from pknyx.logging.loggingServices import Logger
 
 
 class PriorityValueError(PKNyXValueError):

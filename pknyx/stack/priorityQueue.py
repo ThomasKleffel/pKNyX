@@ -74,7 +74,7 @@ import copy
 import threading
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.common.loggingServices import Logger
+from pknyx.logging.loggingServices import Logger
 
 
 class PriorityQueueValueError(PKNyXValueError):

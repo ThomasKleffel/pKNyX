@@ -56,7 +56,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.common.loggingServices import Logger
+from pknyx.logging.loggingServices import Logger
 from pknyx.core.device import Device
 from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
 

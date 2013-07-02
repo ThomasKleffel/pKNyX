@@ -53,7 +53,7 @@ import threading
 import socket
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.common.loggingServices import Logger
+from pknyx.logging.loggingServices import Logger
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.multicastSocket import MulticastSocket

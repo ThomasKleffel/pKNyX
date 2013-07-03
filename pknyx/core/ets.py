@@ -176,27 +176,6 @@ class ETS(object):
         # Add the device to the known devices
         self._devices.add(dev)
 
-    def computeMapTable(self):
-        """
-        """
-        mapByGAD = {}
-        for gad, group in self._stack.gds.groups.iteritems():
-            mapByGAD[gad] = []
-            for dp in group.listeners:
-                mapByGAD[gad].append("%s (%s)" % (dp.name, dp.owner.name))
-
-        # Retreive all datapoints, not only bound ones
-        mapByDP = {}
-        for device in self._devices:
-            for dp in device.dp.values():
-                gads = []
-                for gad, dps in mapByGAD.iteritems():
-                    if "%s (%s)" % (dp.name, device.name) in dps:
-                        gads.append(gad)
-                mapByDP["%s (%s)" % (dp.name, device.name)] = gads
-
-        return {'byGAD': mapByGAD, 'byDP': mapByDP}
-
     def printMapTable(self, by="gad", outFormatLevel=3):
         """
         """

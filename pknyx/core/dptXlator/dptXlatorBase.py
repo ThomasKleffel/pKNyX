@@ -52,6 +52,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
+from pknyx.common.helpers import reprStr
 from pknyx.logging.loggingServices import Logger
 from pknyx.core.dptXlator.dptId import DPTID
 
@@ -120,10 +121,10 @@ class DPTXlatorBase(object):
             data_ = hex(self._data)
         except TypeError:
             data_ = None
-        return "<%s(dpt='%s', data=%r)>" % (reprStr(self.__class__), self._dpt.id, data_)
+        return "<%s(dpt='%s')>" % (reprStr(self.__class__), repr(self._dpt.id))
 
     def __str__(self):
-        return "<%s('%s'>" % (reprStr(self.__class__), self._dpt.id)
+        return "<%s('%s')>" % (reprStr(self.__class__), self._dpt.id)
 
     @property
     def handledDPT(self):

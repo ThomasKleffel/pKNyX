@@ -34,6 +34,7 @@ Implements
 ==========
 
  - B{Datapoint}
+ - B{DatapointValueError}
 
 Documentation
 =============
@@ -42,17 +43,17 @@ Usage
 =====
 
 >>> from datapoint import Datapoint
->>> dp = Datapoint("test")
+>>> dp = Datapoint(None, id="test", name="PID_TEST", access='output')
 >>> dp
-<Datapoint("test", <DPTID("1.xxx")>, flags=<Flags("CWTU")>, Priority(low)>)>
->>> dp.name
+<Datapoint(id='test', name='PID_TEST', access='output', dptId='1.xxx')>
+>>> dp.id
 'test'
+>>> dp.name
+'PID_TEST"
+>>> dp.access
+'output'
 >>> dp.dptId
 <DPTID("1.xxx")>
->>> dp.flags
-<Flags("CWTU")>
->>> dp.priority
-<Priority(low)>
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -63,15 +64,15 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.logging.loggingServices import Logger
+from pknyx.common.signal import Signal
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
+from pknyx.core.groupDataListener import GroupDataListener
 from pknyx.stack.flags import Flags
-from pknyx.stack.groupObject import GroupObject
-from pknyx.stack.groupDataListener import GroupDataListener
 from pknyx.stack.priority import Priority
 
 
-class DPValueError(PKNyXValueError):
+class DatapointValueError(PKNyXValueError):
     """
     """
 
@@ -80,7 +81,7 @@ class Datapoint(GroupDataListener):
     """ Datapoint handling class
 
     The term B{data} refers to the KNX representation of the python type B{value}. It is stored in this object.
-    The B{frame} is the 'data' as bytes (python str), which can be sent/received over the bus.
+    The B{frame} is the 'data' as bytearray, which can be sent/received over the bus.
 
     @ivar _owner: owner of the Datapoint
     @type _owner: L{Device<pknyx.core.device>} -> could be a more generic object
@@ -88,14 +89,17 @@ class Datapoint(GroupDataListener):
     @ivar _name: name of the Datapoint
     @type _name: str
 
+    @ivar _access: access to Datapoint, in ('input', 'output', 'param'). Has meaning on possible Group Object flags
+                   - input:
+                   - output:
+                   - param:
+    @type _access: str
+
     @ivar _dptId: Datapoint Type ID
     @type _dptId: str or L{DPTID}
 
-    @ivar _flags: bus message flags
-    @type _flags: str or L{Flags}
-
-    @ivar _priority: bus message priority
-    @type _priority: str or L{Priority}
+    @ivar _default: value to use as default
+    @type _default: depend on the DPT
 
     @ivar _data: KNX encoded data
     @type _data: depends on sub-class
@@ -103,15 +107,13 @@ class Datapoint(GroupDataListener):
     @ivar _dptXlator: DPT translator associated with this Datapoint
     @type _dptXlator: L{DPTXlator<pknyx.core.dptXlator>}
 
-    @ivar _accesspoint : Accesspoint to use to communicate with the bus
-                         A Datapoint can be linked to several GAD (by the way of L{Group}), but can only send requests
-                        (write/read/response) to the first GAD. This Accespoint belongs to the Group handling that GAD.
-    @type _accesspoint : L{Accesspoint}
+    @ivar _dptXlatorGeneric: generic DPT translator associated with this Datapoint
+    @type _dptXlatorGeneric: L{DPTXlator<pknyx.core.dptXlator>}
 
     @todo: add desc. param
-    @todo: also create the generic handler (if not the default one), and a .generic property
+    @todo: use signal instead of listeners calls?
     """
-    def __init__(self, owner, name, dptId=DPTID(), flags=Flags(), priority=Priority(), defaultValue=None):
+    def __init__(self, owner, name, access, dptId=DPTID(), default=None):
         """
 
         @param owner: owner of the Datapoint
@@ -120,85 +122,48 @@ class Datapoint(GroupDataListener):
         @param name: name of the Datapoint
         @type name: str
 
+        @param access: access to Datapoint, in ('input', 'output', 'param')
+        @type access: str
+
         @param dptId: Datapoint Type ID
         @type dptId: str or L{DPTID}
 
-        @param flags: bus message flags
-        @type flags: str or L{Flags}
-
-        @param priority: bus message priority
-        @type priority: str or L{Priority}
-
-        @param defaultValue: value to use as default
-        @type defaultValue: depend on the DPT
-
-        @todo: if flag 'U' is set, do an automatic read request on the bus?
+        @param default: value to use as default
+        @type default: depend on the DPT
         """
         super(Datapoint, self).__init__()
 
-        #Logger().debug("Datapoint.__init__(): name=%s, dptId=%s, flags=%s, priority=%s, defaultValue=%s" % \
-                       #(repr(name), repr(dptId), repr(flags), repr(priority), repr(defaultValue)))
+        #Logger().debug("Datapoint.__init__(): name=%s, access=%s, dptId=%s, default=%s" % \
+                       #repr(name), repr(access), repr(dptId), repr(default)))
+
+        # Check input
+        if access not in ('input', 'output', 'param'):
+            raise DatapointValueError("invalid access (%s)" % repr(access))
 
         self._owner = owner
         self._name = name
         if not isinstance(dptId, DPTID):
             dptId = DPTID(dptId)
         self._dptId = dptId
-        if not isinstance(flags, Flags):
-            flags = Flags(flags)
-        self._flags = flags
-        if not isinstance(priority, Priority):
-            priority = Priority(priority)
-        self._priority = priority
+        self._access = access
+        self._default = default
 
+        self._data = default
         self._dptXlator = DPTXlatorFactory().create(dptId)
-        self._dptXlatorGeneric = None
+        if dptId != dptId.generic:
+            self._dptXlatorGeneric = DPTXlatorFactory().create(dptId.generic)
+        else:
+            self._dptXlatorGeneric = self._dptXlator
 
-        self._data = defaultValue
-
-        self._accesspoint = None
+        # Signals definition
+        self._sigValueChanged = Signal()
 
     def __repr__(self):
-        return "<Datapoint(name='%s', dptId='%s', flags='%s', priority='%s')>" % \
-               (self._name, self._dptId, self._flags, self._priority)
+        return "<Datapoint(name='%s', access='%s', dptId='%s')>" % \
+               (self._name, self._access, self._dptId)
 
     def __str__(self):
         return "<Datapoint('%s')>" % self._name
-
-    def onGroupValueWrite(self, cEMI):
-        Logger().debug("Datapoint.onGroupWrite(): cEMI=%s" % repr(cEMI))
-
-        data = cEMI.data
-        self._dptXlator.checkData(data)
-        oldData = self._data
-
-        # Notify owner if data changed
-        # Use the subscribing mecanism to call the registered owner methods (via @trigger...)
-        # The dispatching should be done in the Device.notify() method
-        if data != oldData and self._flags.write:
-            self._data = data
-            self._owner.notify(self)
-
-    def onGroupValueRead(self, cEMI):
-        Logger().debug("Datapoint.onGroupRead(): cEMI=%s" % repr(cEMI))
-
-        # Check if data should be send over the bus
-        if self._flags.read and self._flags.communicate:
-            self._accesspoint.groupValueResponse(self._address, self._data, self._priority)
-
-    def onGroupValueResponse(self, cEMI):
-        Logger().debug("Datapoint.onGroupResponse(): cEMI=%s" % repr(cEMI))
-
-        data = cEMI.data
-        self._dptXlator.checkData(data)
-        oldData = self._data
-
-        # Notify owner if data changed
-        # Use the subscribing mecanism to call the registered owner methods (via @trigger...)
-        # The dispatching should be done in the Device.notify() method
-        if data != oldDate and self._flags.update:
-            self._data = data
-            self._owner.notify(self)
 
     @property
     def owner(self):
@@ -208,102 +173,62 @@ class Datapoint(GroupDataListener):
     def name(self):
         return self._name
 
-    #@name.setter
-    #def name(self, name):
-        #self._name = name
-
     @property
     def dptId(self):
         return self._dptId
 
-    #@dptId.setter
-    #def dptId(self, dptId):
-        #if not isinstance(dptId, DPTID):
-            #dptId = DPTID(dptId)
-        #self._dptId = dptId
+    @property
+    def access(self):
+        return self._access
 
     @property
-    def dptXlator(self):
-        """ return the DPT
-        """
-        return self._dptXlator
-
-    @property
-    def flags(self):
-        return self._flags
-
-    #@flags.setter
-    #def flags(self, flags):
-        #if not isinstance(flags, Flags):
-            #flags = Flags(flags)
-        #self._flags = flags
-
-    @property
-    def priority(self):
-        return self._priority
-
-    #@priority.setter
-    #def priority(str, level):
-        #if not isinstance(priority, Priority):
-            #priority = Priority(priority)
-        #self._priority = priority
+    def default(self):
+        return self._default
 
     @property
     def data(self):
         return self._data
 
-    @data.setter
-    def data(self, data):
-
+    def _setData(self, data):
         self._dptXlator.checkData(data)
-        oldData = self._data
+        oldValue = self._value
         self._data = data
 
-        # Check if data should be send over the bus
-        if (data != oldDate or self._flags.stateless) and self._flags.transmit and self._flags.communicate:
-            self._accesspoint.groupValueWrite(self._address, data, self._priority)
+        self._sigValueChanged.emit(oldValue, self.value)
+
+    @data.setter
+    def data(self, data):
+        self._setData(data)
+
+    @property
+    def dptXlator(self):
+        return self._dptXlator
+
+    @property
+    def dptXlatorGeneric(self):
+        return self._dptXlatorGeneric
+
+    @property
+    def sigValueChanged(self):
+        return self._sigValueChanged
 
     @property
     def value(self):
         if self._data is None:
-            raise DPValueError("data not initialized")
+            return None
         return self._dptXlator.dataToValue(self._data)
+
+    def _setValue(self, value):
+        self._dptXlator.checkValue(value)
+        self._setData(self._dptXlator.valueToData(value))
 
     @value.setter
     def value(self, value):
-        self._dptXlator.checkValue(value)
-        self.data = self._dptXlator.valueToData(value)  # Note usage of .data and not ._data!!!
+        self._setValue(value)
 
     @property
     def unit(self):
         return self._dptXlator.unit
-
-    @property
-    def frame(self):
-        """
-        @todo: use PDT_UNSIGNED_CHAR........
-        """
-        if self._data is None:
-            raise DPValueError("data not initialized")
-        return self._dptXlator.dataToFrame(self._data)
-
-    @frame.setter
-    def frame(self, frame):
-        self._dptXlator.checkFrame(frame)
-        self.data = self._dptXlator.frameToData(frame)  # Note usage of .data and not ._data!!!
-
-    @property
-    def accesspoint(self):
-        return self._accesspoint
-
-    @accesspoint.setter
-    def accesspoint(self, accesspoint):
-        self._accesspoint = accesspoint
-
-        # If the flag init is set, send a read request on that accesspoint, which is bound to the default GAD
-        # this datapoint should use for read/write on bus
-        if self._flags.init:
-            accesspoint.groupValueRead(self._address, self._priority)
 
 
 if __name__ == '__main__':
@@ -316,7 +241,7 @@ if __name__ == '__main__':
     class DPTestCase(unittest.TestCase):
 
         def setUp(self):
-            self.dp = Datapoint(self, name="dp1", dptId="1.001", flags="CRT", priority="low", defaultValue=0.)
+            self.dp = Datapoint(self, name="dp", access="output", dptId="1.001", default=0.)
 
         def tearDown(self):
             pass
@@ -326,18 +251,9 @@ if __name__ == '__main__':
             print self.dp
 
         def test_constructor(self):
-            DP_01 = dict(name="temperature", dptId="9.001", flags="CRT", priority="low", defaultValue=0.)
-            DP_02 = dict(name="humidity", dptId="9.007", flags="CRT", priority="low", defaultValue=0.)
-            DP_03 = dict(name="wind_speed", dptId="9.005", flags="CRT", priority="low", defaultValue=0.)
-            DP_04 = dict(name="wind_alarm", dptId="1.005", flags="CRT", priority="urgent", defaultValue="No alarm")
-            DP_05 = dict(name="wind_speed_limit", dptId="9.005", flags="CWTU", priority="low", defaultValue=15.)
-            DP_06 = dict(name="wind_alarm_enable", dptId="1.003", flags="CWTU", priority="low", defaultValue="Disable")
-            Datapoint(self, **DP_01)
-            Datapoint(self, **DP_02)
-            Datapoint(self, **DP_03)
-            Datapoint(self, **DP_04)
-            Datapoint(self, **DP_05)
-            Datapoint(self, **DP_06)
+            with self.assertRaises(DatapointValueError):
+                DP = dict(name="dp", access="outpu", dptId="1.001", default=0.)
+                Datapoint(self, **DP)
 
 
     unittest.main()

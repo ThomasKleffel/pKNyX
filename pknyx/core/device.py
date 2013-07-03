@@ -162,7 +162,7 @@ if __name__ == '__main__':
             DP_01 = dict(name="temperature", dptId="9.001", flags="CRT", priority="low", defaultValue=0.)
             DP_02 = dict(name="humidity", dptId="9.007", flags="CRT", priority="low", defaultValue=0.)
             DP_03 = dict(name="wind_speed", dptId="9.005", flags="CRT", priority="low", defaultValue=0.)
-            DP_04 = dict(name="wind_alarm", dptId="1.005", flags="CRT", priority="urgent", defaultValue="No alarm")
+            DP_04 = dict(name="wind_alarm", dptId="1.005", flags="CRT", priority="normal", defaultValue="No alarm")
             DP_05 = dict(name="wind_speed_limit", dptId="9.005", flags="CWTU", priority="low", defaultValue=15.)
             DP_06 = dict(name="wind_alarm_enable", dptId="1.003", flags="CWTU", priority="low", defaultValue="Disable")
 

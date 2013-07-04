@@ -146,8 +146,8 @@ class ETS(object):
         if dev not in self._devices:
             raise ETSValueError("unregistered device (%s)" % dev)
 
-        # Get datapoint
-        datapoint = dev.dp[dp]
+        # Get GroupObject
+        groupObject = dev.go[dp]
 
         # Check if gad is a single GAD or a sequence of GAD
         if isinstance(gad[0], GroupAddress):
@@ -162,16 +162,14 @@ class ETS(object):
 
         for gad in gads:
 
-            # Ask the group data service to subscribe this datapoint to the given gad
-            # In return, get the created accesspoint
-            accesspoint = self._stack.gds.subscribe(gad, datapoint)
+            # Ask the group data service to subscribe this GroupObject to the given gad
+            # In return, get the created group
+            group = self._stack.gds.subscribe(gad, groupObject)
 
-            # If the datapoint does not already have an accesspoint, set it
-            # This accesspoint will be used by the datapoint to send datas to the default GAD
-            # This mimics the S flag of ETS real application
-            # @todo: find a way to change it later? Or let the datapoint manage this?
-            if datapoint.accesspoint is None:
-                datapoint.accesspoint = accesspoint
+            # If not already done, set the GroupObject group. This group will be used when the GroupObject wants to
+            # communicate on the bus. This mimics the S flag of ETS real application
+            if groupObject.group is None:
+                groupObject.group = group
 
         # Add the device to the known devices
         self._devices.add(dev)
@@ -212,7 +210,8 @@ class ETS(object):
                     gadSub = gad.sub
                     gadSub = -1
 
-                for i, dp in enumerate(self._stack.gds.groups[gad.address].listeners):
+                for i, go in enumerate(self._stack.gds.groups[gad.address].listeners):
+                    dp = go.datapoint
                     if not i:
                         print "%-25s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
                     else:

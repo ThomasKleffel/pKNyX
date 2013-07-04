@@ -84,12 +84,12 @@ class Datapoint(GroupDataListener):
     The B{frame} is the 'data' as bytearray, which can be sent/received over the bus.
 
     @ivar _owner: owner of the Datapoint
-    @type _owner: L{Device<pknyx.core.device>} -> could be a more generic object
+    @type _owner: L{FunctionalBlock<pknyx.core.functionalBlock>}
 
     @ivar _name: name of the Datapoint
     @type _name: str
 
-    @ivar _access: access to Datapoint, in ('input', 'output', 'param'). Has meaning on possible Group Object flags
+    @ivar _access: access to Datapoint, in ('input', 'output', 'param') -> set possible GroupObject flags
                    - input:
                    - output:
                    - param:
@@ -110,8 +110,13 @@ class Datapoint(GroupDataListener):
     @ivar _dptXlatorGeneric: generic DPT translator associated with this Datapoint
     @type _dptXlatorGeneric: L{DPTXlator<pknyx.core.dptXlator>}
 
+    @ivar _signalChanged: emitted when the datapoint value has been updated by the owner
+                          Used to notify associated GroupObject (and other proxies), if any
+                          Params sent are datapoint name, old and new values.
+    @type _signalChanged: L{Signal}
+
     @todo: add desc. param
-    @todo: use signal instead of listeners calls?
+    @todo: take 'access' into account when transmit/receive
     """
     def __init__(self, owner, name, access, dptId=DPTID(), default=None):
         """
@@ -156,7 +161,7 @@ class Datapoint(GroupDataListener):
             self._dptXlatorGeneric = self._dptXlator
 
         # Signals definition
-        self._sigValueChanged = Signal()
+        self._signalChanged = Signal()
 
     def __repr__(self):
         return "<Datapoint(name='%s', access='%s', dptId='%s')>" % \
@@ -194,11 +199,14 @@ class Datapoint(GroupDataListener):
         oldValue = self._value
         self._data = data
 
-        self._sigValueChanged.emit(oldValue, self.value)
-
     @data.setter
     def data(self, data):
         self._setData(data)
+
+        # Notify owner (=FunctionalBlock)
+        # Owner will have to notify all its methods registered by @xxx.notify.datapoint()
+        self._owner.notify(self.name, oldValue, self.value)
+        # @todo: use an event as param
 
     @property
     def dptXlator(self):
@@ -209,8 +217,8 @@ class Datapoint(GroupDataListener):
         return self._dptXlatorGeneric
 
     @property
-    def sigValueChanged(self):
-        return self._sigValueChanged
+    def signalChanged(self):
+        return self._signalChanged
 
     @property
     def value(self):
@@ -220,11 +228,15 @@ class Datapoint(GroupDataListener):
 
     def _setValue(self, value):
         self._dptXlator.checkValue(value)
+        oldValue = self.value
         self._setData(self._dptXlator.valueToData(value))
 
     @value.setter
     def value(self, value):
         self._setValue(value)
+
+        # Notify associated GroupObject (and other proxies), if any
+        self._signalChanged.emit(oldValue, value)
 
     @property
     def unit(self):

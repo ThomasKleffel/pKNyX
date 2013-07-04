@@ -28,19 +28,18 @@ or see:
 Module purpose
 ==============
 
-Device management
+Application management
 
 Implements
 ==========
 
  - B{Device}
+ - B{DeviceValueError}
 
 Documentation
 =============
 
-B{Device} is one of the most important object of B{pKNyX} framework, after L{Datapoint<pknyx.core.datapoint>}.
-A device exposes one or more Datapoints, to form a high level entity. It can represents a real device (and act as
-a KNX gateway for that device), or can be a virtual device, to
+A B{Device} groups one or several L{FunctionalBlock<pknyx.core.functionalBlock>} to form a virtual KNX device.
 
 Usage
 =====
@@ -54,7 +53,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.logging.loggingServices import Logger
-from pknyx.core.datapoint import Datapoint
+from pknyx.core.functionalBlock import FunctionalBlock
 from pknyx.stack.individualAddress import IndividualAddress
 
 
@@ -65,9 +64,6 @@ class DeviceValueError(PKNyXValueError):
 
 class Device(object):
     """ Device class
-
-    The Datapoint of a Device must be defined in sub-classes, as class dict, and named B{DP_xxx}. They will be
-    automatically instanciated as real L{Datapoint} objects, and added to the B{_dp} dict.
 
     @ivar _name: name of the device
     @type _name:str
@@ -82,22 +78,32 @@ class Device(object):
     @type _dp: dict of L{Datapoint}
     """
     def __new__(cls, *args, **kwargs):
-        """ Init the class with all available types for this DPT
-
-        All class objects defined in sub-classes name B{DP_xxx}, will be treated as Datapoint (aka Group Objects) and
-        added to the B{_dp} dict.
+        """ Init the class and register FunctionalBlock
         """
         self = object.__new__(cls, *args, **kwargs)
-        self._dp = {}
-        self._desc = None
+
+        # class objects named B{FB_xxx} are treated as FunctionalBlock and added to the B{_functionalBlocks} dict
+        self._functionalBlocks = {}
         for key, value in cls.__dict__.iteritems():
-            if key.startswith("DP_"):
-                name = value['name']
-                if self._dp.has_key(key):
-                    raise DeviceValueError("duplicated Datapoint (%s)" % repr(key))
-                self._dp[name] = Datapoint(self, **value)
-            elif key == "DESC":
-                self._desc = value
+            if key.startswith("FB_"):
+                name = value.name
+                if self._functionalBlocks.has_key(name):
+                    raise DeviceValueError("duplicated FunctionBlock (%s)" % name)
+                self._functionalBlocks[name] = value
+
+        # Link Datapoint/GroupObject of each FunctionalBlock here
+        self._datapoints = {}
+        self._groupObjects = {}
+        for functionalBlock in self._functionalBlocks.itervalues():
+            self._datapoints.update(functionalBlock.dp)
+            self._groupObjects.update(functionalBlock.go)
+            # @todo: check for duplcate entries!!!!
+
+        try:
+            self._desc = cls.__dict__["DESC"]
+        except KeyError:
+            Logger().exception("Device.__new__()", debug=True)
+            self._desc = None
 
         return self
 
@@ -146,8 +152,11 @@ class Device(object):
 
     @property
     def dp(self):
-        return self._dp
+        return self._datapoints
 
+    @property
+    def go(self):
+        return self._groupObjects
 
 if __name__ == '__main__':
     import unittest

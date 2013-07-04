@@ -70,31 +70,31 @@ class GroupDataListener(object):
         super(GroupDataListener, self).__init__()
 
     def onGroupWrite(self, src, data):
-        """  Group write callback
+        """ Callback for write requests
 
-        @param src : source Group Address
-        @type src : L{GroupAddress<pknyx.core.groupAddress>}
+        @param src: individual address of the source device which sent the write request
+        @type src: L{IndividualAddress<pknyx.core.individualAddress>}
 
-        @param data: data received
+        @param data: data associated with this request
         @type data: bytearray
         """
         raise NotImplementedError
 
     def onGroupRead(self, src):
-        """ Group read callback
+        """ Callback for read requests
 
-        @param src : source Group Address
-        @type src : L{GroupAddress<pknyx.core.groupAddress>}
+        @param src: individual address of the source device which sent the read request
+        @type src: L{IndividualAddress<pknyx.core.individualAddress>}
         """
         raise NotImplementedError
 
     def onGroupResponse(self, src, data):
-        """ Group response
+        """ Callback for read response indication
 
-        @param src : source Group Address
-        @type src : L{GroupAddress<pknyx.core.groupAddress>}
+        @param src: individual address of the source device which sent the read result
+        @type src: L{IndividualAddress<pknyx.core.individualAddress>}
 
-        @param data: data received
+        @param data: data associated with this result
         @type data: bytearray
         """
         raise NotImplementedError

@@ -49,8 +49,8 @@ import traceback
 import os.path
 
 from pknyx.common import config
-from pknyx.common.loggingFormatter import DefaultFormatter, ColorFormatter, \
-                                          SpaceFormatter, SpaceColorFormatter
+from pknyx.logging.loggingFormatter import DefaultFormatter, ColorFormatter, \
+                                           SpaceFormatter, SpaceColorFormatter
 
 logger = None
 

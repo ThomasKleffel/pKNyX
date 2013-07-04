@@ -87,8 +87,7 @@ class GroupDataService(A_GroupDataListener):
         agds.setListener(self)
 
     def groupValueWriteInd(self, src, gad, data, priority):
-        Logger().debug("GroupDataService.groupValueWriteInd(): src=%s, gad=%s, data=%s, priority=%s" % \
-                       (repr(src), repr(gad), repr(data), repr(priority)))
+        Logger().debug("GroupDataService.groupValueWriteInd(): src=%s, gad=%s, data=%s, priority=%s" % (src, gad, repr(data), priority))
         try:
             group = self._group[gad]
             group.onGroupValueWrite(src, data)
@@ -97,8 +96,7 @@ class GroupDataService(A_GroupDataListener):
             Logger().debug("GroupDataService.groupValueWriteInd(): no registered group for that GAD (%s)" % repr(gad))
 
     def groupValueReadInd(self, src, gad, priority):
-        Logger().debug("GroupDataService.groupValueReadInd(): src=%s, gad=%s, priority=%s" % \
-                       (repr(src), repr(gad), repr(priority)))
+        Logger().debug("GroupDataService.groupValueReadInd(): src=%s, gad=%s, priority=%s" % (src, gad, priority))
         try:
             group = self._group[gad]
             group.onGroupValueRead(src)
@@ -107,8 +105,7 @@ class GroupDataService(A_GroupDataListener):
             Logger().debug("GroupDataService.groupValueReadInd(): no registered group for that GAD (%s)" % repr(gad))
 
     def groupValueReadCon(self, src, gad, data, priority):
-        Logger().debug("GroupDataService.groupValue_ReadCon(): src=%s, gad=%s, data=%s, priority=%s" % \
-                       (repr(src), repr(gad), repr(data), repr(priority)))
+        Logger().debug("GroupDataService.groupValue_ReadCon(): src=%s, gad=%s, data=%s, priority=%s" % (src, gad, repr(data), priority))
         try:
             group = self._group[gad]
             group.onGroupValueResponse(src, data)
@@ -131,11 +128,9 @@ class GroupDataService(A_GroupDataListener):
         @type gad : L{GroupAddress}
 
         @param listener: object to link to the GAD
-        @type listener: L{GroupDataListener}
+        @type listener: L{GroupObject<pknyx.core.groupObject>}
         """
-        if not isinstance(listener, GroupDataListener):
-            raise GDSValueError("invalid listener (%s)" % repr(listener))
-
+        Logger().debug("GroupDataService.subscribe(): gad=%s, listener=%s" % (gad, repr(listener)))
         if not isinstance(gad, GroupAddress):
             gad = GroupAddress(gad)
 
@@ -144,9 +139,9 @@ class GroupDataService(A_GroupDataListener):
         except KeyError:
             group = self._groups[gad.address] = Group(gad, self)
 
-        accesspoint = group.createAP(listener)
+        group.addListener(listener)
 
-        return accesspoint
+        return group
 
 
 if __name__ == '__main__':

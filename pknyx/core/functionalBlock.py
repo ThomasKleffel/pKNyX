@@ -28,19 +28,18 @@ or see:
 Module purpose
 ==============
 
-FunctionalBlock management
+Application management
 
 Implements
 ==========
 
  - B{FunctionalBlock}
+ - B{FunctionalBlockValueError}
 
 Documentation
 =============
 
 B{FunctionalBlock} is one of the most important object of B{pKNyX} framework, after L{Datapoint<pknyx.core.datapoint>}.
-A device exposes one or more Datapoints, to form a high level entity. It can represents a real device (and act as
-a KNX gateway for that device), or can be a virtual device, to
 
 Usage
 =====
@@ -55,6 +54,7 @@ __revision__ = "$Id: device.py 130 2013-07-02 08:58:54Z fma $"
 from pknyx.common.exception import PKNyXValueError
 from pknyx.logging.loggingServices import Logger
 from pknyx.core.datapoint import Datapoint
+from pknyx.core.groupObject import GroupObject
 from pknyx.stack.individualAddress import IndividualAddress
 
 
@@ -66,8 +66,10 @@ class FunctionalBlockValueError(PKNyXValueError):
 class FunctionalBlock(object):
     """ FunctionalBlock class
 
-    The Datapoint of a FunctionalBlock must be defined in sub-classes, as class dict, and named B{DP_xxx}. They will be
-    automatically instanciated as real L{Datapoint} objects, and added to the B{_dp} dict.
+    The datapoints of a FunctionalBlock must be defined in sub-classes, as class dict, and named B{DP_xxx}. They will be
+    automatically instanciated as real L{Datapoint} objects, and added to the B{_datapoints} dict.
+
+    Same for GroupObject.
 
     @ivar _name: name of the device
     @type _name:str
@@ -78,30 +80,54 @@ class FunctionalBlock(object):
     @ivar _address: source address used when transmitting on the bus
     @type _address: L{IndividualAddress}
 
-    @ivar _dp: Datapoint exposed by this Datapoint
-    @type _dp: dict of L{Datapoint}
+    @ivar _datapoints: atapoints exposed by this FunctionalBlock
+    @type _datapoints: dict of L{Datapoint}
+
+    @ivar _datapoints: datapoints exposed by this FunctionalBlock
+    @type _datapoints: dict of L{Datapoint}
+
+    @ivar _go: GroupObject exposed by this FunctionalBlock
+    @type _go: dict of L{GroupObject}
     """
     def __new__(cls, *args, **kwargs):
         """ Init the class with all available types for this DPT
-
-        All class objects defined in sub-classes name B{DP_xxx}, will be treated as Datapoint (aka Group Objects) and
-        added to the B{_dp} dict.
         """
         self = object.__new__(cls, *args, **kwargs)
-        self._dp = {}
-        self._desc = None
+
+        # class objects named B{DP_xxx} are treated as Datapoint and added to the B{_datapoints} dict
+        self._datapoints = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("DP_"):
                 name = value['name']
-                if self._dp.has_key(key):
-                    raise FunctionalBlockValueError("duplicated Datapoint (%s)" % repr(key))
-                self._dp[name] = Datapoint(self, **value)
-            elif key == "DESC":
-                self._desc = value
+                if self._datapoints.has_key(name):
+                    raise FunctionalBlockValueError("duplicated Datapoint (%s)" % name)
+                self._datapoints[name] = Datapoint(self, **value)
+
+        # class objects named B{GO_xxx} are treated as GroupObjects and added to the B{_groupObjects} dict
+        self._groupObjects = {}
+        for key, value in cls.__dict__.iteritems():
+            if key.startswith("GO_"):
+                try:
+                    datapoint = self._datapoints[value['dp']]
+                except KeyError:
+                    raise FunctionalBlockValueError("unknown datapoint (%s)" % value['dp'])
+                name = datapoint.name
+                if self._groupObjects.has_key(name):
+                    raise FunctionalBlockValueError("duplicated GroupObject (%s)" % name)
+
+                # Remove 'dp' key from GO_xxx dict
+                value.pop('dp')
+                self._groupObjects[name] = GroupObject(datapoint, **value)
+
+        try:
+            self._desc = cls.__dict__["DESC"]
+        except KeyError:
+            Logger().exception("FunctionalBlock.__new__()", debug=True)
+            self._desc = None
 
         return self
 
-    def __init__(self, name, desc=None, address=IndividualAddress()):
+    def __init__(self, name, desc=None):
         """
 
         @param name: name of the device
@@ -122,10 +148,6 @@ class FunctionalBlock(object):
         if desc is not None:
             self._desc = "%s - %s" % (desc, self._desc)
 
-        if not isinstance(address, IndividualAddress):
-            address = IndividualAddress(address)
-        self._address = address
-
     def __repr__(self):
         return "<FunctionalBlock(name='%s', desc='%s', address='%s')>" % (self._name, self._desc, self._address)
 
@@ -141,12 +163,30 @@ class FunctionalBlock(object):
         return self._desc
 
     @property
-    def address(self):
-        return self._address
+    def dp(self):
+        return self._datapoints
 
     @property
-    def dp(self):
-        return self._dp
+    def go(self):
+        return self._groupObjects
+
+    def notify(self, dpName, oldValue, newValue):
+        """ Notify the functional block of a datapoint value change
+
+        The functional block must trigger all methods bound to this notification with xxx.notify.datapoint()
+
+        @param dpName: name of the datapoint which sent this notification
+        @type dpName: str
+
+        @param oldValue: old value of the datapoint
+        @type oldValue: depends on the datapoint DPT
+
+        @param newValue: new value of the datapoint
+        @type newValue: depends on the datapoint DPT
+
+        @todo: use an Event as param
+        """
+        Logger().debug("FuntionalBlock.notify(): datapoint=%s, oldValue=%s, newValue=%s" % (dpName, oldValue, newValue))
 
 
 if __name__ == '__main__':

@@ -39,50 +39,22 @@ Implements
 Documentation
 =============
 
-linknx :
+L{Flags]} class handles L{GroupObject<pknyx.core.groupObject>} bus behaviour.
 
-The "flags" parameter is similar to the ETS flags. The value of each flag is represented by a letter:
- - c: Communication (allow the object to interact with the KNX bus)
- - r: Read (allow the object to answer to a read request from another participant)
- - w: Write (update the object's internal value with the one received in write telegram if they are different)
- - t : Transmit (allow the object to transmit it's value on the bus if it's modified internally by a rule or via XML protocol)
- - u : Update (update the object's internal value with the one received in "read response" telegram if they are different)
- - f : Force (force the object value to be transmitted on the bus, even if it didn't change).
-       In the recent versions you can use s : Stateless flag alternatively which means exactly the same
-       (object does not update it's state so linknx should always send it's value to the bus
- - i : Init (useless for the moment. Will perhaps replace the parameter init="request" in the future)
+Meaning of each flag, shen set:
+ - C - comm.:     the GroupObject interacts with the real KNX bus (even if not set, pKNyX communication remains)
+ - R - read:      the GroupObject sends its associated Datapoint value on the bus when he receives a Read request on one of its bound GAD
+ - W - write:     the GroupObject updates its associated Datapoint value if he receives a Write request on one of its bound GAD
+ - T - tansmit:   the GroupObject sends its associated Datapoint value on the first bounded GAD when this value changes
+ - U - update:    the GroupObject updates its associated Datapoint value if he receives a Response request on one of its bound GAD
+ - I - init:      the GroupObject sends a Read request at startup
+ - S - stateless: like T, but transmits its associated Datapoint value even if the value didn't changed (usefull for scenes)
 
-Each letter appearing inside the value of this parameter means the corresponding flag is set.
-If "flags" is not specified, the default value is "cwtu" (Communication, Write, Transmit and Update).
-
-The default set of flags is good for most normal objects like switches where the value kept internally by linknx is
-corresponding to real object state. Another set of flags can be for example "crwtf" (or "crwts") for objects that
-should send it's value to the KNX bus even if linknx maintains the same value. This is usefull for scenes.
-Setting scene value to 'on' should send this value to KNX every time action is triggered to make the scene happen.
+Note: only one Datapoint per GAD should have its R flag set.
 
 ETS:
 S         C   R   W   T   U
 S         K   L   E   T   Act
-
- - S -> le DP envoie sa valeur sur la GA ayant ce flag (première GA associée à ce DP)
- - K -> communication : si pas présent, le DP n'envoie rien sur le bus (à utiliser pour com.interne au framework)
- - L -> lecture : le DP renverra sa valeur si une demande de lecture est faite sur une GA associée à ce DP (1 seul DP par
-        GA devrait avoir ce flag)
- - E -> écriture : la valeur du DP sera modifiée si un télégramme de type 'write' est envoyé sur un des GA associée à ce DP
- - T -> transmission : si la valeur du DP est modifiée en interne (ou via plugin pour framewok), il enverra sa nouvelle
-        valeur sur le bus, sur la GA ayant le flag S associé
- - Act -> update : le DP met à jour sa valeur s'il voit passer un télégramme en réponse à une demande de lecture sur
-          l'une des GA associée à ce DP
-
- - C -> communication: the DP will interact with the bus
- - R -> read: the DP will send back its internal value on the bus if he receives a read request on one of its bound GAD.
-        Only 1 DP per GAD should have this flag set
- - W -> write: the DP will update its internal value if he receives a write request on one of its bound GAD
- - T -> tansmit: when its internal value changes, the DP will send its new value on the first bounded GAD
- - U -> update: the DP will send back its internal value on the bus if he receives a response request on one of its
-        bound GAD.
- - S -> stateless: like T, but transmits its value even if it didn't changed
- - I -> init: send a read request
 
 Usage
 =====
@@ -136,6 +108,24 @@ class Flags(object):
 
     def __str__(self):
         return self._raw
+
+    def __call__(self, value):
+        return self.test(value)
+
+    def test(self, value):
+        """ Test if value matching flag is set
+
+        @param value: flag(s) to test
+        @type value: str
+
+        @return: True if all value macthing flags are set
+        @rtype: bool
+        """
+        for flag in value:
+            if flag not in self._raw:
+                return False
+
+        return True
 
     @property
     def raw(self):
@@ -209,5 +199,12 @@ if __name__ == '__main__':
             self.assertEqual(self.flags.init, True)
             self.assertEqual(self.flags.stateless, True)
 
+        def test_callable(self):
+            self.assertFalse(self.flags("A"))
+            self.assertFalse(self.flags("ABD"))
+            self.assertTrue(self.flags("C"))
+            self.assertTrue(self.flags("W"))
+            self.assertTrue(self.flags("CRT"))
+            self.assertTrue(self.flags("CRTWIUS"))
 
     unittest.main()

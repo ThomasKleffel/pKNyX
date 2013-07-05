@@ -39,9 +39,9 @@ Implements
 Documentation
 =============
 
-L{Flags]} class handles L{GroupObject<pknyx.core.groupObject>} bus behaviour.
+L{Flags} class handles L{GroupObject<pknyx.core.groupObject>} bus behaviour.
 
-Meaning of each flag, shen set:
+Meaning of each flag, when set:
  - C - comm.:     the GroupObject interacts with the real KNX bus (even if not set, pKNyX communication remains)
  - R - read:      the GroupObject sends its associated Datapoint value on the bus when he receives a Read request on one of its bound GAD
  - W - write:     the GroupObject updates its associated Datapoint value if he receives a Write request on one of its bound GAD
@@ -52,9 +52,9 @@ Meaning of each flag, shen set:
 
 Note: only one Datapoint per GAD should have its R flag set.
 
-ETS:
-S         C   R   W   T   U
-S         K   L   E   T   Act
+Flags in ETS:
+ - en: S   C   R   W   T   U
+ - fr: S   K   L   E   T   Act
 
 Usage
 =====

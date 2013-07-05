@@ -42,6 +42,7 @@ class Dev(Device):
 
 stack = Stack()   # Borg
 ets = ETS(stack)  # Borg
+ets.gadMap = GAD_MAP
 
 dev1 = Dev(name="dev1", desc="Device 1", address="1.1.1")
 dev2 = Dev(name="dev2", desc="Device 2", address="1.1.2")

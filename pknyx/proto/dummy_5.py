@@ -2,22 +2,48 @@
 
 from pknyx.api import Device, Stack, ETS, FunctionalBlock
 
+GAD_MAP = {1: {'root': "heating",
+               1: {'root': "setpoint",
+                   1: "living",
+                   2: "bedroom 1",
+                   3: "bedroom 2",
+                   4: "bedroom 3"
+                  },
+               2: {'root': "temperature",
+                   1: "living",
+                   2: "bedroom 1",
+                   3: "bedroom 2",
+                   4: "bedroom 3"
+                  }
+              },
+           2: {'root': "lights",
+               1: {'root': None,
+                   1: 'living',
+                 },
+               2: {'root': "etage",
+                   1: None,
+                   2: "bedroom 1"
+                 }
+              }
+          }
+
 stack = Stack()
 ets = ETS(stack)
+ets.gadMap = GAD_MAP
 
 
 class WeatherBlock(FunctionalBlock):
 
     # Datapoints definition
-    DP_01 = dict(name="temperature", access="output", default=19.)
+    DP_01 = dict(name="temperature", access="output", dptId="9.007", default=19.)
     DP_02 = dict(name="humidity", access="output", dptId="9.007", default=50.)
     DP_03 = dict(name="wind_speed", access="output", dptId="9.005", default=0.)
     DP_04 = dict(name="wind_alarm", access="output", dptId="1.005", default="No alarm")
     DP_05 = dict(name="wind_speed_limit", access="input", dptId="9.005", default=15.)
     DP_06 = dict(name="wind_alarm_enable", access="input", dptId="1.003", default="Disable")
-    DP_07 = dict(name="lattitude", access="param")
-    DP_08 = dict(name="longitude", access="param")
-    DP_09 = dict(name="altitude", access="param")
+    DP_07 = dict(name="lattitude", access="param", dptId="9.xxx", default=0.)
+    DP_08 = dict(name="longitude", access="param", dptId="9.xxx", default=0.)
+    DP_09 = dict(name="altitude", access="param", dptId="9.xxx", default=0.)
 
     # Group Objects datapoints definition (can (should?) be defined in subclass)
     GO_01 = dict(dp="temperature", flags="CRT", priority="low")

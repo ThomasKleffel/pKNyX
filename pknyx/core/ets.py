@@ -168,11 +168,14 @@ class ETS(object):
 
             # If not already done, set the GroupObject group. This group will be used when the GroupObject wants to
             # communicate on the bus. This mimics the S flag of ETS real application
+            # @todo: find a better way
             if groupObject.group is None:
                 groupObject.group = group
 
         # Add the device to the known devices
         self._devices.add(dev)
+
+    weave = link
 
     def printMapTable(self, by="gad", outFormatLevel=3):
         """
@@ -190,22 +193,25 @@ class ETS(object):
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
-                    try:
-                        print "%2d %-10s" % (gad.main, self._gadMap[gad.main]['root'])
-                    except (TypeError, KeyError):
+                    index = "%d" % gad.main
+                    if self._gadMap.has_key(index):
+                        print "%2d %-10s" % (gad.main, self._gadMap[index])
+                    else:
                         print "%2d %-10s" % (gad.main, "")
                     gadMain = gad.main
                     gadMiddle = gadSub = -1
                 if gadMiddle != gad.middle:
-                    try:
-                        print " ├── %2d %-10s" % (gad.middle, self._gadMap[gad.main][gad.middle]['root'])
-                    except (TypeError, KeyError):
+                    index = "%d/%d" % (gad.main, gad.middle)
+                    if self._gadMap.has_key(index):
+                        print " ├── %2d %-10s" % (gad.middle, self._gadMap[index])
+                    else:
                         print " ├── %2d %-10s" % (gad.middle, "")
                     gadMiddle = gad.middle
                 if gadSub != gad.sub:
-                    try:
-                        print " │    ├── %3d %-10s" % (gad.sub, self._gadMap[gad.main][gad.middle][gad.sub]),
-                    except (TypeError, KeyError):
+                    index = "%d/%d/%d" % (gad.main, gad.middle, gad.sub)
+                    if self._gadMap.has_key(index):
+                        print " │    ├── %3d %-10s" % (gad.sub, self._gadMap[index]),
+                    else:
                         print " │    ├── %3d %-10s" % (gad.sub, ""),
                     gadSub = gad.sub
                     gadSub = -1
@@ -229,11 +235,12 @@ class ETS(object):
             print "Ordered by GroupObject:\n"
             print "%-30s %-25s %-10s %-27s %-8s %-8s\n" % ("Device", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
             for device in self._devices:
-                print "%9s %-20s" % (device.address, device.name),
+                #print "%9s %-20s" % (device.address, device.name),
                 for i, go in enumerate(device.go.values()):
+                    print "%9s %-20s" % (device.address, device.name),
                     dp = go.datapoint
-                    if i:
-                        print "%9s %-20s" % ("", ""),
+                    #if i:
+                        #print "%9s %-20s" % ("", ""),
                     gads_ = []
                     for gad in gads:
                         if go in self._stack.gds.groups[gad.address].listeners:

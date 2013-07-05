@@ -40,6 +40,7 @@ class Lights(Device):
 
 stack = Stack()   # Borg
 ets = ETS(stack)  # Borg
+ets.gadMap = GAD_MAP
 
 lights = Lights(name="lights", desc="Test état lumières", address="1.1.1")
 

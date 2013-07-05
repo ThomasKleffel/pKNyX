@@ -41,6 +41,8 @@ Implements
  - hmsAsStrToS
  - sToHms
  - sToHmsAsStr
+ - dd2dms
+ - dms2dd
 
 Documentation
 =============
@@ -200,3 +202,39 @@ def sToHmsAsStr(s):
     @rtype: str
     """
     return "%02d:%02d:%02d" % sToHms(s)
+
+
+def dd2dms(angle):
+     """ Convert degres to deg/min/sec
+
+     @param angle: angle in decimal degres
+     @type angle: float
+
+     @return: angle in degres/minutes/seconds
+     @rtype: tuple (int, int, float)
+     """
+     d = int(angle)
+     m = int((angle - d) * 60)
+     s = ((angle - d) * 60 - m) * 60
+     #print d, m, s
+
+     return d, m, s
+
+def dms2dd(d, m, s):
+    """ Convert deg/min/sec to degres
+
+    @param d: degres
+    @type d: int
+
+    @param m: minutes
+    @type m: int
+
+    @param s: seconds
+    @type s: float
+
+    @return: decimal degres
+    @rtype: float
+    """
+    angle = d + m / 60. + s / 3600.
+
+    return angle

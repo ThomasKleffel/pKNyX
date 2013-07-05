@@ -118,7 +118,7 @@ class Datapoint(GroupDataListener):
     @todo: add desc. param
     @todo: take 'access' into account when transmit/receive
     """
-    def __init__(self, owner, name, access, dptId=DPTID(), default=None):
+    def __init__(self, owner, name, access, com="GO", dptId=DPTID(), default=None):
         """
 
         @param owner: owner of the Datapoint

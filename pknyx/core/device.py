@@ -74,8 +74,11 @@ class Device(object):
     @ivar _address: source address used when transmitting on the bus
     @type _address: L{IndividualAddress}
 
-    @ivar _dp: Datapoint exposed by this Datapoint
-    @type _dp: dict of L{Datapoint}
+    @ivar _datapoints: Datapoint exposed by this Datapoint
+    @type _datapoints: dict of L{Datapoint}
+
+    @ivar _groupObjects: GroupObjects exposed by this FunctionalBlock
+    @type _groupObjects: dict of L{GroupObject}
     """
     def __new__(cls, *args, **kwargs):
         """ Init the class and register FunctionalBlock
@@ -83,15 +86,28 @@ class Device(object):
         self = object.__new__(cls, *args, **kwargs)
 
         # class objects named B{FB_xxx} are treated as FunctionalBlock and added to the B{_functionalBlocks} dict
+        #self._functionalBlocks = {}
+        #for key, value in cls.__dict__.iteritems():
+            #if key.startswith("FB_"):
+                #functionalBlock = value
+                #name = functionalBlock.name
+                #if self._functionalBlocks.has_key(name):
+                    #raise DeviceValueError("duplicated FunctionBlock (%s)" % name)
+                #self._functionalBlocks[name] = functionalBlock
+                #functionalBlock.parent = self
+
+        # class objects named B{FB_xxx} are treated as FunctionalBlock and added to the B{_functionalBlocks} dict
         self._functionalBlocks = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("FB_"):
-                functionalBlock = value
-                name = functionalBlock.name
+                name = value["name"]
                 if self._functionalBlocks.has_key(name):
                     raise DeviceValueError("duplicated FunctionBlock (%s)" % name)
-                self._functionalBlocks[name] = functionalBlock
-                functionalBlock.parent = self
+
+                # Remove 'dp' key from GO_xxx dict
+                cls = value.pop('cls')
+                self._functionalBlocks[name] = cls(**value)
+                self._functionalBlocks[name].parent = self
 
         # Link Datapoint/GroupObject of each FunctionalBlock here
         self._datapoints = {}
@@ -159,6 +175,7 @@ class Device(object):
     @property
     def go(self):
         return self._groupObjects
+
 
 if __name__ == '__main__':
     import unittest

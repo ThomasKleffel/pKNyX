@@ -66,7 +66,7 @@ class FunctionalBlockValueError(PKNyXValueError):
 class FunctionalBlock(object):
     """ FunctionalBlock class
 
-    The datapoints of a FunctionalBlock must be defined in sub-classes, as class dict, and named B{DP_xxx}. They will be
+    The Datapoints of a FunctionalBlock must be defined in sub-classes, as class dict, and named B{DP_xxx}. They will be
     automatically instanciated as real L{Datapoint} objects, and added to the B{_datapoints} dict.
 
     Same for GroupObject.
@@ -77,17 +77,14 @@ class FunctionalBlock(object):
     @ivar _desc: description of the device
     @type _desc:str
 
-    @ivar _address: source address used when transmitting on the bus
-    @type _address: L{IndividualAddress}
-
-    @ivar _datapoints: atapoints exposed by this FunctionalBlock
+    @ivar _datapoints: Datapoints exposed by this FunctionalBlock
     @type _datapoints: dict of L{Datapoint}
 
-    @ivar _datapoints: datapoints exposed by this FunctionalBlock
-    @type _datapoints: dict of L{Datapoint}
+    @ivar _groupObjects: GroupObjects exposed by this FunctionalBlock
+    @type _groupObjects: dict of L{GroupObject}
 
-    @ivar _go: GroupObject exposed by this FunctionalBlock
-    @type _go: dict of L{GroupObject}
+    @ivar _parent: parent containing the FunctionalBlock
+    @type _parent: L{Device<pknyx.core.device>}
     """
     def __new__(cls, *args, **kwargs):
         """ Init the class with all available types for this DPT
@@ -149,7 +146,7 @@ class FunctionalBlock(object):
             self._desc = "%s - %s" % (desc, self._desc)
 
     def __repr__(self):
-        return "<FunctionalBlock(name='%s', desc='%s', address='%s')>" % (self._name, self._desc, self._address)
+        return "<FunctionalBlock(name='%s', desc='%s')>" % (self._name, self._desc)
 
     def __str__(self):
         return "<FunctionalBlock('%s')>" % self._name
@@ -169,6 +166,14 @@ class FunctionalBlock(object):
     @property
     def go(self):
         return self._groupObjects
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, parent):
+        self._parent = parent
 
     def notify(self, dpName, oldValue, newValue):
         """ Notify the functional block of a datapoint value change

@@ -108,8 +108,7 @@ class GroupObject(object):
         datapoint.signalChanged.connect(self._slotChanged)
 
     def __repr__(self):
-        return "<GroupObject(datapoint='%s', flags='%s', priority='%s')>" % \
-               (self.name, self._flags, self._priority)
+        return "<GroupObject(dp='%s', flags='%s', priority='%s')>" % (self.name, self._flags, self._priority)
 
     def __str__(self):
         return "<GroupObject('%s')>" % self.name

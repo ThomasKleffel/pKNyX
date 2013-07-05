@@ -86,10 +86,12 @@ class Device(object):
         self._functionalBlocks = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("FB_"):
-                name = value.name
+                functionalBlock = value
+                name = functionalBlock.name
                 if self._functionalBlocks.has_key(name):
                     raise DeviceValueError("duplicated FunctionBlock (%s)" % name)
-                self._functionalBlocks[name] = value
+                self._functionalBlocks[name] = functionalBlock
+                functionalBlock.parent = self
 
         # Link Datapoint/GroupObject of each FunctionalBlock here
         self._datapoints = {}

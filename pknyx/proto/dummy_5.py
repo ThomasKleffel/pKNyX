@@ -93,4 +93,9 @@ ets.link(dev=station, dp="wind_alarm", gad="1/1/4")
 ets.link(dev=station, dp="wind_speed_limit", gad="1/1/5")
 ets.link(dev=station, dp="wind_alarm_enable", gad="1/1/6")
 
-ets.printMapTable()
+print
+print
+ets.printMapTable("gad")
+print
+print
+ets.printMapTable("go")

@@ -186,7 +186,7 @@ class ETS(object):
 
         if by == "gad":
             print "Ordered by GAD:\n"
-            print "%-24s %-25s %-20s %-8s %-8s %-8s" % ("GAD", "Datapoint", "Device", "DPTID", "Flags", "Priority")
+            print "%-24s %-25s %-30s %-8s %-8s %-8s" % ("GAD", "Datapoint", "Device", "DPTID", "Flags", "Priority")
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
@@ -212,33 +212,36 @@ class ETS(object):
 
                 for i, go in enumerate(self._stack.gds.groups[gad.address].listeners):
                     dp = go.datapoint
+                    fb = dp.owner
+                    dev = fb.parent
                     if not i:
-                        print "%-25s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
+                        print "%-25s %9s %-20s %-8s %-8s %-8s" % (dp.name, dev.address, dev.name, dp.dptId, go.flags, go.priority)
                     else:
-                        print " │    │                  %-25s %9s %-10s %-8s %-8s %-8s" % (dp.name, dp.owner.address, dp.owner.name, dp.dptId, dp.flags, dp.priority)
+                        print " │    │                  %-25s %9s %-20s %-8s %-8s %-8s" % (dp.name, dev.address, dev.name, dp.dptId, go.flags, go.priority)
 
                 gad_ = gad
 
-        elif by == "dp":
+        elif by == "go":
 
-            # Retreive all datapoints, not only bound ones
-            # Use building presentation
+            # Retreive all gorupObjects, not only bound ones
+            # @todo: use building presentation
             mapByDP = {}
-            print "Ordered by Datapoint:\n"
-            print "%-20s %-25s %-10s %-27s %-8s %-8s\n" % ("Device", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
+            print "Ordered by GroupObject:\n"
+            print "%-30s %-25s %-10s %-27s %-8s %-8s\n" % ("Device", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
             for device in self._devices:
-                print "%9s %-10s" % (device.address, device.name),
-                for i, dp in enumerate(device.dp.values()):
+                print "%9s %-20s" % (device.address, device.name),
+                for i, go in enumerate(device.go.values()):
+                    dp = go.datapoint
                     if i:
-                        print "%9s %-10s" % ("", ""),
+                        print "%9s %-20s" % ("", ""),
                     gads_ = []
                     for gad in gads:
-                        if dp in self._stack.gds.groups[gad.address].listeners:
+                        if go in self._stack.gds.groups[gad.address].listeners:
                             gads_.append(gad.address)
                     if gads_:
-                        print "%-25s %-10s %-27s %-8s %-8s" % (dp.name, dp.dptId, ", ".join(gads_), dp.flags, dp.priority)
+                        print "%-25s %-10s %-27s %-8s %-8s" % (go.name, dp.dptId, ", ".join(gads_), go.flags, go.priority)
                     else:
-                        print "%-25s %-10s %-27s %-8s %-8s" % (dp.name, dp.dptId, "", dp.flags, dp.priority)
+                        print "%-25s %-10s %-27s %-8s %-8s" % (go.name, dp.dptId, "", go.flags, go.priority)
 
         else:
             raise ETSValueError("by param. must be in ('gad', 'dp')")

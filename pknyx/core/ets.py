@@ -57,8 +57,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.logging.loggingServices import Logger
-from pknyx.core.device import Device
-from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
+from pknyx.stack.groupAddress import GroupAddress
 
 
 class ETSValueError(PKNyXValueError):
@@ -72,12 +71,16 @@ class ETS(object):
     @ivar _stack: KNX stack object
     @type _stack: L{Stack<pknyx.stack.stack>}
 
-    @ivar _devices: registered devices
-    @type _devices: set of L{Device}
+    @ivar _functionalBlocks: registered functional blocks
+    @type _functionalBlocks: set of L{FunctionalBlocks<pknyx.core.functionalBlocks>}
+
+    @ivar _gadMap:
+
+    @ivar _buidlingMap:
 
     raise ETSValueError:
     """
-    def __init__(self, stack):
+    def __init__(self, stack, gadMap={}, buildingMap={}):
         """
 
         @param stack: KNX stack object
@@ -88,23 +91,24 @@ class ETS(object):
         super(ETS, self).__init__()
 
         self._stack = stack
+        self._gadMap = gadMap
+        self._buildingMap = buildingMap
 
-        self._devices = set()
-        self._gadMap = None
+        self._functionalBlocks = set()
 
     @property
     def stack(self):
         return self._stack
 
     @property
-    def devices(self):
-        return [device.name for device in self._devices]
+    def functionalBlockNames(self):
+        return [fb.name for fb in self._functionalBlocks]
 
     @property
     def datapoints(self):
         dps = []
-        for device in self._devices:
-            dps.append(device.dp.values())
+        for fb in self._functionalBlocks:
+            dps.append(fb.dp.values())
 
         return dps
 
@@ -116,64 +120,58 @@ class ETS(object):
     def gadMap(self, gadMap):
         self._gadMap = gadMap
 
-    def register(self, device, building='root'):
-        """ Register a device
+    @property
+    def buildingMap(self):
+        return self._buildingMap
 
-        @param device: device to register
-        @type device: L{Device}
+    @gadMap.setter
+    def buildingMap(self, buildingMap):
+        self._gadMap = buildingMap
+
+    def register(self, fb, building='root'):
+        """ Register a functional block
+
+        @param functionalBlocks: functional block to register
+        @type functionalBlocks: L{FunctionalBlocks<pknyx.core.functionalBlocks>}
         """
-        if device in self._devices:
-            raise ETSValueError("device already registered (%s)" % repr(device))
+        if fb in self._functionalBlocks:
+            raise ETSValueError("functional block already registered (%s)" % fb)
 
-        self._devices.add(device)
+        self._functionalBlocks.add(fb)
 
-    def link(self, dev, dp, gad):
+    def link(self, fb, dp, gad):
         """ Link a datapoint to a GAD
 
-        @param dev: device owning the datapoint
-        @type dev: L{Device}
+        @param fb: functional block owning the datapoint
+        @type fb: L{FunctionalBlock<pknyx.core.functionalBlock>}
 
         @param dp: name of the datapoint to link
         @type dp: str
 
-        @param gad : Group address to link to
-        @type gad : str or L{GroupAddress} (or sequence of...)
-
-        @todo: check for duplicate individual address
+        @param gad : group address to link to
+        @type gad : str or L{GroupAddress}
 
         raise ETSValueError:
         """
-        if dev not in self._devices:
-            raise ETSValueError("unregistered device (%s)" % dev)
+        if fb not in self._functionalBlocks:
+            raise ETSValueError("unregistered functional block (%s)" % fb)
 
         # Get GroupObject
-        groupObject = dev.go[dp]
+        groupObject = fb.go[dp]
 
         # Check if gad is a single GAD or a sequence of GAD
-        if isinstance(gad[0], GroupAddress):
-            gads = gad
-        else:
-            try:
-                GroupAddress(gad[0])
-            except GroupAddressValueError:
-                gads = (gad,)
-            else:
-                gads = gad
+        if not isinstance(gad, GroupAddress):
+            gad = GroupAddress(gad)
 
-        for gad in gads:
+        # Ask the group data service to subscribe this GroupObject to the given gad
+        # In return, get the created group
+        group = self._stack.gds.subscribe(gad, groupObject)
 
-            # Ask the group data service to subscribe this GroupObject to the given gad
-            # In return, get the created group
-            group = self._stack.gds.subscribe(gad, groupObject)
-
-            # If not already done, set the GroupObject group. This group will be used when the GroupObject wants to
-            # communicate on the bus. This mimics the S flag of ETS real application
-            # @todo: find a better way
-            if groupObject.group is None:
-                groupObject.group = group
-
-        # Add the device to the known devices
-        self._devices.add(dev)
+        # If not already done, set the GroupObject group. This group will be used when the GroupObject wants to
+        # communicate on the bus. This mimics the S flag of ETS real application
+        # @todo: find a better way
+        if groupObject.group is None:
+            groupObject.group = group
 
     weave = link
 
@@ -189,7 +187,7 @@ class ETS(object):
 
         if by == "gad":
             print "Ordered by GAD:\n"
-            print "%-24s %-25s %-30s %-8s %-8s %-8s" % ("GAD", "Datapoint", "Device", "DPTID", "Flags", "Priority")
+            print "%-24s %-25s %-30s %-8s %-8s %-8s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
@@ -219,25 +217,24 @@ class ETS(object):
                 for i, go in enumerate(self._stack.gds.groups[gad.address].listeners):
                     dp = go.datapoint
                     fb = dp.owner
-                    dev = fb.parent
                     if not i:
-                        print "%-25s %9s %-20s %-8s %-8s %-8s" % (dp.name, dev.address, dev.name, dp.dptId, go.flags, go.priority)
+                        print "%-25s %9s %-20s %-8s %-8s %-8s" % (dp.name, self._stack.individualAddress, fb.name, dp.dptId, go.flags, go.priority)
                     else:
-                        print " │    │                  %-25s %9s %-20s %-8s %-8s %-8s" % (dp.name, dev.address, dev.name, dp.dptId, go.flags, go.priority)
+                        print " │    │                  %-25s %9s %-20s %-8s %-8s %-8s" % (dp.name, self._stack.individualAddress, fb.name, dp.dptId, go.flags, go.priority)
 
                 gad_ = gad
 
         elif by == "go":
 
-            # Retreive all gorupObjects, not only bound ones
+            # Retreive all groupObjects, not only bound ones
             # @todo: use building presentation
             mapByDP = {}
             print "Ordered by GroupObject:\n"
-            print "%-30s %-25s %-10s %-27s %-8s %-8s\n" % ("Device", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
-            for device in self._devices:
-                #print "%9s %-20s" % (device.address, device.name),
-                for i, go in enumerate(device.go.values()):
-                    print "%9s %-20s" % (device.address, device.name),
+            print "%-30s %-25s %-10s %-27s %-8s %-8s\n" % ("Functional block", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
+            for fb in self._functionalBlocks:
+                #print "%9s %-20s" % (self._stack.individualAddress, fb.name),
+                for i, go in enumerate(fb.go.values()):
+                    print "%9s %-20s" % (self._stack.individualAddress, fb.name),
                     dp = go.datapoint
                     #if i:
                         #print "%9s %-20s" % ("", ""),

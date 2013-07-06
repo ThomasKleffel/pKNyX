@@ -74,7 +74,7 @@ class Stack(object):
     """
     PRIORITY_DISTRIBUTION = (-1, 3, 2)
 
-    def __init__(self, domainAddr=0, indivAddr="0.0.0", serNo=-1,
+    def __init__(self, domainAddr=0, individualAddress="0.0.0", serNo=-1,
                  transType=UDPTransceiver, transParams=dict(mcastAddr="224.0.23.12", mcastPort=3671)):
         """
 
@@ -87,7 +87,7 @@ class Stack(object):
         self._tgds = T_GroupDataService(self._ngds)
         self._agds = A_GroupDataService(self._tgds)
         self._gds = GroupDataService(self._agds)
-        self._tc = transType(self._lds, domainAddr, indivAddr, **transParams)
+        self._tc = transType(self._lds, domainAddr, individualAddress, **transParams)
 
     @property
     def agds(self):
@@ -96,6 +96,10 @@ class Stack(object):
     @property
     def gds(self):
         return self._gds
+
+    @property
+    def individualAddress(self):
+        return self._tc.individualAddress
 
     def start(self):
         """ Start the stack threads

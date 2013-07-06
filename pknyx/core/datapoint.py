@@ -118,11 +118,11 @@ class Datapoint(GroupDataListener):
     @todo: add desc. param
     @todo: take 'access' into account when transmit/receive
     """
-    def __init__(self, owner, name, access, com="GO", dptId=DPTID(), default=None):
+    def __init__(self, owner, name, access, dptId=DPTID(), default=None):
         """
 
-        @param owner: owner of the Datapoint
-        @type owner: L{Device<pknyx.core.device>} -> could be a more generic object
+        @param owner: owner of the datapoint
+        @type owner: L{FunctionalBlock<pknyx.core.functionalBloc>}
 
         @param name: name of the Datapoint
         @type name: str

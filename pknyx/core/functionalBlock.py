@@ -82,9 +82,6 @@ class FunctionalBlock(object):
 
     @ivar _groupObjects: GroupObjects exposed by this FunctionalBlock
     @type _groupObjects: dict of L{GroupObject}
-
-    @ivar _parent: parent containing the FunctionalBlock
-    @type _parent: L{Device<pknyx.core.device>}
     """
     def __new__(cls, *args, **kwargs):
         """ Init the class with all available types for this DPT
@@ -167,14 +164,6 @@ class FunctionalBlock(object):
     def go(self):
         return self._groupObjects
 
-    @property
-    def parent(self):
-        return self._parent
-
-    @parent.setter
-    def parent(self, parent):
-        self._parent = parent
-
     def notify(self, dpName, oldValue, newValue):
         """ Notify the functional block of a datapoint value change
 
@@ -204,25 +193,25 @@ if __name__ == '__main__':
     class FunctionalBlockTestCase(unittest.TestCase):
 
         class TestFunctionalBlock(FunctionalBlock):
-            DP_01 = dict(id="temperature", name="PID_TEMPERATURE", type="output", dptId="9.001", defaultValue=19.)
-            DP_02 = dict(id="humidity", name="PID_HUMIDITY", type="output", dptId="9.007", defaultValue=50.)
-            DP_03 = dict(id="wind_speed", name="PID_WIND_SPEED", type="output", dptId="9.005", defaultValue=0.)
-            DP_04 = dict(id="wind_alarm", name="PID_WIND_ALARM", type="output", dptId="1.005", defaultValue="No alarm")
-            DP_05 = dict(id="wind_speed_limit", name="PID_WIND_SPEED_LIMIT", type="input", dptId="9.005", defaultValue=15.)
-            DP_06 = dict(id="wind_alarm_enable", name="PID_ALARM_ENABLE", type="input", dptId="1.003", defaultValue="Disable")
+            DP_01 = dict(name="temperature", access="output", dptId="9.001", defaultValue=19.)
+            DP_02 = dict(name="humidity", access="output", dptId="9.007", defaultValue=50.)
+            DP_03 = dict(name="wind_speed", access="output", dptId="9.005", defaultValue=0.)
+            DP_04 = dict(name="wind_alarm",  access="output", dptId="1.005", defaultValue="No alarm")
+            DP_05 = dict(name="wind_speed_limit",  access="input", dptId="9.005", defaultValue=15.)
+            DP_06 = dict(name="wind_alarm_enable", access="input", dptId="1.003", defaultValue="Disable")
 
             DESC = "Dummy description"
 
         def setUp(self):
-            self.dev1 = FunctionalBlockTestCase.TestFunctionalBlock("test1")
-            self.dev2 = FunctionalBlockTestCase.TestFunctionalBlock("test2", desc="pipo")
+            self.fb1 = FunctionalBlockTestCase.TestFunctionalBlock(name="test1")
+            self.fb2 = FunctionalBlockTestCase.TestFunctionalBlock(name="test2", desc="pipo")
 
         def tearDown(self):
             pass
 
         def test_display(self):
-            print repr(self.dev1)
-            print self.dev2
+            print repr(self.fb1)
+            print self.fb2
 
         def test_constructor(self):
             pass

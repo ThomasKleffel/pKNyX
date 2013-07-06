@@ -63,12 +63,12 @@ class Transceiver(object):
     @ivar _domainAddr:
     @type _domainAddr:
 
-    @ivar _indivAddr: own Individual Address
-    @type _indivAddr: L{IndividualAddress}
+    @ivar _individualAddress: own individual address
+    @type _individualAddress: L{IndividualAddress}
     """
     OVERHEAD = 2
 
-    def __init__(self, tLSAP, domainAddr=0, indivAddr="0.0.0"):
+    def __init__(self, tLSAP, domainAddr=0, individualAddress="0.0.0"):
         """
 
         @param tLSAP:
@@ -77,8 +77,8 @@ class Transceiver(object):
         @param domainAddr:
         @type domainAddr:
 
-        @param indivAddr: own Individual Address (use when not source address is given in lSDU)
-        @type indivAddr: L{IndividualAddress<pknyx.core.individualAddress>}
+        @param individualAddress: own individual address (use as source address in lSDU)
+        @type individualAddress: L{IndividualAddress<pknyx.core.individualAddress>}
         """
         super(Transceiver, self).__init__()
 
@@ -86,9 +86,9 @@ class Transceiver(object):
         if not isinstance(domainAddr, KnxAddress):
             domainAddr = KnxAddress(domainAddr)
         self._domainAddr = domainAddr
-        if not isinstance(indivAddr, IndividualAddress):
-            indivAddr = IndividualAddress(indivAddr)
-        self._individualAddress = indivAddr
+        if not isinstance(individualAddress, IndividualAddress):
+            individualAddress = IndividualAddress(individualAddress)
+        self._individualAddress = individualAddress
 
     def cleanup(self):
         raise NotImplementedError

@@ -257,7 +257,3 @@ ets.printMapTable("gad")
 print
 print
 ets.printMapTable("go")
-
-# Instead of using a Device class, a device could be represented by the entire process itself. Keep only the
-# FunctionalBlock structure.
-# Move the address to the stack.

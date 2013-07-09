@@ -5,37 +5,37 @@ import time
 
 from pknyx.common.helpers import dd2dms, dms2dd
 
+from pknyx.api import Logger
 from pknyx.api import FunctionalBlock, Stack, ETS
-#from pknyx.api import Scheduler, Notifier
+from pknyx.api import Scheduler  #, Notifier
 
-# ETS maps
+# ETS maps -> Group Object Association Table (GrOAT)
 # @todo: make a tool to import from ETS
-GAD_MAP = {"1": "heating",
-           "1/1": "setpoint",
-           "1/1/1": "living",
-           "1/1/2": "bedroom 1",
-           "1/1/3": "bedroom 2",
-           "1/1/4": "bedroom 3",
-           "1/2": "temperature",
-           "1/2/1": "living",
-           "1/2/2": "bedroom 1",
-           "1/2/3": "bedroom 2",
-           "1/2/4": "bedroom 3",
-           "2": "lights",
-           "2/1": "living",
-           "2/2": "etage",
-           "2/2/2": "bedroom 1"
+GAD_MAP = {"1": dict(name="heat", desc="Chauffage"),
+           "1/1": dict(name="heat_setpoint", desc="Consigne"),
+           "1/1/1": dict(name="heat_setpoint_living", desc="Salle à Manger"),
+           "1/1/2": dict(name="heat_setpoint_bedroom_1", desc="Chambre 1"),
+           "1/1/3": dict(name="heat_setpoint_bedroom_2", desc="Chambre 2"),
+           "1/1/4": dict(name="heat_setpoint_bedroom_3", desc="Chambre 3"),
+           "1/2": dict(name="heat_temperature", desc="Température"),
+           "1/2/1": dict(name="heat_temperature_living", desc="Salle à Manger"),
+           "1/2/2": dict(name="heat_temperature_bedroom_1", desc="Chambre 1"),
+           "1/2/3": dict(name="heat_temperature_bedroom_2", desc="Chambre 2"),
+           "1/2/4": dict(name="heat_temperature_bedroom_3", desc="Chambre 3"),
+           "2": dict(name="light", desc="Lumière"),
+           "2/1": dict(name="light_command", desc="Commande"),
+           "2/2": dict(name="light_state", desc="État"),
+           "2/2/1": dict(name="light_state_living", desc="Salle à Manger"),
+           "2/2/2": dict(name="light_state_bedroom_1", desc="Chambre 1"),
           }
-
 
 #BUILDING_MAP = {
                #}
 
 stack = Stack(individualAddress="1.2.3")
-ets = ETS(stack) #, gadMap=GAD_MAP)  # , buildingMap=BUILDING_MAP
-#ets.gadMap = GAD_MAP
+ets = ETS(stack, gadMap=GAD_MAP)  # , buildingMap=BUILDING_MAP
 
-#schedule = Scheduler()
+schedule = Scheduler()
 #notify = Notifier()
 
 
@@ -50,18 +50,14 @@ class WeatherTemperatureBlock(FunctionalBlock):
 
     DESC = "Temperature management block"
 
-    #schedule.every(minute=5)
-    def updateTemperature(self, event):
-
-        # How we retreive the temperature is out of the scope of this proposal
+    @schedule.every(seconds=5)
+    def updateTemperatureHumidity(self):  #, event):
+        Logger().trace("WeatherTemperatureBlock.updateTemperatureHumidity()")
+        print toto
+        # How we retreive the temperature/humidity is out of the scope of this proposal
         # temperature = xxx
-        self.dp["temperature"] = temperature
-
-    #schedule.every(minute=5)
-    def updateHumidity(self, event):
-
-        # How we retreive the humidity is out of the scope of this proposal
         # humidity = xxx
+        self.dp["temperature"] = temperature
         self.dp["humidity"] = humidity
 
 
@@ -75,8 +71,8 @@ class WeatherWindBlock(FunctionalBlock):
 
     GO_01 = dict(dp="wind_speed", flags="CRT", priority="low")
     GO_02 = dict(dp="wind_alarm", flags="CRT", priority="normal")
-    GO_03 = dict(dp="wind_speed_limit", flags="CWT", priority="low")
-    GO_04 = dict(dp="wind_alarm_enable", flags="CWT", priority="low")
+    GO_03 = dict(dp="wind_speed_limit", flags="CW", priority="low")
+    GO_04 = dict(dp="wind_alarm_enable", flags="CW", priority="low")
 
     DESC = "Wind management block"
 
@@ -127,10 +123,10 @@ class WeatherSunPositionBlock(FunctionalBlock):
     GO_02 = dict(dp="declination", flags="CRT", priority="low")
     GO_03 = dict(dp="elevation", flags="CRT", priority="low")
     GO_04 = dict(dp="azimuth", flags="CRT", priority="low")
-    GO_05 = dict(dp="latitude", flags="CRT", priority="low")
-    GO_06 = dict(dp="longitude", flags="CRT", priority="low")
-    GO_07 = dict(dp="timezone", flags="CRT", priority="low")
-    GO_08 = dict(dp="saving_time", flags="CRT", priority="low")
+    GO_05 = dict(dp="latitude", flags="CRWT", priority="low")
+    GO_06 = dict(dp="longitude", flags="CRWT", priority="low")
+    GO_07 = dict(dp="timezone", flags="CRWT", priority="low")
+    GO_08 = dict(dp="saving_time", flags="CRWT", priority="low")
 
     DESC = "Sun position management block"
 
@@ -224,36 +220,42 @@ class WeatherSunPositionBlock(FunctionalBlock):
         self.dp["azimuth"].value = azimuth
 
 
-# Instanciation of FunctionalBlocks
-weather_temperature = WeatherTemperatureBlock(name="weather_temperature", desc="temp 1")
-weather_wind = WeatherWindBlock(name="weather_wind", desc="wind 1")
-weather_sun_position = WeatherSunPositionBlock(name="weather_sun_position", desc="sun 1")
-
-ets.register(weather_wind)  # , building="mob/GTL")
-ets.register(weather_temperature)
-ets.register(weather_sun_position)
+# Register FunctionalBlocks
+ets.register(WeatherTemperatureBlock, name="weather_temperature", desc="temp 1")  # , building="mob/GTL")
+ets.register(WeatherWindBlock, name="weather_wind", desc="wind 1")
+ets.register(WeatherSunPositionBlock, name="weather_sun_position", desc="sun 1")
 
 # Weave weather station Datapoints to GroupAddresses
-ets.weave(fb=weather_temperature, dp="temperature", gad="1/1/1")
-ets.weave(fb=weather_temperature, dp="humidity", gad="1/1/2")
+# @todo: allow use of gad name, from GrOAT
+ets.weave(fb="weather_temperature", dp="temperature", gad="1/1/1")
+ets.weave(fb="weather_temperature", dp="humidity", gad="1/1/2")
 
-ets.weave(fb=weather_wind, dp="wind_speed", gad="1/1/3")
-ets.weave(fb=weather_wind, dp="wind_alarm", gad="1/1/4")
-ets.weave(fb=weather_wind, dp="wind_speed_limit", gad="1/1/5")
-ets.weave(fb=weather_wind, dp="wind_alarm_enable", gad="1/1/6")
+ets.weave(fb="weather_wind", dp="wind_speed", gad="1/1/3")
+ets.weave(fb="weather_wind", dp="wind_alarm", gad="1/1/4")
+ets.weave(fb="weather_wind", dp="wind_speed_limit", gad="1/1/5")
+ets.weave(fb="weather_wind", dp="wind_alarm_enable", gad="1/1/6")
 
-ets.weave(fb=weather_sun_position, dp="right_ascension", gad="1/1/3")
-ets.weave(fb=weather_sun_position, dp="declination", gad="1/1/4")
-ets.weave(fb=weather_sun_position, dp="elevation", gad="1/1/5")
-ets.weave(fb=weather_sun_position, dp="azimuth", gad="1/1/6")
-ets.weave(fb=weather_sun_position, dp="latitude", gad="1/1/7")
-ets.weave(fb=weather_sun_position, dp="longitude", gad="1/1/8")
-ets.weave(fb=weather_sun_position, dp="timezone", gad="1/1/9")
-ets.weave(fb=weather_sun_position, dp="saving_time", gad="1/1/10")
+ets.weave(fb="weather_sun_position", dp="right_ascension", gad="1/1/3")
+ets.weave(fb="weather_sun_position", dp="declination", gad="1/1/4")
+ets.weave(fb="weather_sun_position", dp="elevation", gad="1/1/5")
+ets.weave(fb="weather_sun_position", dp="azimuth", gad="1/1/6")
+ets.weave(fb="weather_sun_position", dp="latitude", gad="1/1/7")
+ets.weave(fb="weather_sun_position", dp="longitude", gad="1/1/8")
+ets.weave(fb="weather_sun_position", dp="timezone", gad="1/1/9")
+ets.weave(fb="weather_sun_position", dp="saving_time", gad="1/1/10")
+ets.weave(fb="weather_sun_position", dp="saving_time", gad="1/1/11")
 
-print
-print
-ets.printMapTable("gad")
-print
-print
-ets.printMapTable("go")
+#print
+#print
+#ets.printMapTable("gad")
+#print
+#print
+#ets.printMapTable("go")
+
+# Start the scheduler
+# @todo: move to a better place
+schedule.printJobs()
+schedule.start()
+
+# Run the stack main loop
+stack.serve()

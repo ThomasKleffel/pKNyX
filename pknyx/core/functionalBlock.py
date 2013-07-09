@@ -52,6 +52,7 @@ Usage
 __revision__ = "$Id: device.py 130 2013-07-02 08:58:54Z fma $"
 
 from pknyx.common.exception import PKNyXValueError
+from pknyx.common.helpers import reprStr
 from pknyx.logging.loggingServices import Logger
 from pknyx.core.datapoint import Datapoint
 from pknyx.core.groupObject import GroupObject
@@ -110,8 +111,11 @@ class FunctionalBlock(object):
                     raise FunctionalBlockValueError("duplicated GroupObject (%s)" % name)
 
                 # Remove 'dp' key from GO_xxx dict
-                value.pop('dp')
-                self._groupObjects[name] = GroupObject(datapoint, **value)
+                # Use a copy to let original untouched
+                value_ = {}
+                value_.update(value)
+                value_.pop('dp')
+                self._groupObjects[name] = GroupObject(datapoint, **value_)
 
         try:
             self._desc = cls.__dict__["DESC"]
@@ -143,10 +147,10 @@ class FunctionalBlock(object):
             self._desc = "%s - %s" % (desc, self._desc)
 
     def __repr__(self):
-        return "<FunctionalBlock(name='%s', desc='%s')>" % (self._name, self._desc)
+        return "<%s(name='%s', desc='%s')>" % (reprStr(self.__class__), self._name, self._desc)
 
     def __str__(self):
-        return "<FunctionalBlock('%s')>" % self._name
+        return "<%s('%s')>" % (reprStr(self.__class__), self._name)
 
     @property
     def name(self):

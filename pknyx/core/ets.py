@@ -58,6 +58,7 @@ __revision__ = "$Id$"
 from pknyx.common.exception import PKNyXValueError
 from pknyx.logging.loggingServices import Logger
 from pknyx.stack.groupAddress import GroupAddress
+from pknyx.services.scheduler import Scheduler
 
 
 class ETSValueError(PKNyXValueError):
@@ -128,22 +129,30 @@ class ETS(object):
     def buildingMap(self, buildingMap):
         self._gadMap = buildingMap
 
-    def register(self, fb, building='root'):
+    def register(self, cls, name, desc=None, building='root'):
         """ Register a functional block
 
-        @param functionalBlocks: functional block to register
-        @type functionalBlocks: L{FunctionalBlocks<pknyx.core.functionalBlocks>}
+        @param cls: class of functional block to register
+        @type cls: subclass of L{FunctionalBlocks<pknyx.core.functionalBlocks>}
         """
-        if fb in self._functionalBlocks:
-            raise ETSValueError("functional block already registered (%s)" % fb)
+        for fb in self._functionalBlocks:
+            if name == fb.name:
+                raise ETSValueError("functional block already registered (%s)" % fb)
+
+        # Instanciate the function block
+        fb = cls(name=name, desc=desc)
 
         self._functionalBlocks.add(fb)
+
+        # Also register pending scheduler jobs
+        Scheduler().registerJobs(fb)
+
 
     def link(self, fb, dp, gad):
         """ Link a datapoint to a GAD
 
-        @param fb: functional block owning the datapoint
-        @type fb: L{FunctionalBlock<pknyx.core.functionalBlock>}
+        @param fb: name of the functional block owning the datapoint
+        @type fb: str
 
         @param dp: name of the datapoint to link
         @type dp: str
@@ -153,13 +162,16 @@ class ETS(object):
 
         raise ETSValueError:
         """
-        if fb not in self._functionalBlocks:
+        for fb_ in self._functionalBlocks:
+            if fb == fb_.name:
+                break
+        else:
             raise ETSValueError("unregistered functional block (%s)" % fb)
 
-        # Get GroupObject
-        groupObject = fb.go[dp]
+        # Retreive GroupObject from FunctionalBlock
+        groupObject = fb_.go[dp]
 
-        # Check if gad is a single GAD or a sequence of GAD
+        # Get GroupAddress
         if not isinstance(gad, GroupAddress):
             gad = GroupAddress(gad)
 
@@ -186,41 +198,43 @@ class ETS(object):
         gads.sort()
 
         if by == "gad":
-            print "Ordered by GAD:\n"
-            print "%-24s %-25s %-30s %-8s %-8s %-8s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
+            print "Ordered by GroupAddress:\n"
+            title = "%-35s %-25s %-30s %-10s %-10s %-10s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
+            print title
+            print len(title) * "-"
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
                     index = "%d" % gad.main
                     if self._gadMap.has_key(index):
-                        print "%2d %-10s" % (gad.main, self._gadMap[index])
+                        print u"%2d %-33s" % (gad.main, self._gadMap[index]['desc'].decode("utf-8"))
                     else:
-                        print "%2d %-10s" % (gad.main, "")
+                        print u"%2d %-33s" % (gad.main, "")
                     gadMain = gad.main
                     gadMiddle = gadSub = -1
                 if gadMiddle != gad.middle:
                     index = "%d/%d" % (gad.main, gad.middle)
                     if self._gadMap.has_key(index):
-                        print " ├── %2d %-10s" % (gad.middle, self._gadMap[index])
+                        print u" ├── %2d %-27s" % (gad.middle, self._gadMap[index]['desc'].decode("utf-8"))
                     else:
-                        print " ├── %2d %-10s" % (gad.middle, "")
+                        print u" ├── %2d %-27s" % (gad.middle, "")
                     gadMiddle = gad.middle
+                    gadSub = -1
                 if gadSub != gad.sub:
                     index = "%d/%d/%d" % (gad.main, gad.middle, gad.sub)
                     if self._gadMap.has_key(index):
-                        print " │    ├── %3d %-10s" % (gad.sub, self._gadMap[index]),
+                        print u" │    ├── %3d %-21s" % (gad.sub, self._gadMap[index]['desc'].decode("utf-8")),
                     else:
-                        print " │    ├── %3d %-10s" % (gad.sub, ""),
+                        print u" │    ├── %3d %-21s" % (gad.sub, ""),
                     gadSub = gad.sub
-                    gadSub = -1
 
                 for i, go in enumerate(self._stack.gds.groups[gad.address].listeners):
                     dp = go.datapoint
                     fb = dp.owner
                     if not i:
-                        print "%-25s %9s %-20s %-8s %-8s %-8s" % (dp.name, self._stack.individualAddress, fb.name, dp.dptId, go.flags, go.priority)
+                        print u"%-25s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
                     else:
-                        print " │    │                  %-25s %9s %-20s %-8s %-8s %-8s" % (dp.name, self._stack.individualAddress, fb.name, dp.dptId, go.flags, go.priority)
+                        print u" │    │                             %-25s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
 
                 gad_ = gad
 
@@ -230,22 +244,24 @@ class ETS(object):
             # @todo: use building presentation
             mapByDP = {}
             print "Ordered by GroupObject:\n"
-            print "%-30s %-25s %-10s %-27s %-8s %-8s\n" % ("Functional block", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
+            title = "%-30s %-25s %-10s %-30s %-10s %-10s" % ("Functional block", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
+            print title
+            print len(title) * "-"
             for fb in self._functionalBlocks:
-                #print "%9s %-20s" % (self._stack.individualAddress, fb.name),
+                #print "%-30s" % fb.name,
                 for i, go in enumerate(fb.go.values()):
-                    print "%9s %-20s" % (self._stack.individualAddress, fb.name),
+                    print "%-30s" % fb.name,
                     dp = go.datapoint
                     #if i:
-                        #print "%9s %-20s" % ("", ""),
+                        #print "%-30s" % "",
                     gads_ = []
                     for gad in gads:
                         if go in self._stack.gds.groups[gad.address].listeners:
                             gads_.append(gad.address)
                     if gads_:
-                        print "%-25s %-10s %-27s %-8s %-8s" % (go.name, dp.dptId, ", ".join(gads_), go.flags, go.priority)
+                        print "%-25s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, ", ".join(gads_), go.flags, go.priority)
                     else:
-                        print "%-25s %-10s %-27s %-8s %-8s" % (go.name, dp.dptId, "", go.flags, go.priority)
+                        print "%-25s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, "", go.flags, go.priority)
 
         else:
             raise ETSValueError("by param. must be in ('gad', 'dp')")

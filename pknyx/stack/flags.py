@@ -83,7 +83,7 @@ class Flags(object):
     @ivar _raw: raw set of flags
     @type _raw: str
     """
-    def __init__(self, raw="CWTU"):
+    def __init__(self, raw="CRT"):
         """ Create a new set of flags
 
         @param raw: raw set of flags

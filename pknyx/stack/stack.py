@@ -34,6 +34,7 @@ Implements
 ==========
 
  - B{Stack}
+ - B{StackValueError}
 
 Documentation
 =============
@@ -47,6 +48,8 @@ Usage
 """
 
 __revision__ = "$Id$"
+
+import time
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.logging.loggingServices import Logger
@@ -100,6 +103,17 @@ class Stack(object):
     @property
     def individualAddress(self):
         return self._tc.individualAddress
+
+    def serve(self):
+        """ Start the main loop.
+
+        """
+        self.start()
+        try:
+            while True:
+                time.sleep(0.1)
+        except KeyboardInterrupt:
+            self.stop()
 
     def start(self):
         """ Start the stack threads

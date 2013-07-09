@@ -170,6 +170,16 @@ def heatingBathroomManagement(event):
     print "heatingBathroomManagement(): event=%s" % event
 
 
+class Test(object):
+
+    @trigger.schedule.every(minutes=1)
+    def test(self):
+        print "test"
+
+t = Test()
+print t.test.im_func
+
+
 print "Scheduler funcs=%s" % trigger.schedule._funcs
 print "Group funcs=%s" % trigger.group._funcs
 print "System funcs=%s" % trigger.system._funcs

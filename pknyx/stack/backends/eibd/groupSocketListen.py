@@ -44,7 +44,7 @@ __revision__ = "$Id$"
 import os
 import sys
 
-from pknyx.services.loggingServices import Logger
+from pknyx.services.logger import Logger
 from pknyx.stack.backends.eibd.eibConnection import EIBConnection, EIBBuffer, EIBAddr
 
 

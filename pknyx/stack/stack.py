@@ -52,7 +52,7 @@ __revision__ = "$Id$"
 import time
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.services.loggingServices import Logger
+from pknyx.services.logger import Logger
 from pknyx.core.groupDataService import GroupDataService
 from pknyx.stack.knxAddress import KnxAddress
 from pknyx.stack.individualAddress import IndividualAddress

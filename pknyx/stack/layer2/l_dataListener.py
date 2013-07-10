@@ -53,7 +53,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.services.loggingServices import Logger
+from pknyx.services.logger import Logger
 
 
 class L_DLValueError(PKNyXValueError):

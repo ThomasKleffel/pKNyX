@@ -50,7 +50,7 @@ Usage
 
 __revision__ = "$Id$"
 
-from pknyx.services.loggingServices import Logger
+from pknyx.services.logger import Logger
 from pknyx.services.scheduler import Scheduler
 from pknyx.core.functionalBlock import FunctionalBlock
 from pknyx.core.ets import ETS

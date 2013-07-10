@@ -73,7 +73,7 @@ __revision__ = "$Id$"
 
 import struct
 
-from pknyx.services.loggingServices import Logger
+from pknyx.services.logger import Logger
 from pknyx.core.dptXlator.dpt import DPT
 from pknyx.core.dptXlator.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
 

@@ -63,7 +63,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.services.loggingServices import Logger
+from pknyx.services.logger import Logger
 from pknyx.common.signal import Signal
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID

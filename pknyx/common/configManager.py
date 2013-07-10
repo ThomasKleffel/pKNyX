@@ -28,7 +28,7 @@ import shutil
 import sets
 
 from pknyx.common import config
-from pknyx.services.loggingServices import Logger
+from pknyx.services.logger import Logger
 from pknyx.common.helpers import isOdd
 
 if hasattr(sys, "frozen"):

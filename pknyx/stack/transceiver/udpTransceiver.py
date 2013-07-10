@@ -55,7 +55,7 @@ import threading
 import socket
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.services.loggingServices import Logger
+from pknyx.services.logger import Logger
 from pknyx.stack.result import Result
 from pknyx.stack.knxAddress import KnxAddress
 from pknyx.stack.groupAddress import GroupAddress

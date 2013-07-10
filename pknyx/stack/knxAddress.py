@@ -65,7 +65,7 @@ __revision__ = "$Id$"
 import struct
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.services.loggingServices import Logger
+from pknyx.services.logger import Logger
 
 
 class KnxAddressValueError(PKNyXValueError):

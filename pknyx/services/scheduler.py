@@ -81,7 +81,7 @@ import traceback
 import apscheduler.scheduler
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.services.loggingServices import Logger, LEVELS
+from pknyx.services.logger import Logger, LEVELS
 
 scheduler = None
 

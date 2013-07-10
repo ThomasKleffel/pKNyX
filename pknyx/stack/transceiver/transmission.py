@@ -49,6 +49,8 @@ Usage
 
 __revision__ = "$Id$"
 
+import threading
+
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.loggingServices import Logger
 from pknyx.stack.result import Result
@@ -88,6 +90,8 @@ class Transmission(object):
         self._waitConfirm = waitConfirm
         self._result = Result.OK
 
+        self._condition = threading.Condition()
+
     @property
     def lPDU(self):
         return self._lPDU
@@ -96,16 +100,35 @@ class Transmission(object):
     def waitConfirm(self):
         return self._waitConfirm
 
+    @waitConfirm.setter
+    def waitConfirm(self, flag):
+        self._waitConfirm = flag
+
     @property
     def result(self):
         return self._result
 
     @result.setter
     def result(self, code):
-        if code not in Result.availableCodes:
+        if code not in Result.AVAILABLE_CODES:
             raise TransmissionValueError("invalid result code (%s)" % repr(code))
 
         self._result = code
+
+    def acquire(self):
+        self._condition.acquire()
+
+    def release(self):
+        self._condition.release()
+
+    def wait(self):
+        self._condition.wait()
+
+    def notify(self):
+        self._condition.notify()
+
+    def notifyAll(self):
+        self._condition.notifyAll()
 
 
 if __name__ == '__main__':

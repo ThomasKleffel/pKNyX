@@ -119,13 +119,13 @@ class DPTXlator2ByteFloat(DPTXlatorBase):
         while not -2048 <= mant <= 2047:
             mant = mant >> 1
             exp += 1
-        Logger().debug("DPT2ByteFloat.valueToData(): sign=%d, exp=%d, mant=%r" % (sign, exp, mant))
+        #Logger().debug("DPT2ByteFloat.valueToData(): sign=%d, exp=%d, mant=%r" % (sign, exp, mant))
         data = (sign << 15) | (exp << 11) | (int(mant) & 0x07ff)
-        Logger().debug("DPT2ByteFloat.valueToData(): data=%s" % hex(data))
+        #Logger().debug("DPT2ByteFloat.valueToData(): data=%s" % hex(data))
         return data
 
     def dataToFrame(self, data):
-        return struct.pack(">H", data)
+        return bytearray(struct.pack(">H", data))
 
     def frameToData(self, frame):
         data = struct.unpack(">H", frame)[0]

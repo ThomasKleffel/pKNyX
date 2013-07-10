@@ -125,7 +125,7 @@ class FunctionalBlock(object):
 
         return self
 
-    def __init__(self, name, desc=None):
+    def __init__(self, name, desc=None, individualAddress=None):
         """
 
         @param name: name of the device
@@ -134,17 +134,17 @@ class FunctionalBlock(object):
         @param desc: description of the device
         @type desc: str
 
-        @param address: source address used when transmitting on the bus
-        @type address: L{IndividualAddress}
+        @param individualAddress: individual address used as source address when transmitting on the bus
+        @type individualAddress: L{IndividualAddress}
 
         raise FunctionalBlockValueError:
         """
         super(FunctionalBlock, self).__init__()
 
         self._name = name
-
         if desc is not None:
             self._desc = "%s - %s" % (desc, self._desc)
+        self._individualAddress = individualAddress
 
     def __repr__(self):
         return "<%s(name='%s', desc='%s')>" % (reprStr(self.__class__), self._name, self._desc)
@@ -159,6 +159,10 @@ class FunctionalBlock(object):
     @property
     def desc(self):
         return self._desc
+
+    @property
+    def individualAddress(self):
+        return self._individualAddress
 
     @property
     def dp(self):

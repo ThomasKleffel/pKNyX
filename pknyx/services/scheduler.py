@@ -93,9 +93,12 @@ class SchedulerValueError(PKNyXValueError):
 
 class Scheduler_(object):
     """ Scheduler class
+
+    @ivar _apscheduler: real scheduler
+    @type _apscheduler: L{APScheduler}
     """
     def __init__(self):
-        """
+        """ Init the Scheduler object
 
         raise SchedulerValueError:
         """
@@ -116,7 +119,7 @@ class Scheduler_(object):
         Logger().debug("Scheduler._listener(): event=%s" % repr(event))
 
         if event.exception:
-            message = "\n" + "".join(traceback.format_tb(event.traceback)) + str(event.exception)
+            message = "Scheduler._listener()\n" + "".join(traceback.format_tb(event.traceback)) + str(event.exception)
             Logger().log(LEVELS['exception'], message)
 
     @property
@@ -128,6 +131,9 @@ class Scheduler_(object):
 
         @param func: job to register
         @type func: callable
+
+        @param kwargs: additional arguments for APScheduler
+        @type kwargs: dict
         """
         Logger().debug("Scheduler.addEveryJob(): func=%s" % repr(func))
         self._pendingFuncs.append(("every", func, kwargs))
@@ -193,7 +199,7 @@ class Scheduler_(object):
         return decorated
 
     def doRegisterJobs(self, obj):
-        """ Really register jobs.
+        """ Really register jobs in APScheduler
 
         @param obj: instance for which a method may have been pre-registered
         @type obj:
@@ -217,18 +223,30 @@ class Scheduler_(object):
 
     def printJobs(self):
         """ Print pending jobs
+
+        Simple proxy to APScheduler.print_jobs() method.
         """
         self._apscheduler.print_jobs()
 
     def start(self):
         """ Start the scheduler
-        """
-        self._apscheduler.start()
 
-    def shutdown(self):
-        """ Sshutdown the scheduler
+        Simple proxy to APScheduler.start() method.
         """
+        Logger().trace("Scheduler.start()")
+
+        self._apscheduler.start()
+        Logger().info("Scheduler started")
+
+    def stop(self):
+        """ Shutdown the scheduler
+
+        Simple proxy to APScheduler.stop() method.
+        """
+        Logger().trace("Scheduler.stop()")
+
         self._apscheduler.shutdown()
+        Logger().info("Scheduler stopped")
 
 
 # Scheduler factory

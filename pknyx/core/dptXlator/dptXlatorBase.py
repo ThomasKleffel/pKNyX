@@ -206,7 +206,7 @@ class DPTXlatorBase(object):
         @type data: int
 
         @return: KNX encoded data as bus frame
-        @rtype: str
+        @rtype: bytearray
         """
         raise NotImplementedError
 
@@ -214,7 +214,7 @@ class DPTXlatorBase(object):
         """ Conversion from bus frame to KNX encoded data
 
         @param frame: KNX encoded data as bus frame
-        @type frame: str
+        @type frame: bytearray
 
         @return: KNX encoded data
         @rtype: depends on the DPT

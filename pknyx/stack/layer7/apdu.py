@@ -69,7 +69,8 @@ class APDU(object):
         """
         super(APDU, self).__init__()
 
-    def makeNoParamsReq(self, apci):
+    @classmethod
+    def makeNoParamsReq(cls, apci):
         """
         """
         aPDU = TFrame.create(1)
@@ -78,7 +79,8 @@ class APDU(object):
 
         return aPDU
 
-    def makeGroupValue(self, apci, data):
+    @classmethod
+    def makeGroupValue(cls, apci, data):
         """
         """
         if len(data) == 0:
@@ -92,7 +94,8 @@ class APDU(object):
 
         return aPDU
 
-    def getGroupValueData(aPDU, length):
+    @classmethod
+    def getGroupValueData(cls, aPDU, length):
         """
         """
         data = bytearray(length)

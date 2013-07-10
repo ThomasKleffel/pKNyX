@@ -128,7 +128,7 @@ class PriorityQueue(object):
         @param priority: priority value of the object to add
         @type priority: int
         """
-        queue[priority].append(obj)
+        self._queue[priority.level].append(obj)
 
     def remove(self):
         """ Removes and returns the next element from this queue
@@ -141,11 +141,11 @@ class PriorityQueue(object):
             elif len(self._queue[i]):
                 if self._count[i] > 0:
                     self._count[i] -= 1
-                return self._queue[i].removeFirst()
+                return self._queue[i].pop(0)
 
         while i >= 0:
             if len(self._queue[i]):
-                return self._queue[i].removeFirst()
+                return self._queue[i].pop(0)
             i -= 1
 
         return None

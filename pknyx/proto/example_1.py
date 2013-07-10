@@ -39,6 +39,13 @@ schedule = Scheduler()
 #notify = Notifier()
 
 
+class DummyBlock(FunctionalBlock):
+
+    @schedule.every(minutes=2)
+    def generateException(self):
+        raise Exception("Error test")
+
+
 class WeatherTemperatureBlock(FunctionalBlock):
 
     # Datapoints definition
@@ -50,19 +57,15 @@ class WeatherTemperatureBlock(FunctionalBlock):
 
     DESC = "Temperature management block"
 
-    @schedule.every(minutes=5)
+    @schedule.every(minutes=1)
     def updateTemperatureHumidity(self):  #, event):
         Logger().trace("WeatherTemperatureBlock.updateTemperatureHumidity()")
 
         # How we retreive the temperature/humidity is out of the scope of this proposal
         temperature = 20.
         humidity = 55.
-        self.dp["temperature"] = temperature
-        self.dp["humidity"] = humidity
-
-    @schedule.every(minutes=10)
-    def generateException(self):
-        raise Exception("Error test")
+        self.dp["temperature"].value = temperature
+        self.dp["humidity"].value = humidity
 
 
 class WeatherWindBlock(FunctionalBlock):
@@ -74,14 +77,15 @@ class WeatherWindBlock(FunctionalBlock):
     DP_04 = dict(name="wind_alarm_enable", access="input", dptId="1.003", default="Disable")
 
     GO_01 = dict(dp="wind_speed", flags="CRT", priority="low")
-    GO_02 = dict(dp="wind_alarm", flags="CRT", priority="normal")
+    GO_02 = dict(dp="wind_alarm", flags="CRTS", priority="normal")
     GO_03 = dict(dp="wind_speed_limit", flags="CW", priority="low")
     GO_04 = dict(dp="wind_alarm_enable", flags="CW", priority="low")
 
     DESC = "Wind management block"
 
-    @schedule.every(minutes=1)
-    def updatehWindSpeed(self):  #, event):
+    @schedule.every(seconds=30)
+    def updateWindSpeed(self):  #, event):
+        Logger().trace("WeatherWindBlock.updateWindSpeed()")
 
         # How we retreive the speed is out of the scope of this proposal
         speed = 12.
@@ -94,6 +98,7 @@ class WeatherWindBlock(FunctionalBlock):
     #notify.datapoint()  # All DP
     #notify.group(gad="1/1/1")  # Single group address
     def checkWindSpeed(self, event):
+        Logger().trace("WeatherWindBlock.checkWindSpeed()")
 
         # Read inputs/params
         wind_speed = self.dp["wind_speed"]
@@ -164,7 +169,7 @@ class WeatherSunPositionBlock(FunctionalBlock):
     def _equatorialCoordinates(self, year, month, day, hour, minute, second):
         """ Compute rightAscension and declination.
         """
-        julianDay =  self.computeJulianDay(year, month, day, hour, minute, second)
+        julianDay =  self._computeJulianDay(year, month, day, hour, minute, second)
 
         g = 357.529 + 0.98560028 * julianDay
         q = 280.459 + 0.98564736 * julianDay
@@ -183,12 +188,12 @@ class WeatherSunPositionBlock(FunctionalBlock):
     def _azimuthalCoordinates(self, year, month, day, hour, minute, second):
         """ Compute elevation and azimuth.
         """
-        julianDay =  self.computeJulianDay(year, month, day, hour, minute, second)
-        siderealTime = self.siderealTime(julianDay)
+        julianDay =  self._computeJulianDay(year, month, day, hour, minute, second)
+        siderealTime = self._siderealTime(julianDay)
         angleH = 360. * siderealTime / 23.9344
         angleT = (hour - (self._timeZone + self._savingTime) - 12. + minute / 60. + second / 3600.) * 360. / 23.9344
         angle = angleH + angleT
-        rightAscension, declination = self.equatorialCoordinates(year, month, day, hour, minute, second)
+        rightAscension, declination = self._equatorialCoordinates(year, month, day, hour, minute, second)
         angle_horaire = angle - rightAscension * 15. + self._longitude
 
         elevation = math.degrees(math.asin(math.sin(math.radians(declination)) * math.sin(math.radians(self._latitude)) - math.cos(math.radians(declination)) * math.cos(math.radians(self._latitude)) * math.cos(math.radians(angle_horaire))))
@@ -200,8 +205,9 @@ class WeatherSunPositionBlock(FunctionalBlock):
 
         return elevation, azimuth
 
-    @schedule.every(minutes=10)
+    @schedule.every(minutes=1)
     def updatePosition(self):  #, event):
+        Logger().trace("WeatherSunPositionBlock.updatePosition()")
 
         # Read inputs/params
         self._latitude = self.dp["latitude"].value
@@ -211,11 +217,11 @@ class WeatherSunPositionBlock(FunctionalBlock):
 
         # Computations
         tm_year, tm_mon, tm_day, tm_hour, tm_min, tm_sec, tm_wday, tm_yday, tm_isdst = time.localtime()
-        julianDay =  sun.computeJulianDay(tm_year, tm_mon, tm_day, tm_hour, tm_min, tm_sec)
-        siderealTime = sun.siderealTime(julianDay)
+        julianDay =  self._computeJulianDay(tm_year, tm_mon, tm_day, tm_hour, tm_min, tm_sec)
+        siderealTime = self._siderealTime(julianDay)
 
-        rightAscension, declination = sun.equatorialCoordinates(tm_year, tm_mon, tm_day, tm_hour, tm_min, tm_sec)
-        elevation, azimuth = sun.azimuthalCoordinates(tm_year, tm_mon, tm_day, tm_hour, tm_min, tm_sec)
+        rightAscension, declination = self._equatorialCoordinates(tm_year, tm_mon, tm_day, tm_hour, tm_min, tm_sec)
+        elevation, azimuth = self._azimuthalCoordinates(tm_year, tm_mon, tm_day, tm_hour, tm_min, tm_sec)
 
         # Write outputs
         self.dp["right_ascension"].value = rightAscension
@@ -224,44 +230,61 @@ class WeatherSunPositionBlock(FunctionalBlock):
         self.dp["azimuth"].value = azimuth
 
 
-# Register FunctionalBlocks
-ets.register(WeatherTemperatureBlock, name="weather_temperature", desc="temp 1")  # , building="mob/GTL")
-ets.register(WeatherWindBlock, name="weather_wind", desc="wind 1")
-ets.register(WeatherSunPositionBlock, name="weather_sun_position", desc="sun 1")
+def main():
 
-# Weave weather station Datapoints to GroupAddresses
-# @todo: allow use of gad name, from GrOAT
-ets.weave(fb="weather_temperature", dp="temperature", gad="1/1/1")
-ets.weave(fb="weather_temperature", dp="humidity", gad="1/1/2")
+    # Register FunctionalBlocks
+    ets.register(DummyBlock, name="dummy", desc="dummy")  # , building="mob/GTL")
+    ets.register(WeatherTemperatureBlock, name="weather_temperature", desc="temp 1")  # , building="mob/GTL")
+    ets.register(WeatherWindBlock, name="weather_wind", desc="wind 1")
+    ets.register(WeatherSunPositionBlock, name="weather_sun_position", desc="sun 1")
 
-ets.weave(fb="weather_wind", dp="wind_speed", gad="1/1/3")
-ets.weave(fb="weather_wind", dp="wind_alarm", gad="1/1/4")
-ets.weave(fb="weather_wind", dp="wind_speed_limit", gad="1/1/5")
-ets.weave(fb="weather_wind", dp="wind_alarm_enable", gad="1/1/6")
+    # Weave weather station Datapoints to GroupAddresses
+    # @todo: allow use of gad name, from GrOAT
+    ets.weave(fb="weather_temperature", dp="temperature", gad="1/1/1")
+    ets.weave(fb="weather_temperature", dp="humidity", gad="1/1/2")
 
-ets.weave(fb="weather_sun_position", dp="right_ascension", gad="1/1/3")
-ets.weave(fb="weather_sun_position", dp="declination", gad="1/1/4")
-ets.weave(fb="weather_sun_position", dp="elevation", gad="1/1/5")
-ets.weave(fb="weather_sun_position", dp="azimuth", gad="1/1/6")
-ets.weave(fb="weather_sun_position", dp="latitude", gad="1/1/7")
-ets.weave(fb="weather_sun_position", dp="longitude", gad="1/1/8")
-ets.weave(fb="weather_sun_position", dp="timezone", gad="1/1/9")
-ets.weave(fb="weather_sun_position", dp="saving_time", gad="1/1/10")
-ets.weave(fb="weather_sun_position", dp="saving_time", gad="1/1/11")
+    ets.weave(fb="weather_wind", dp="wind_speed", gad="1/1/3")
+    ets.weave(fb="weather_wind", dp="wind_alarm", gad="1/1/4")
+    ets.weave(fb="weather_wind", dp="wind_speed_limit", gad="1/1/5")
+    ets.weave(fb="weather_wind", dp="wind_alarm_enable", gad="1/1/6")
 
-#print
-#print
-#ets.printMapTable("gad")
-#print
-#print
-#ets.printMapTable("go")
+    ets.weave(fb="weather_sun_position", dp="right_ascension", gad="1/1/3")
+    ets.weave(fb="weather_sun_position", dp="declination", gad="1/1/4")
+    ets.weave(fb="weather_sun_position", dp="elevation", gad="1/1/5")
+    ets.weave(fb="weather_sun_position", dp="azimuth", gad="1/1/6")
+    ets.weave(fb="weather_sun_position", dp="latitude", gad="1/1/7")
+    ets.weave(fb="weather_sun_position", dp="longitude", gad="1/1/8")
+    ets.weave(fb="weather_sun_position", dp="timezone", gad="1/1/9")
+    ets.weave(fb="weather_sun_position", dp="saving_time", gad="1/1/10")
+    ets.weave(fb="weather_sun_position", dp="saving_time", gad="1/1/11")
 
-# Start the scheduler
-# @todo: move to a better place
-print
-schedule.start()
-schedule.printJobs()
-print
+    #print
+    #print
+    #ets.printMapTable("gad")
+    #print
+    #print
+    #ets.printMapTable("go")
 
-# Run the stack main loop
-stack.serve()
+    # Start the scheduler
+    # @todo: move to a better place
+    print
+    schedule.start()
+    schedule.printJobs()
+    print
+
+    # Run the stack main loop (blocking call)
+    #stack.mainLoop()
+
+    #schedule.stop()
+
+    stack.start()
+    try:
+        while True:
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        schedule.stop()
+        stack.stop()
+
+
+if __name__ == "__main__":
+    main()

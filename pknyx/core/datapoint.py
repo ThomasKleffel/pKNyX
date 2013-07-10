@@ -208,7 +208,7 @@ class Datapoint(GroupDataListener):
         self._setData(data)
 
         # Notify owner (=FunctionalBlock)
-        # Owner will have to notify all its methods registered by @xxx.notify.datapoint()
+        # In turn, the owner will have to notify all its methods registered by @xxx.notify.datapoint()
         self._owner.notify(self.name, oldValue, self.value)
         # @todo: use an event as param
 
@@ -245,6 +245,10 @@ class Datapoint(GroupDataListener):
     @property
     def unit(self):
         return self._dptXlator.unit
+
+    @property
+    def frame(self):
+        return self._dptXlator.dataToFrame(self._data)
 
 
 if __name__ == '__main__':

@@ -124,11 +124,11 @@ class GroupObject(object):
 
         @todo: transmit a more generic object, like SignalEvent?
         """
-        Logger().debug("GroupObject._slotChanged(): oldValue=%s, newValue=%s" % (repr(oldValue), repr(newValue)))
+        Logger().debug("GroupObject._slotChanged(): dp=%s, oldValue=%s, newValue=%s" % (self._datapoint.name, repr(oldValue), repr(newValue)))
 
         if self._flags.communicate:
             if (oldValue != newValue and self._flags.transmit) or self._flags.stateless:
-                self._group.groupValueWrite(self._datapoint.owner.address, self._datapoint.data, self._priority)
+                self._group.groupValueWrite(self._datapoint.owner.individualAddress, self._priority, self._datapoint.frame)
 
     @property
     def datapoint(self):
@@ -165,7 +165,7 @@ class GroupObject(object):
         # If the flag init is set, send a read request on that accesspoint, which is bound to the default GAD
         #if self._flags.communicate:
             #if self._flags.init:
-                #self._group.groupValueRead(self._datapoint.owner.address, self._priority)
+                #self._group.groupValueRead(self._datapoint.owner.individualAddress, self._priority)
 
     @property
     def name(self):
@@ -186,7 +186,7 @@ class GroupObject(object):
         # Check if data should be send over the bus
         if self._flags.communicate:
             if self._flags.read:
-                self._group.groupValueResponse(self._datapoint.owner.address, self._datapoint.data, self._priority)
+                self._group.groupValueResponse(self._datapoint.owner.individualAddress, self._datapoint.data, self._priority)
 
     def onResponse(self, cEMI):
         Logger().debug("GroupObject.onResponse(): cEMI=%s" % repr(cEMI))

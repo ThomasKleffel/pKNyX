@@ -91,22 +91,22 @@ class Logger_(object):
         spaceColorFormatter = SpaceColorFormatter(config.LOGGER_FORMAT)
 
         # Logger
-        self.__logger = logging.getLogger('papywizard')
-        self.__logger.setLevel(logging.TRACE)
+        self._logger = logging.getLogger(config.APP_NAME)
+        self._logger.setLevel(logging.TRACE)
 
         # Handlers
         if defaultStreamHandler:
             stdoutStreamHandler = logging.StreamHandler()
             #stdoutStreamHandler.setFormatter(colorFormatter)
             stdoutStreamHandler.setFormatter(spaceColorFormatter)
-            self.__logger.addHandler(stdoutStreamHandler)
+            self._logger.addHandler(stdoutStreamHandler)
         if defaultFileHandler:
             loggerFilename = os.path.join(config.TMP_DIR, config.LOGGER_FILENAME)
             fileHandler = logging.handlers.RotatingFileHandler(loggerFilename, 'w',
                                                                config.LOGGER_MAX_BYTES,
                                                                config.LOGGER_BACKUP_COUNT)
             fileHandler.setFormatter(spaceFormatter)
-            self.__logger.addHandler(fileHandler)
+            self._logger.addHandler(fileHandler)
 
     def addStreamHandler(self, stream, formatter=DefaultFormatter):
         """ Add a new stream handler.
@@ -121,7 +121,7 @@ class Logger_(object):
         """
         handler = logging.StreamHandler(stream)
         handler.setFormatter(formatter(config.LOGGER_FORMAT))
-        self.__logger.addHandler(handler)
+        self._logger.addHandler(handler)
 
     def setLevel(self, level):
         """ Change logging level.
@@ -131,7 +131,7 @@ class Logger_(object):
         """
         if level not in LEVELS.keys():
             raise LoggerValueError("Logger level must be in %s" % LEVELS.keys())
-        self.__logger.setLevel(LEVELS[level])
+        self._logger.setLevel(LEVELS[level])
 
     def trace(self, message, *args, **kwargs):
         """ Logs a message with level TRACE.
@@ -139,7 +139,7 @@ class Logger_(object):
         @param message: message to log
         @type message: string
         """
-        self.__logger.log(logging.TRACE, message, *args, **kwargs)
+        self._logger.log(logging.TRACE, message, *args, **kwargs)
 
     def debug(self, message, *args, **kwargs):
         """ Logs a message with level DEBUG.
@@ -147,7 +147,7 @@ class Logger_(object):
         @param message: message to log
         @type message: string
         """
-        self.__logger.debug(message, *args, **kwargs)
+        self._logger.debug(message, *args, **kwargs)
 
     def info(self, message, *args, **kwargs):
         """ Logs a message with level INFO.
@@ -155,7 +155,7 @@ class Logger_(object):
         @param message: message to log
         @type message: string
         """
-        self.__logger.info(message, *args, **kwargs)
+        self._logger.info(message, *args, **kwargs)
 
     def warning(self, message, *args, **kwargs):
         """ Logs a message with level WARNING.
@@ -163,7 +163,7 @@ class Logger_(object):
         @param message: message to log
         @type message: string
         """
-        self.__logger.warning(message, *args, **kwargs)
+        self._logger.warning(message, *args, **kwargs)
 
     def error(self, message, *args, **kwargs):
         """ Logs a message with level ERROR.
@@ -171,7 +171,7 @@ class Logger_(object):
         @param message: message to log
         @type message: string
         """
-        self.__logger.error(message, *args, **kwargs)
+        self._logger.error(message, *args, **kwargs)
 
     def critical(self, message, *args, **kwargs):
         """ Logs a message with level CRITICAL.
@@ -179,7 +179,7 @@ class Logger_(object):
         @param message: message to log
         @type message: string
         """
-        self.__logger.critical(message, *args, **kwargs)
+        self._logger.critical(message, *args, **kwargs)
 
     def exception(self, message, debug=False, *args, **kwargs):
         """ Logs a message within an exception.
@@ -207,7 +207,7 @@ class Logger_(object):
         """
         if isinstance(level, str):
             level = LEVELS[level]
-        self.__logger.log(level, message, *args, **kwargs)
+        self._logger.log(level, message, *args, **kwargs)
 
     def getTraceback(self):
         """ Return the complete traceback.

@@ -45,6 +45,8 @@ Usage
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
 @license: GPL
+
+@todo: run transmitter and receiver in a simple threaded method, instead of a complete class thread.
 """
 
 __revision__ = "$Id$"
@@ -54,6 +56,8 @@ import socket
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.loggingServices import Logger
+from pknyx.stack.result import Result
+from pknyx.stack.knxAddress import KnxAddress
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.multicastSocket import MulticastSocket
@@ -63,7 +67,7 @@ from pknyx.stack.knxnetip.knxNetIPHeader import KnxnetIPHeader, KnxnetIPHeaderVa
 
 
 class GadSet(set):
-    """
+    """ A locking set of GroupAddress
     """
     def __init__(self):
         """
@@ -109,7 +113,7 @@ class UDPTransmitter(threading.Thread):
         @param tLSAP:
         @type tLSAP: L{TransceiverLSAP}
         """
-        super(UDPTransmitter, self).__init__(name="KNX Stack UDP Transmitter")
+        super(UDPTransmitter, self).__init__(name="UDP Transmitter")
 
         self._parent = parent
 
@@ -117,8 +121,7 @@ class UDPTransmitter(threading.Thread):
 
         self._running = False
 
-        self.setDaemon(True)
-        #self.start()
+        #self.setDaemon(True)
 
     @property
     def localPort(self):
@@ -133,28 +136,29 @@ class UDPTransmitter(threading.Thread):
         while self._running:
             try:
                 transmission = self._parent.tLSAP.getOutFrame()
+                #Logger().debug("UDPTransmitter.run(): transmission=%s" % repr(transmission))
                 if transmission is not None:
                     lPDU = transmission.lPDU
                     lPDU[TFrame.CF_BYTE] |= TFrame.CF_L_DATA
-                    lPDU[TFrame.SAH_BYTE] = self._parent.indivAddr.high
-                    lPDU[TFrame.SAL_BYTE] = self._parent.indivAddr.low
+                    lPDU[TFrame.SAH_BYTE] = self._parent.individualAddress.high
+                    lPDU[TFrame.SAL_BYTE] = self._parent.individualAddress.low
 
                     checksum = 0x00
-                    for i in range(self.OVERHEAD, len(lPDU)):
+                    for i in range(self._parent.OVERHEAD, len(lPDU)):
                         #checkSum = (byte)(checkSum ^ lPDU[i]);
                         checksum = (checksum ^ lPDU[i]) & 0xff
 
-                    #System.arraycopy(lPDU, self.OVERHEAD, lPDU, self.OVERHEAD-1, len(lPDU)-self.OVERHEAD)
-                    lPDU[self.OVERHEAD:] = lPDU[self.OVERHEAD-1:-1]
+                    #System.arraycopy(lPDU, self._parent.OVERHEAD, lPDU, self.OVERHEAD-1, len(lPDU)-self.OVERHEAD)
+                    lPDU[self._parent.OVERHEAD:] = lPDU[self._parent.OVERHEAD-1:-1]
                     #lPDU[lPDU.length-1] = (byte)~checkSum;
                     lPDU[len(lPDU)-1] = checksum ^ 0xff
 
-                    outFrame = lPDU[self.OVERHEAD-1:]
+                    outFrame = lPDU[self._parent.OVERHEAD-1:]
                     Logger().debug("UDPTransmitter.run(): outFrame= %s" % repr(outFrame))
                     try:
                         self._sock.send(outFrame)
                         transmission.result = Result.OK
-                    except IOException:
+                    except IOError:
                         transmission.result = Result.ERROR
 
                     if transmission.waitConfirm:
@@ -165,19 +169,24 @@ class UDPTransmitter(threading.Thread):
                         finally:
                             transmission.release()
 
+            #except socket.timeout:
+                #Logger().exception("UDPReceiver.run()", debug=True)
+
             except:
                 Logger().exception("UDPTransmitter.run()", debug=True)
 
         self._sock.close()
 
-        Logger().info("Stop")
+        Logger().info("Stopped")
 
     def stop(self):
         """ stop thread
         """
-        Logger().info("Stop UDP Transmitter")
+        Logger().trace("UDPTransmitter.stop()")
 
         self._running = False
+        self.join()
+        Logger().info("UDP Transmitter stopped")
 
 
 class UDPReceiver(threading.Thread):
@@ -192,7 +201,7 @@ class UDPReceiver(threading.Thread):
         @param parent:
         @type parent:
         """
-        super(UDPReceiver, self).__init__(name="KNX Stack UDP Receiver")
+        super(UDPReceiver, self).__init__(name="UDP Receiver")
 
         self._parent = parent
 
@@ -205,8 +214,7 @@ class UDPReceiver(threading.Thread):
 
         self._running = False
 
-        self.setDaemon(True)
-        #self.start()
+        #self.setDaemon(True)
 
     def run(self):
         """
@@ -243,7 +251,7 @@ class UDPReceiver(threading.Thread):
             #domainAddr = lPDU[TFrame.DAL_BYTE] | lPDU[TFrame.DAH_BYTE] << 8
             #Logger().debug("UDPReceiver.run(): domainAddr=%s - %s" % (GroupAddress(domainAddr), IndividualAddress(domainAddr)))
             #if lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK == TFrame.DAF_IA:  # domainAddr is an Individual Address
-                #if domainAddr == self._parent.indivAddr:  # destination matches
+                #if domainAddr == self._parent.individualAddress:  # destination matches
                     #self._parent.tLSAP.putInFrame(lPDU)
             #else:  # domainAddr is an Group Address
                 #self._parent.gadSet.acquire()
@@ -256,6 +264,9 @@ class UDPReceiver(threading.Thread):
         #else:
             #Logger().error("UDPReceiver.run(): invalid checksum (%s)" % hex(checksum))
 
+            except socket.timeout:
+                pass
+                #Logger().exception("UDPReceiver.run()", debug=True)
 
             except:
                 Logger().exception("UDPReceiver.run()", debug=True)
@@ -265,10 +276,11 @@ class UDPReceiver(threading.Thread):
     def stop(self):
         """ stop thread
         """
-        Logger().info("Stop UDP Receiver")
+        Logger().trace("UDPReceiver.stop()")
 
         self._running = False
-
+        self.join()
+        Logger().info("UDP Receiver stopped")
 
 
 class UDPTransceiverValueError(PKNyXValueError):
@@ -286,7 +298,7 @@ class UDPTransceiver(Transceiver):
     @type _mcastPort:
 
     @ivar _transmitter: multicast transmitter
-    @type _transmitter: L{Transmitter]
+    @type _transmitter: L{Transmitter}
 
     @ivar _receiver: multicast receiver
     @type _receiver: L{Receiver}
@@ -294,7 +306,8 @@ class UDPTransceiver(Transceiver):
     @ivar _gadSet: set of GAD
     @type _gadSet: L{GadSet}
     """
-    def __init__(self, tLSAP, domainAddr=0, indivAddr="0.0.0", mcastAddr="224.0.23.12", mcastPort=3671):
+    def __init__(self, tLSAP, domainAddr=KnxAddress(0), individualAddress=IndividualAddress("0.0.0"),
+                 mcastAddr="224.0.23.12", mcastPort=3671):
         """
 
         @param tLSAP:
@@ -303,8 +316,8 @@ class UDPTransceiver(Transceiver):
         @param domainAddr:
         @type domainAddr:
 
-        @param indivAddr: own Individual Address (used when no source address is given in lSDU)
-        @type indivAddr: L{IndividualAddress<pknyx.core.individualAddress>}
+        @param individualAddress: own Individual Address (used when no source address is given in lSDU)
+        @type individualAddress: str or L{IndividualAddress<pknyx.core.individualAddress>}
 
         @param mcastAddr: multicast address to bind to
         @type mcastAddr: str
@@ -314,10 +327,14 @@ class UDPTransceiver(Transceiver):
 
         raise UDPTransceiverValueError:
         """
-        super(UDPTransceiver, self).__init__(tLSAP, domainAddr, indivAddr)
+        super(UDPTransceiver, self).__init__(tLSAP, domainAddr, individualAddress)
 
+        if not isinstance(domainAddr, KnxAddress):
+            domainAddr = KnxAddress(domainAddr)
         self._domainAddr = domainAddr
-        self._indivAddr = indivAddr
+        if not isinstance(individualAddress, IndividualAddress):
+            individualAddress = IndividualAddress(individualAddress)
+        self._individualAddress = individualAddress
         self._mcastAddr = mcastAddr
         self._mcastPort = mcastPort
 
@@ -342,8 +359,8 @@ class UDPTransceiver(Transceiver):
         return self._domainAddr
 
     @property
-    def indivAddr(self):
-        return self._indivAddr
+    def individualAddress(self):
+        return self._individualAddress
 
     @property
     def mcastAddr(self):
@@ -404,18 +421,20 @@ class UDPTransceiver(Transceiver):
     def start(self):
         """
         """
-        Logger().info("Start UDP Transceiver")
+        Logger().trace("UDPTransceiver.start()")
 
         self._transmitter.start()
         self._receiver.start()
+        Logger().info("UDP Transceiver started")
 
     def stop(self):
         """
         """
-        Logger().info("Stop UDP Transceiver")
+        Logger().trace("UDPTransceiver.stop()")
 
-        self._transmitter.stop()
         self._receiver.stop()
+        self._transmitter.stop()
+        Logger().debug("UDP Transceiver stopped")
 
 
 if __name__ == '__main__':

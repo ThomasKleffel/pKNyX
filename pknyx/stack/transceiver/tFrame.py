@@ -74,10 +74,10 @@ class TFrame(object):
     PR_BYTE   = L2_START
     PR_MASK   = 0x0c
     PR_SYSTEM = 0x00
-    PR_ALARM  = 0x08
-    PR_HIGH   = 0x04
+    PR_NORMAL = 0x08
+    PR_URGENT = 0x04
     PR_LOW    = 0x0c
-    PR_CODE = (PR_SYSTEM, PR_ALARM, PR_HIGH, PR_LOW)
+    PR_CODE = (PR_SYSTEM, PR_NORMAL, PR_URGENT, PR_LOW)
 
     SAH_BYTE = L2_START + 1
     SAL_BYTE = L2_START + 2
@@ -113,12 +113,14 @@ class TFrame(object):
         """
         super(TFrame, self).__init__()
 
-    def lenCode2Len(self, lenCode):
+    @classmethod
+    def lenCode2Len(cls, lenCode):
         """
         """
         return LEN_TAB[lenCode]
 
-    def len2LenCode(self, length):
+    @classmethod
+    def len2LenCode(cls, length):
         """
         """
         code = 0
@@ -127,7 +129,8 @@ class TFrame(object):
 
         return code
 
-    def create(self, length):
+    @classmethod
+    def create(cls, length):
         """
         """
         if length > 15:
@@ -136,7 +139,7 @@ class TFrame(object):
                 code += 1
             length = LEN_TAB[code]
 
-        return bytearray(MIN_LENGTH + length)
+        return bytearray(TFrame.MIN_LENGTH + length)
 
 
 if __name__ == '__main__':

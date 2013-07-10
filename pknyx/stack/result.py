@@ -72,24 +72,20 @@ class Result(object):
     NACK = 4       # Layer 2: message was transmitted, but L2-NACK received
     DEST_BUSY = 5  # Layer 2: message was transmitted, but destination sent BUSY
 
+    AVAILABLE_CODES = (OK,
+                       ERROR,
+                       LINE_BUSY,
+                       NO_ACK,
+                       NACK,
+                       DEST_BUSY
+                      )
+
     def __init__(self):
         """
 
         raise ResultValueError:
         """
         super(Result, self).__init__()
-
-        self._availableCodes = (Result.OK,
-                                Result.ERROR,
-                                Result.LINE_BUSY,
-                                Result.NO_ACK,
-                                Result.NACK,
-                                Result.DEST_BUSY
-                                )
-
-    @property
-    def availableCodes(self):
-        return self._availableCodes
 
 
 if __name__ == '__main__':

@@ -79,6 +79,8 @@ class MulticastSocket(socket.socket):
             Logger().exception("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT", debug=True)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 255)
 
+        self.settimeout(1)
+
         self.bind(("", port))
 
     @property

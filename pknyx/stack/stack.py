@@ -54,6 +54,8 @@ import time
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.loggingServices import Logger
 from pknyx.core.groupDataService import GroupDataService
+from pknyx.stack.knxAddress import KnxAddress
+from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.layer7.a_groupDataService import A_GroupDataService
 from pknyx.stack.layer4.t_groupDataService import T_GroupDataService
 from pknyx.stack.layer3.n_groupDataService import N_GroupDataService
@@ -77,20 +79,25 @@ class Stack(object):
     """
     PRIORITY_DISTRIBUTION = (-1, 3, 2)
 
-    def __init__(self, domainAddr=0, individualAddress="0.0.0", serNo=-1,
-                 transType=UDPTransceiver, transParams=dict(mcastAddr="224.0.23.12", mcastPort=3671)):
+    def __init__(self, domainAddr=KnxAddress(0), individualAddress=IndividualAddress("0.0.0"), serNo=-1,
+                 transCls=UDPTransceiver, transParams=dict(mcastAddr="224.0.23.12", mcastPort=3671)):
         """
 
         raise StackValueError:
         """
         super(Stack, self).__init__()
 
+        if not isinstance(domainAddr, KnxAddress):
+            domainAddr = KnxAddress(domainAddr)
+        if not isinstance(individualAddress, IndividualAddress):
+            individualAddress=IndividualAddress(individualAddress)
+
         self._lds = L_DataService(Stack.PRIORITY_DISTRIBUTION)
         self._ngds = N_GroupDataService(self._lds)
         self._tgds = T_GroupDataService(self._ngds)
         self._agds = A_GroupDataService(self._tgds)
         self._gds = GroupDataService(self._agds)
-        self._tc = transType(self._lds, domainAddr, individualAddress, **transParams)
+        self._tc = transCls(self._lds, domainAddr, individualAddress, **transParams)
 
     @property
     def agds(self):
@@ -104,9 +111,28 @@ class Stack(object):
     def individualAddress(self):
         return self._tc.individualAddress
 
-    def serve(self):
-        """ Start the main loop.
+    def start(self):
+        """ Start the stack threads
 
+        @todo: name it 'server_forever()'?
+        """
+        Logger().trace("Stack.start()")
+
+        self._lds.start()
+        self._tc.start()
+        Logger().info("Stack started")
+
+    def stop(self):
+        """
+        """
+        Logger().trace("Stack.stop()")
+
+        self._lds.stop()
+        self._tc.stop()
+        Logger().info("Stack stopped")
+
+    def mainLoop(self):
+        """ Start the main loop.
         """
         self.start()
         try:
@@ -114,22 +140,6 @@ class Stack(object):
                 time.sleep(0.1)
         except KeyboardInterrupt:
             self.stop()
-
-    def start(self):
-        """ Start the stack threads
-
-        @todo: name it 'server_forever()'?
-        """
-        Logger().info("Start Stack")
-
-        self._lds.start()
-        self._tc.start()
-
-    def stop(self):
-        """
-        """
-        self._tc.stop()
-        self._lds.stop()
 
 
 if __name__ == '__main__':

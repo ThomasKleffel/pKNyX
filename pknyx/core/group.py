@@ -145,20 +145,20 @@ class Group(GroupDataListener):
             except PKNyXValueError:
                 Logger().exception("Group.onGroupValueResponse()")
 
-    def groupValueWrite(self, src, data, priority):
+    def groupValueWrite(self, src, priority, data):
         """ Write data request on the GAD associated with this group
         """
-        self._gds.agds.groupValueWriteReq(src, self._gad, data, priority)
+        self._gds.agds.groupValueWriteReq(src, self._gad, priority, data)
 
     def groupValueRead(self, src, priority):
         """ Read data request on the GAD associated with this group
         """
         self._gds.agds.groupValueReadReq(src, self._gad, priority)
 
-    def groupValueResponse(self, src, data, priority):
+    def groupValueResponse(self, src, priority, data):
         """ Response data request on the GAD associated with this group
         """
-        self._gds.agds.groupValueReadRes(src, self._gad, data, priority)
+        self._gds.agds.groupValueReadRes(src, self._gad, priority, data)
 
 
 if __name__ == '__main__':

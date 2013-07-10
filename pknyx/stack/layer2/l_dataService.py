@@ -53,6 +53,7 @@ import threading
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.loggingServices import Logger
+from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.priorityQueue import PriorityQueue
 from pknyx.stack.layer3.n_groupDataListener import N_GroupDataListener
 from pknyx.stack.transceiver.transceiverLSAP import TransceiverLSAP
@@ -120,7 +121,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         # if (lPDU[TFrame.CF_BYTE] & TFrame.CF_MASK) != TFrame.CF_L_DATA:
         #     return
 
-        # length of lPDU and length transmitted with lPDU must be equal
+        # Length of lPDU and length transmitted with lPDU must be equal
         length = (lPDU[TFrame.LEN_BYTE] & TFrame.LEN_MASK) >> TFrame.LEN_BITPOS
         if (lPDU[TFrame.LTP_BYTE] & TFrame.LTP_MASK) == TFrame.LTP_TABLE:
             length = TFrame.lenCode2Len(length)
@@ -129,7 +130,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         if length != len(lPDU):
             return
 
-        # get priority from lPDU (move test in Priority object)
+        # Get priority from lPDU (move test in Priority object)
         if (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_SYSTEM:
             priority = Priority('system')
         elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_ALARM:
@@ -141,7 +142,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         else:
             priority = Priority('low')
 
-        # add to inQueue and notify inQueue handler
+        # Add to inQueue and notify inQueue handler
         lPDU[TFrame.PR_BYTE] = priority  # memorize priority
         self._inQueue.acquire()
         try:
@@ -160,11 +161,11 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         """
         transmission = None
 
-        # test outQueue for frames to transmit, else go sleeping
+        # Test outQueue for frames to transmit, else go sleeping
         self._outQueue.acquire()
         try:
             transmission = self._outQueue.remove()
-            while transmission is None:
+            while transmission is None and self._running:
                 self._outQueue.wait()
                 transmission = self._outQueue.remove()
         finally:
@@ -172,26 +173,26 @@ class L_DataService(threading.Thread, TransceiverLSAP):
 
         return transmission
 
-    def dataReq(self, src, dest, isGAD, priority, lSDU):
+    def dataReq(self, src, dest, priority, lSDU):
         """
         """
-        Logger().debug("N_GroupDataService.groupDataReq(): src=%s, dest=%s, isGAD=%S, priority=%s, lSDU=%s" % \
-                       (src, dest, isGAD, priority, repr(lSDU)))
+        Logger().debug("N_GroupDataService.groupDataReq(): src=%s, dest=%s, priority=%s, lSDU=%s" % \
+                       (src, dest, priority, repr(lSDU)))
 
-        if gad.isNull():
-            raise N_GDSValueError("GAD is null")
+        if dest.isNull():
+            raise N_GDSValueError("destination address is null")
 
         length = len(lSDU) - TFrame.MIN_LENGTH
 
         lSDU[TFrame.LTP_BYTE] = TFrame.LTP_TABLE if length > 15 else TFrame.LTP_BYTES
-        lSDU[TFrame.PR_BYTE] |= TFrame.PR_CODE[pr]
+        lSDU[TFrame.PR_BYTE] |= TFrame.PR_CODE[priority.level]
 
-        lSDU[TFrame.SAH_BYTE] = (src >> 8) & 0xff
-        lSDU[TFrame.SAL_BYTE] = src & 0xff
-        lSDU[TFrame.DAH_BYTE] = (dest >> 8) & 0xff
-        lSDU[TFrame.DAL_BYTE] = dest & 0xff
+        lSDU[TFrame.SAH_BYTE] = (src.raw >> 8) & 0xff
+        lSDU[TFrame.SAL_BYTE] = src.raw & 0xff
+        lSDU[TFrame.DAH_BYTE] = (dest.raw >> 8) & 0xff
+        lSDU[TFrame.DAL_BYTE] = dest.raw & 0xff
 
-        lSDU[TFrame.DAF_BYTE] |= TFrame.DAF_GAD if isGAD else TFrame.DAF_IA
+        lSDU[TFrame.DAF_BYTE] |= TFrame.DAF_GAD if isinstance(dest, GroupAddress) else TFrame.DAF_IA
         lSDU[TFrame.LEN_BYTE] |= (TFrame.len2LenCode(length) if length > 15 else length) << TFrame.LEN_BITPOS
 
         waitL2Con = True
@@ -217,27 +218,28 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         """
         Logger().info("Start")
 
+        lPDU = None
         self._running = True
         while self._running:
             try:
 
-                # test inQueue for frames to handle, else go sleeping
+                # Test inQueue for frames to handle, else go sleeping
                 self._inQueue.acquire()
                 try:
-                    lPDU = self._inQueue.remove()
-                    while lPDU == None:
+                    while lPDU is None and self._running:
                         self._inQueue.wait()
                         lPDU = self._inQueue.remove()
                 finally:
                     self._inQueue.release()
 
-                # handle frame
-                src = ((lPDU[TFrame.SAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.SAL_BYTE] & 0xff)
-                dest = ((lPDU[TFrame.DAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.DAL_BYTE] & 0xff)
-                isGA = (lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_GAD
-                priority = lPDU[TFrame.PR_BYTE]
-                if self._ldl:
-                    self.lgdl.dataInd(src, dest, isGA, priority, lPDU)
+                # Handle frame
+                if lPDU is not None:
+                    src = ((lPDU[TFrame.SAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.SAL_BYTE] & 0xff)
+                    dest = ((lPDU[TFrame.DAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.DAL_BYTE] & 0xff)
+                    isGA = (lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_GAD
+                    priority = lPDU[TFrame.PR_BYTE]
+                    if self._ldl is not None:
+                        self.lgdl.dataInd(src, dest, isGA, priority, lPDU)
 
             except:
                 Logger().exception("L_DataService.run()", debug=True)
@@ -250,6 +252,19 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         Logger().info("Stop L_DataService")
 
         self._running = False
+
+        # Release output queue listeners blocked on wait()
+        self._outQueue.acquire()
+        try:
+            self._outQueue.notifyAll()
+        finally:
+            self._outQueue.release()
+
+        #self._inQueue.acquire()
+        #try:
+            #self._inQueue.notifyAll()
+        #finally:
+            #self._inQueue.release()
 
 
 if __name__ == '__main__':

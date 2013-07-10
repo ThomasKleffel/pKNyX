@@ -51,8 +51,8 @@ import os.path
 
 from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
-from pknyx.services.loggingFormatter import DefaultFormatter, ColorFormatter, \
-                                            SpaceFormatter, SpaceColorFormatter
+from pknyx.services.logFormatter import DefaultFormatter, ColorFormatter, \
+                                        SpaceFormatter, SpaceColorFormatter
 
 logger = None
 

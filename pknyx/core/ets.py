@@ -182,14 +182,14 @@ class ETS(object):
 
     link = weave  # compatibility with old examples
 
-    def printMapTable(self, by="gad", outFormatLevel=3):
-        """
+    def printGroat(self, by="gad", outFormatLevel=3):
+        """ Print the Group Object Association Table
         """
 
         # Retreive all bound gad
         gads = []
         for gad in self._stack.gds.groups.keys():
-            gads.append(GroupAddress(gad, outFormatLevel=outFormatLevel))
+            gads.append(GroupAddress(gad, outFormatLevel))
         gads.sort()
 
         if by == "gad":

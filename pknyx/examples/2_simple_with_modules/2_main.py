@@ -57,15 +57,14 @@ from sunPositionBlock import SunPositionBlock
 # ETS Group Object Association Table (GrOAT)
 GROAT = {"1": dict(name="weather_station", desc="Weather station"),
          "1/3": dict(name="sun_position", desc="Sun position"),
-         "1/3/1": dict(name="heat_setpoint_living", desc="Salle à Manger"),
-         "1/3/2": dict(name="heat_setpoint_bedroom_1", desc="Chambre 1"),
-         "1/3/3": dict(name="heat_setpoint_bedroom_2", desc="Chambre 2"),
-         "1/3/4": dict(name="heat_setpoint_bedroom_3", desc="Chambre 3"),
-         "1/3/5": dict(name="heat_temperature_living", desc="Salle à Manger"),
-         "1/3/6": dict(name="heat_temperature_bedroom_1", desc="Chambre 1"),
-         "1/3/7": dict(name="heat_temperature_bedroom_2", desc="Chambre 2"),
-         "1/3/8": dict(name="heat_temperature_bedroom_3", desc="Chambre 3"),
-         "1/3/9": dict(name="light_state_bedroom_1", desc="Chambre 1"),
+         "1/3/1": dict(name="right_ascension", desc="Right ascension"),
+         "1/3/2": dict(name="declination", desc="Declination"),
+         "1/3/3": dict(name="elevation", desc="Elevation"),
+         "1/3/4": dict(name="azimuth", desc="Azimuth"),
+         "1/3/5": dict(name="latitude", desc="Latitude"),
+         "1/3/6": dict(name="longitude", desc="Longitude"),
+         "1/3/7": dict(name="time_zone", desc="Time zone"),
+         "1/3/8": dict(name="saving_time", desc="Saving time flag")
         }
 
 stack = Stack(individualAddress="1.2.3")
@@ -91,7 +90,6 @@ def main():
     ets.weave(fb="sun_position", dp="longitude", gad="1/3/6")
     ets.weave(fb="sun_position", dp="time_zone", gad="1/3/7")
     ets.weave(fb="sun_position", dp="saving_time", gad="1/3/8")
-    ets.weave(fb="sun_position", dp="saving_time", gad="1/3/9")
 
     print
     print

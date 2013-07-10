@@ -92,6 +92,7 @@ class Logger_(object):
 
         # Logger
         self._logger = logging.getLogger(config.APP_NAME)
+        self._logger.propagate = False
         self._logger.setLevel(logging.TRACE)
 
         # Handlers

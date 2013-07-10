@@ -193,7 +193,7 @@ class SpaceFormatter(DefaultFormatter):
         elif time.time() - self._lastLogTime > 3:
             space = "\n"
         else:
-           space = ""
+            space = ""
         SpaceFormatter._lastLogTime = time.time()
 
         return space + msg

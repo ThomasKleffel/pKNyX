@@ -28,8 +28,8 @@ import shutil
 import sets
 
 from pknyx.common import config
+from pknyx.common.utils import isOdd
 from pknyx.services.logger import Logger
-from pknyx.common.helpers import isOdd
 
 if hasattr(sys, "frozen"):
     path = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), config.APP_NAME.lower(), "common")

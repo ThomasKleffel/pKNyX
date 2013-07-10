@@ -52,7 +52,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.common.helpers import reprStr
+from pknyx.common.utils import reprStr
 from pknyx.services.logger import Logger
 from pknyx.core.dptXlator.dptId import DPTID
 

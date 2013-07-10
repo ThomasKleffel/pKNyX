@@ -52,7 +52,7 @@ Usage
 __revision__ = "$Id: device.py 130 2013-07-02 08:58:54Z fma $"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.common.helpers import reprStr
+from pknyx.common.utils import reprStr
 from pknyx.services.logger import Logger
 from pknyx.core.datapoint import Datapoint
 from pknyx.core.groupObject import GroupObject

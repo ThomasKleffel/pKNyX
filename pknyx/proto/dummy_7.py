@@ -3,7 +3,7 @@
 import math
 import time
 
-from pknyx.common.helpers import dd2dms, dms2dd
+from pknyx.common.utils import dd2dms, dms2dd
 
 from pknyx.api import FunctionalBlock, Stack, ETS
 #from pknyx.api import Scheduler, Notifier

@@ -75,13 +75,14 @@ class ETS(object):
     @ivar _functionalBlocks: registered functional blocks
     @type _functionalBlocks: set of L{FunctionalBlocks<pknyx.core.functionalBlocks>}
 
-    @ivar _gadMap:
+    @ivar _groat: Group Object Association Table
+    @type _groat: dict
 
     @ivar _buidlingMap:
 
     raise ETSValueError:
     """
-    def __init__(self, stack, gadMap={}, buildingMap={}):
+    def __init__(self, stack, groat={}, buildingMap={}):
         """
 
         @param stack: KNX stack object
@@ -92,7 +93,7 @@ class ETS(object):
         super(ETS, self).__init__()
 
         self._stack = stack
-        self._gadMap = gadMap
+        self._groat = groat
         self._buildingMap = buildingMap
 
         self._functionalBlocks = set()
@@ -114,20 +115,12 @@ class ETS(object):
         return dps
 
     @property
-    def gadMap(self):
-        return self._gadMap
-
-    @gadMap.setter
-    def gadMap(self, gadMap):
-        self._gadMap = gadMap
+    def groat(self):
+        return self._groat
 
     @property
     def buildingMap(self):
         return self._buildingMap
-
-    @gadMap.setter
-    def buildingMap(self, buildingMap):
-        self._gadMap = buildingMap
 
     def register(self, cls, name, desc=None, individualAddress=None, building='root'):
         """ Register a functional block
@@ -208,24 +201,24 @@ class ETS(object):
             for gad in gads:
                 if gadMain != gad.main:
                     index = "%d" % gad.main
-                    if self._gadMap.has_key(index):
-                        print u"%2d %-33s" % (gad.main, self._gadMap[index]['desc'].decode("utf-8"))
+                    if self._groat.has_key(index):
+                        print u"%2d %-33s" % (gad.main, self._groat[index]['desc'].decode("utf-8"))
                     else:
                         print u"%2d %-33s" % (gad.main, "")
                     gadMain = gad.main
                     gadMiddle = gadSub = -1
                 if gadMiddle != gad.middle:
                     index = "%d/%d" % (gad.main, gad.middle)
-                    if self._gadMap.has_key(index):
-                        print u" ├── %2d %-27s" % (gad.middle, self._gadMap[index]['desc'].decode("utf-8"))
+                    if self._groat.has_key(index):
+                        print u" ├── %2d %-27s" % (gad.middle, self._groat[index]['desc'].decode("utf-8"))
                     else:
                         print u" ├── %2d %-27s" % (gad.middle, "")
                     gadMiddle = gad.middle
                     gadSub = -1
                 if gadSub != gad.sub:
                     index = "%d/%d/%d" % (gad.main, gad.middle, gad.sub)
-                    if self._gadMap.has_key(index):
-                        print u" │    ├── %3d %-21s" % (gad.sub, self._gadMap[index]['desc'].decode("utf-8")),
+                    if self._groat.has_key(index):
+                        print u" │    ├── %3d %-21s" % (gad.sub, self._groat[index]['desc'].decode("utf-8")),
                     else:
                         print u" │    ├── %3d %-21s" % (gad.sub, ""),
                     gadSub = gad.sub

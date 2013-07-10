@@ -49,7 +49,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: device.py 130 2013-07-02 08:58:54Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.utils import reprStr

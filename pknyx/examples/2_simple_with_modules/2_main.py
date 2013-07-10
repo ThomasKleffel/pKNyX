@@ -46,7 +46,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: ets.py 161 2013-07-10 13:21:51Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.api import Logger
 from pknyx.api import Stack, ETS

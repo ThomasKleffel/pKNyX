@@ -74,7 +74,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: template.py 130 2013-07-02 08:58:54Z fma $"
+__revision__ = "$Id$"
 
 import traceback
 

@@ -271,7 +271,7 @@ class UDPReceiver(threading.Thread):
             except:
                 Logger().exception("UDPReceiver.run()", debug=True)
 
-        Logger().info("Stop")
+        Logger().info("Stopped")
 
     def stop(self):
         """ stop thread
@@ -434,7 +434,7 @@ class UDPTransceiver(Transceiver):
 
         self._receiver.stop()
         self._transmitter.stop()
-        Logger().debug("UDP Transceiver stopped")
+        Logger().info("UDP Transceiver stopped")
 
 
 if __name__ == '__main__':

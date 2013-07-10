@@ -146,11 +146,19 @@ class FunctionalBlock(object):
             self._desc = "%s - %s" % (desc, self._desc)
         self._individualAddress = individualAddress
 
+        # Call for additionnal init
+        self._init()
+
     def __repr__(self):
         return "<%s(name='%s', desc='%s')>" % (reprStr(self.__class__), self._name, self._desc)
 
     def __str__(self):
         return "<%s('%s')>" % (reprStr(self.__class__), self._name)
+
+    def _init(self):
+        """ Additionnal user init
+        """
+        pass
 
     @property
     def name(self):

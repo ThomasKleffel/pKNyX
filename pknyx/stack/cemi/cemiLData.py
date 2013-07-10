@@ -53,7 +53,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.logging.loggingServices import Logger
+from pknyx.services.loggingServices import Logger
 from pknyx.stack.cemi.cemi import CEMI, CEMIValueError
 
 

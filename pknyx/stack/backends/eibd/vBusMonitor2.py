@@ -45,7 +45,7 @@ import os
 import sys
 import subprocess
 
-from pknyx.logging.loggingServices import Logger
+from pknyx.services.loggingServices import Logger
 from pknyx.stack.backends.eibd.eibConnection import EIBConnection, EIBBuffer, EIBAddr
 
 

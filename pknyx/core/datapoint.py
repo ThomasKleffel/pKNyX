@@ -63,7 +63,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.logging.loggingServices import Logger
+from pknyx.services.loggingServices import Logger
 from pknyx.common.signal import Signal
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
@@ -152,8 +152,8 @@ class Datapoint(GroupDataListener):
         self._dptId = dptId
         self._access = access
         self._default = default
+        self._data = None
 
-        self._data = default
         self._dptXlator = DPTXlatorFactory().create(dptId)
         if dptId != dptId.generic:
             self._dptXlatorGeneric = DPTXlatorFactory().create(dptId.generic)
@@ -162,6 +162,10 @@ class Datapoint(GroupDataListener):
 
         # Signals definition
         self._signalChanged = Signal()
+
+        # Set default value
+        if default is not None:
+            self._setValue(default)
 
     def __repr__(self):
         return "<Datapoint(name='%s', access='%s', dptId='%s')>" % \
@@ -196,7 +200,7 @@ class Datapoint(GroupDataListener):
 
     def _setData(self, data):
         self._dptXlator.checkData(data)
-        oldValue = self._value
+        oldValue = self.value
         self._data = data
 
     @data.setter
@@ -228,11 +232,11 @@ class Datapoint(GroupDataListener):
 
     def _setValue(self, value):
         self._dptXlator.checkValue(value)
-        oldValue = self.value
         self._setData(self._dptXlator.valueToData(value))
 
     @value.setter
     def value(self, value):
+        oldValue = self.value
         self._setValue(value)
 
         # Notify associated GroupObject (and other proxies), if any

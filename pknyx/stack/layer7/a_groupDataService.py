@@ -49,7 +49,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.logging.loggingServices import Logger
+from pknyx.services.loggingServices import Logger
 from pknyx.stack.layer7.apci import APCI
 from pknyx.stack.layer7.apdu import APDU
 from pknyx.stack.layer4.t_groupDataListener import T_GroupDataListener

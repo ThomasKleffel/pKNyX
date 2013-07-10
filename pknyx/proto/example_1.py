@@ -50,15 +50,19 @@ class WeatherTemperatureBlock(FunctionalBlock):
 
     DESC = "Temperature management block"
 
-    @schedule.every(seconds=5)
+    @schedule.every(minutes=5)
     def updateTemperatureHumidity(self):  #, event):
         Logger().trace("WeatherTemperatureBlock.updateTemperatureHumidity()")
-        print toto
+
         # How we retreive the temperature/humidity is out of the scope of this proposal
-        # temperature = xxx
-        # humidity = xxx
+        temperature = 20.
+        humidity = 55.
         self.dp["temperature"] = temperature
         self.dp["humidity"] = humidity
+
+    @schedule.every(minutes=10)
+    def generateException(self):
+        raise Exception("Error test")
 
 
 class WeatherWindBlock(FunctionalBlock):
@@ -76,11 +80,11 @@ class WeatherWindBlock(FunctionalBlock):
 
     DESC = "Wind management block"
 
-    #schedule.every(minute=5)
-    def updatehWindSpeed(self, event):
+    @schedule.every(minutes=1)
+    def updatehWindSpeed(self):  #, event):
 
         # How we retreive the speed is out of the scope of this proposal
-        # speed = xxx
+        speed = 12.
 
         # Now, write the new speed value to the Datapoint
         # This will trigger the bus notification, if a group object is associated
@@ -196,8 +200,8 @@ class WeatherSunPositionBlock(FunctionalBlock):
 
         return elevation, azimuth
 
-    #schedule.every(minute=5)
-    def updatePosition(self, event):
+    @schedule.every(minutes=10)
+    def updatePosition(self):  #, event):
 
         # Read inputs/params
         self._latitude = self.dp["latitude"].value
@@ -254,8 +258,10 @@ ets.weave(fb="weather_sun_position", dp="saving_time", gad="1/1/11")
 
 # Start the scheduler
 # @todo: move to a better place
-schedule.printJobs()
+print
 schedule.start()
+schedule.printJobs()
+print
 
 # Run the stack main loop
 stack.serve()

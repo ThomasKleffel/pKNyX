@@ -53,7 +53,7 @@ import threading
 import socket
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.logging.loggingServices import Logger
+from pknyx.services.loggingServices import Logger
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.multicastSocket import MulticastSocket
@@ -218,9 +218,9 @@ class UDPReceiver(threading.Thread):
             try:
                 inFrame, (fromAddr, fromPort) = self._sock.receive()
                 Logger().debug("UDPReceiver.run(): inFrame=%s" % repr(inFrame))
-                frame = bytearray(frame)
+                inFrame = bytearray(inFrame)
                 try:
-                    header = KnxnetIPHeader(frame)
+                    header = KnxnetIPHeader(inFrame)
                 except KnxnetIPHeaderValueError:
                     Logger().exception("UDPReceiver.run()", debug=True)
 

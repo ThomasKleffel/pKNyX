@@ -53,7 +53,7 @@ __revision__ = "$Id$"
 
 import struct
 
-from pknyx.logging.loggingServices import Logger
+from pknyx.services.loggingServices import Logger
 from pknyx.core.dptXlator.dptId import DPTID
 from pknyx.core.dptXlator.dpt import DPT
 from pknyx.core.dptXlator.dptXlatorBase import DPTXlatorBase, DPTXlatorValueError
@@ -119,9 +119,9 @@ class DPTXlator2ByteFloat(DPTXlatorBase):
         while not -2048 <= mant <= 2047:
             mant = mant >> 1
             exp += 1
-        #Logger().debug("DPT2ByteFloat.valueToData(): sign=%d, exp=%d, mant=%r" % (sign, exp, mant))
+        Logger().debug("DPT2ByteFloat.valueToData(): sign=%d, exp=%d, mant=%r" % (sign, exp, mant))
         data = (sign << 15) | (exp << 11) | (int(mant) & 0x07ff)
-        #Logger().debug("DPT2ByteFloat.valueToData(): data=%s" % hex(data))
+        Logger().debug("DPT2ByteFloat.valueToData(): data=%s" % hex(data))
         return data
 
     def dataToFrame(self, data):

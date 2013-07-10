@@ -56,7 +56,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.logging.loggingServices import Logger
+from pknyx.services.loggingServices import Logger
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.services.scheduler import Scheduler
 
@@ -145,11 +145,11 @@ class ETS(object):
         self._functionalBlocks.add(fb)
 
         # Also register pending scheduler jobs
-        Scheduler().registerJobs(fb)
+        # @todo: do the same for trigger...
+        Scheduler().doRegisterJobs(fb)
 
-
-    def link(self, fb, dp, gad):
-        """ Link a datapoint to a GAD
+    def weave(self, fb, dp, gad):
+        """ Weave (link, bind...) a datapoint to a group address
 
         @param fb: name of the functional block owning the datapoint
         @type fb: str
@@ -185,7 +185,7 @@ class ETS(object):
         if groupObject.group is None:
             groupObject.group = group
 
-    weave = link
+    link = weave  # compatibility with old examples
 
     def printMapTable(self, by="gad", outFormatLevel=3):
         """

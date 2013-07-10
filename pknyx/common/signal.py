@@ -71,7 +71,7 @@ import os.path
 import weakref
 import inspect
 
-#from pknyx.logging.loggingServices import Logger
+#from pknyx.services.loggingServices import Logger
 
 
 class Signal(object):

@@ -52,7 +52,7 @@ __revision__ = "$Id$"
 import threading
 
 from pknyx.common.exception import PKNyXValueError
-from pknyx.logging.loggingServices import Logger
+from pknyx.services.loggingServices import Logger
 from pknyx.stack.priorityQueue import PriorityQueue
 from pknyx.stack.layer3.n_groupDataListener import N_GroupDataListener
 from pknyx.stack.transceiver.transceiverLSAP import TransceiverLSAP

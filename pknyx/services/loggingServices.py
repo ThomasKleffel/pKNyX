@@ -8,32 +8,33 @@ License
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
   - (C) 2013 Frédéric Mantegazza
 
-Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
-the European Commission - subsequent versions of the EUPL (the "Licence");
-You may not use this work except in compliance with the Licence.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
-You may obtain a copy of the Licence at:
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
- - U{http://ec.europa.eu/idabc/eupl}
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+or see:
 
-Unless required by applicable law or agreed to in writing, software distributed
-under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, either express or implied.
-
-See the Licence for the specific language governing permissions and limitations
-under the Licence.
+ - U{http://www.gnu.org/licenses/gpl.html}
 
 Module purpose
 ==============
 
-Logging
+Logging service
 
 Implements
 ==========
 
-- DefaultFormatter
-- ColorFormatter
-- Logger
+- B{LoggerValueError}
+- B{Logger}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -49,22 +50,36 @@ import traceback
 import os.path
 
 from pknyx.common import config
-from pknyx.logging.loggingFormatter import DefaultFormatter, ColorFormatter, \
-                                           SpaceFormatter, SpaceColorFormatter
+from pknyx.common.exception import PKNyXValueError
+from pknyx.services.loggingFormatter import DefaultFormatter, ColorFormatter, \
+                                            SpaceFormatter, SpaceColorFormatter
 
 logger = None
 
+LEVELS = {'trace': logging.DEBUG - 5,
+          'debug': logging.DEBUG,
+          'info': logging.INFO,
+          'warning': logging.WARNING,
+          'error': logging.ERROR,
+          'exception': logging.ERROR + 5,
+          'critical': logging.CRITICAL}
 
-class LoggerObject(object):
+
+class LoggerValueError(PKNyXValueError):
+    """
+    """
+
+
+class Logger_(object):
     """ Logger object.
     """
     def __init__(self, defaultStreamHandler, defaultFileHandler):
         """ Init object.
         """
-        super(LoggerObject, self).__init__()
+        super(Logger_, self).__init__()
 
-        logging.TRACE = logging.DEBUG - 5
-        logging.EXCEPTION = logging.ERROR + 5
+        logging.TRACE = LEVELS['trace']
+        logging.EXCEPTION = LEVELS['exception']
         logging.raiseExceptions = 0
         logging.addLevelName(logging.TRACE, "TRACE")
         logging.addLevelName(logging.EXCEPTION, "EXCEPTION")
@@ -102,7 +117,7 @@ class LoggerObject(object):
         @type stream: file
 
         @param formatter: associated formatter
-        @type formatter: L{DefaultFormatter<pknyx.common.loggingFormatter>}
+        @type formatter: L{DefaultFormatter<pknyx.services.loggingFormatter>}
         """
         handler = logging.StreamHandler(stream)
         handler.setFormatter(formatter(config.LOGGER_FORMAT))
@@ -114,17 +129,9 @@ class LoggerObject(object):
         @param level: new level, in ('trace', 'debug', 'info', 'warning', 'error', 'exception', 'critical')
         @type level: str
         """
-        loggerLevels = ('trace', 'debug', 'info', 'warning', 'error', 'exception', 'critical')
-        if level not in loggerLevels:
-            raise ValueError("Logger level must be in %s" % repr(loggerLevels))
-        levels = {'trace': logging.TRACE,
-                  'debug': logging.DEBUG,
-                  'info': logging.INFO,
-                  'warning': logging.WARNING,
-                  'error': logging.ERROR,
-                  'exception': logging.EXCEPTION,
-                  'critical': logging.CRITICAL}
-        self.__logger.setLevel(levels[level])
+        if level not in LEVELS.keys():
+            raise LoggerValueError("Logger level must be in %s" % LEVELS.keys())
+        self.__logger.setLevel(LEVELS[level])
 
     def trace(self, message, *args, **kwargs):
         """ Logs a message with level TRACE.
@@ -193,11 +200,13 @@ class LoggerObject(object):
         """ Logs a message with given level.
 
         @param level: log level to use
-        @type level: int
+        @type level: int or str
 
         @param message: message to log
         @type message: string
         """
+        if isinstance(level, str):
+            level = LEVELS[level]
         self.__logger.log(level, message, *args, **kwargs)
 
     def getTraceback(self):
@@ -221,6 +230,6 @@ class LoggerObject(object):
 def Logger(defaultStreamHandler=True, defaultFileHandler=True):
     global logger
     if logger is None:
-        logger = LoggerObject(defaultStreamHandler, defaultFileHandler)
+        logger = Logger_(defaultStreamHandler, defaultFileHandler)
 
     return logger

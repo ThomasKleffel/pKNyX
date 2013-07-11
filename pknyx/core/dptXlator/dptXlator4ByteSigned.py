@@ -108,7 +108,7 @@ class DPTXlator4ByteSigned(DPTXlatorBase):
         return data
 
     def dataToFrame(self, data):
-        return struct.pack(">L", data)
+        return bytearray(struct.pack(">L", data))
 
     def frameToData(self, frame):
         data = struct.unpack(">L", frame)[0]

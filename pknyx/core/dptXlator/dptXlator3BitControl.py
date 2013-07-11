@@ -108,7 +108,7 @@ class DPTXlator3BitControl(DPTXlatorBase):
     # Add properties control and stepCode + helper methods (+ intervals?)
 
     def dataToFrame(self, data):
-        return struct.pack(">B", data)
+        return bytearray(struct.pack(">B", data))
 
     def frameToData(self, frame):
 

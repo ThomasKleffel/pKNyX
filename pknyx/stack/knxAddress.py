@@ -129,12 +129,8 @@ class KnxAddress(object):
         """
         return struct.pack(">H", self._raw)
 
+    @property
     def isNull(self):
-        """ Check if adress is null
-
-        @return: True if address is null, False otherwise
-        @rtype: bool
-        """
         return self._raw == 0x0000
 
 

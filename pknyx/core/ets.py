@@ -59,6 +59,7 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.services.scheduler import Scheduler
+from pknyx.services.notifier import Notifier
 
 
 class ETSValueError(PKNyXValueError):
@@ -139,9 +140,9 @@ class ETS(object):
 
         self._functionalBlocks.add(fb)
 
-        # Also register pending scheduler jobs
-        # @todo: do the same for notifier...
+        # Also register pending scheduler/notifier jobs
         Scheduler().doRegisterJobs(fb)
+        Notifier().doRegisterJobs(fb)
 
     def weave(self, fb, dp, gad):
         """ Weave (link, bind...) a datapoint to a group address
@@ -194,7 +195,6 @@ class ETS(object):
         gads.sort()
 
         if by == "gad":
-            print "Ordered by GroupAddress:\n"
             title = "%-35s %-25s %-30s %-10s %-10s %-10s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
             print title
             print len(title) * "-"
@@ -239,7 +239,6 @@ class ETS(object):
             # Retreive all groupObjects, not only bound ones
             # @todo: use building presentation
             mapByDP = {}
-            print "Ordered by GroupObject:\n"
             title = "%-30s %-25s %-10s %-30s %-10s %-10s" % ("Functional block", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
             print title
             print len(title) * "-"

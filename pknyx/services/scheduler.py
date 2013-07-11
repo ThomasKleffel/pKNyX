@@ -94,9 +94,16 @@ class SchedulerValueError(PKNyXValueError):
 class Scheduler_(object):
     """ Scheduler class
 
+    @ivar _pendingFuncs:
+    @type _pendingFuncs: list
+
     @ivar _apscheduler: real scheduler
     @type _apscheduler: L{APScheduler}
     """
+    TYPE_EVERY = 1
+    TYPE_AT = 2
+    TYPE_CRON = 3
+
     def __init__(self):
         """ Init the Scheduler object
 
@@ -136,7 +143,7 @@ class Scheduler_(object):
         @type kwargs: dict
         """
         Logger().debug("Scheduler.addEveryJob(): func=%s" % repr(func))
-        self._pendingFuncs.append(("every", func, kwargs))
+        self._pendingFuncs.append((Scheduler_.TYPE_EVERY, func, kwargs))
 
     def every(self, **kwargs):
         """ Decorator for addEveryJob()
@@ -159,7 +166,7 @@ class Scheduler_(object):
         @type func: callable
         """
         Logger().debug("Scheduler.addAtJob(): func=%s" % repr(func))
-        self._pendingFuncs.append(("at", func, kwargs))
+        self._pendingFuncs.append((Scheduler_.TYPE_AT, func, kwargs))
 
     def at(self, **kwargs):
         """ Decorator for addAtJob()
@@ -182,7 +189,7 @@ class Scheduler_(object):
         @type func: callable
         """
         Logger().debug("Scheduler.addCronJob(): func=%s" % repr(func))
-        self._pendingFuncs.append(("cron", func, kwargs))
+        self._pendingFuncs.append((Scheduler_.TYPE_CRON, func, kwargs))
 
     def cron(self, **kwargs):
         """ Decorator for addCronJob()
@@ -202,24 +209,22 @@ class Scheduler_(object):
         """ Really register jobs in APScheduler
 
         @param obj: instance for which a method may have been pre-registered
-        @type obj:
+        @type obj: object
         """
         Logger().debug("Scheduler.doRegisterJobs(): obj=%s" % repr(obj))
 
         for type_, func, kwargs in self._pendingFuncs:
             Logger().debug("Scheduler.doRegisterJobs(): type_=\"%s\", func=%s, kwargs=%s" % (type_, func.func_name, repr(kwargs)))
-            try:
-                method = getattr(obj, func.func_name)
-                Logger().debug("Scheduler.doRegisterJobs(): method=%s" % repr(method))
+            method = getattr(obj, func.func_name, None)
+            if method is not None:
+                Logger().debug("Scheduler.doRegisterJobs(): add method %s() of %s" % (method.im_func.func_name, method.im_self))
                 if method.im_func is func:
-                    if type_ == 'every':
+                    if type_ == Scheduler_.TYPE_EVERY:
                         self._apscheduler.add_interval_job(method, **kwargs)
-                    elif type_ == 'at':
+                    elif type_ == Scheduler_.TYPE_AT:
                         self._apscheduler.add_date_job(method, **kwargs)
-                    elif type_ == 'cron':
+                    elif type_ == Scheduler_.TYPE_CRON:
                         self._apscheduler.add_cron_job(method, **kwargs)
-            except AttributeError:
-                Logger().exception("Scheduler.doRegisterJobs()", debug=True)
 
     def printJobs(self):
         """ Print pending jobs
@@ -249,11 +254,23 @@ class Scheduler_(object):
         Logger().info("Scheduler stopped")
 
 
-# Scheduler factory
-def Scheduler():
+def Scheduler(autoStart=True):
+    """ Scheduler factory
+
+    This factory always return the same instance of the Scheduler_ object, acting as a Singleton.
+
+    @param autoStart: if True, automatically starts the scheduler
+    @type autoStart: bool
+
+    @todo: use a Borg instead?
+    """
     global scheduler
+
     if scheduler is None:
         scheduler = Scheduler_()
+
+    if autoStart and not scheduler._apscheduler.running:
+        scheduler.start()
 
     return scheduler
 

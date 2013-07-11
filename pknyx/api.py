@@ -52,6 +52,7 @@ __revision__ = "$Id$"
 
 from pknyx.services.logger import Logger
 from pknyx.services.scheduler import Scheduler
+from pknyx.services.notifier import Notifier
 from pknyx.core.functionalBlock import FunctionalBlock
 from pknyx.core.ets import ETS
 from pknyx.stack.stack import Stack

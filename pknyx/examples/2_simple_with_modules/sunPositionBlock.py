@@ -103,7 +103,7 @@ class SunPositionBlock(FunctionalBlock):
         self._sun.timeZone = self.dp["time_zone"].value
         self._sun.savingTime = self.dp["saving_time"].value
 
-    @schedule.every(seconds=5)
+    @schedule.every(minutes=15)
     def updateSunPosition(self):
         logger.trace("WeatherSunPositionBlock.updatePosition()")
 

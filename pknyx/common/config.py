@@ -81,3 +81,4 @@ LOGGER_FILENAME = "%s%slog" % (APP_NAME.lower(), os.path.extsep)
 LOGGER_MAX_BYTES = 100 * 1024
 LOGGER_BACKUP_COUNT = 3
 
+# @todo: add automatic load of a gad map if present in config dir

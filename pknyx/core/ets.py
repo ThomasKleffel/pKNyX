@@ -75,14 +75,14 @@ class ETS(object):
     @ivar _functionalBlocks: registered functional blocks
     @type _functionalBlocks: set of L{FunctionalBlocks<pknyx.core.functionalBlocks>}
 
-    @ivar _groat: Group Object Association Table
-    @type _groat: dict
+    @ivar _gadMap: group address map
+    @type _gadMap: dict
 
     @ivar _buidlingMap:
 
     raise ETSValueError:
     """
-    def __init__(self, stack, groat={}, buildingMap={}):
+    def __init__(self, stack, gadMap={}, buildingMap={}):
         """
 
         @param stack: KNX stack object
@@ -93,7 +93,7 @@ class ETS(object):
         super(ETS, self).__init__()
 
         self._stack = stack
-        self._groat = groat
+        self._gadMap = gadMap
         self._buildingMap = buildingMap
 
         self._functionalBlocks = set()
@@ -115,8 +115,8 @@ class ETS(object):
         return dps
 
     @property
-    def groat(self):
-        return self._groat
+    def gadMap(self):
+        return self._gadMap
 
     @property
     def buildingMap(self):
@@ -140,7 +140,7 @@ class ETS(object):
         self._functionalBlocks.add(fb)
 
         # Also register pending scheduler jobs
-        # @todo: do the same for trigger...
+        # @todo: do the same for notifier...
         Scheduler().doRegisterJobs(fb)
 
     def weave(self, fb, dp, gad):
@@ -175,11 +175,12 @@ class ETS(object):
         group = self._stack.gds.subscribe(gad, groupObject)
 
         # If not already done, set the GroupObject group. This group will be used when the GroupObject wants to
-        # communicate on the bus. This mimics the S flag of ETS real application
+        # communicate on the bus. This mimics the S flag of ETS real application.
         # @todo: find a better way
         if groupObject.group is None:
             groupObject.group = group
 
+    bind = weave  # nice name too!
     link = weave  # compatibility with old examples
 
     def printGroat(self, by="gad", outFormatLevel=3):
@@ -201,24 +202,24 @@ class ETS(object):
             for gad in gads:
                 if gadMain != gad.main:
                     index = "%d" % gad.main
-                    if self._groat.has_key(index):
-                        print u"%2d %-33s" % (gad.main, self._groat[index]['desc'].decode("utf-8"))
+                    if self._gadMap.has_key(index):
+                        print u"%2d %-33s" % (gad.main, self._gadMap[index]['desc'].decode("utf-8"))
                     else:
                         print u"%2d %-33s" % (gad.main, "")
                     gadMain = gad.main
                     gadMiddle = gadSub = -1
                 if gadMiddle != gad.middle:
                     index = "%d/%d" % (gad.main, gad.middle)
-                    if self._groat.has_key(index):
-                        print u" ├── %2d %-27s" % (gad.middle, self._groat[index]['desc'].decode("utf-8"))
+                    if self._gadMap.has_key(index):
+                        print u" ├── %2d %-27s" % (gad.middle, self._gadMap[index]['desc'].decode("utf-8"))
                     else:
                         print u" ├── %2d %-27s" % (gad.middle, "")
                     gadMiddle = gad.middle
                     gadSub = -1
                 if gadSub != gad.sub:
                     index = "%d/%d/%d" % (gad.main, gad.middle, gad.sub)
-                    if self._groat.has_key(index):
-                        print u" │    ├── %3d %-21s" % (gad.sub, self._groat[index]['desc'].decode("utf-8")),
+                    if self._gadMap.has_key(index):
+                        print u" │    ├── %3d %-21s" % (gad.sub, self._gadMap[index]['desc'].decode("utf-8")),
                     else:
                         print u" │    ├── %3d %-21s" % (gad.sub, ""),
                     gadSub = gad.sub

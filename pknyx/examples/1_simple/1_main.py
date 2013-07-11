@@ -41,6 +41,8 @@ Implements
 Documentation
 =============
 
+A simple showing example how to use the framework.
+
 Usage
 =====
 
@@ -58,20 +60,20 @@ from pknyx.api import Logger
 from pknyx.api import FunctionalBlock, Stack, ETS
 from pknyx.api import Scheduler
 
-# ETS Group Object Association Table (GrOAT)
-GROAT = {"1": dict(name="weather_station", desc="Weather station"),
-         "1/1": dict(name="temperatures", desc="Temperatures"),
-         "1/1/1": dict(name="external_temperature", desc="External temperature"),
-         "1/1/2": dict(name="external_humidity", desc="External humidity"),
-         "1/2": dict(name="wind", desc="Wind"),
-         "1/2/1": dict(name="wind_speed", desc="Wind speed"),
-         "1/2/2": dict(name="wind_alarm", desc="Wind alarm"),
-         "1/2/3": dict(name="wind_speed_limit", desc="Wind speed limit"),
-         "1/2/4": dict(name="wind_alarm_enable", desc="Wind alarm enable"),
-        }
+# ETS group address map
+GAD_MAP = {"1": dict(name="weather_station", desc="Weather station"),
+           "1/1": dict(name="temperatures", desc="Temperatures"),
+           "1/1/1": dict(name="external_temperature", desc="External temperature"),
+           "1/1/2": dict(name="external_humidity", desc="External humidity"),
+           "1/2": dict(name="wind", desc="Wind"),
+           "1/2/1": dict(name="wind_speed", desc="Wind speed"),
+           "1/2/2": dict(name="wind_alarm", desc="Wind alarm"),
+           "1/2/3": dict(name="wind_speed_limit", desc="Wind speed limit"),
+           "1/2/4": dict(name="wind_alarm_enable", desc="Wind alarm enable"),
+          }
 
 stack = Stack(individualAddress="1.2.3")
-ets = ETS(stack, groat=GROAT)
+ets = ETS(stack, gadMap=GAD_MAP)
 
 schedule = Scheduler()
 
@@ -143,30 +145,30 @@ class WeatherWindBlock(FunctionalBlock):
         logger.trace("WeatherWindBlock.checkWindSpeed()")
 
         # Read inputs/params
-        wind_speed = self.dp["wind_speed"].value
-        wind_alarm_enable = self.dp["wind_alarm_enable"].value
-        wind_speed_limit = self.dp["wind_speed_limit"].value
+        windSpeed = self.dp["wind_speed"].value
+        windAlarmEnable = self.dp["wind_alarm_enable"].value
+        windSpeedLimit = self.dp["wind_speed_limit"].value
 
         # Check if alarm
-        if wind_speed > wind_speed_limit:
-            wind_alarm = "Alarm"
-        elif wind_speed < wind_speed_limit - 5.:
-            wind_alarm = "No alarm"
+        if windSpeed > windSpeedLimit:
+            windAlarm = "Alarm"
+        elif windSpeed < windSpeedLimit - 5.:
+            windAlarm = "No alarm"
 
         # Write outputs
-        if wind_alarm_enable:
-            self.dp["wind_alarm"].value = wind_alarm
+        if windAlarmEnable:
+            self.dp["wind_alarm"].value = windAlarm
 
 
 def main():
 
-    # Register Functional Blocks
+    # Register functional blocks
     ets.register(DummyBlock, name="dummy", desc="dummy")
     ets.register(WeatherTemperatureBlock, name="weather_temperature", desc="temp 1")
     ets.register(WeatherWindBlock, name="weather_wind", desc="wind 1")
 
-    # Weave blocks Datapoints to Group Addresses
-    # @todo: allow use of gad name, from GROAT
+    # Weave weather station datapoints to group addresses
+    # @todo: allow use of gad name, from gad map
     ets.weave(fb="weather_temperature", dp="temperature", gad="1/1/1")
     ets.weave(fb="weather_temperature", dp="humidity", gad="1/1/2")
     ets.weave(fb="weather_wind", dp="wind_speed", gad="1/2/1")

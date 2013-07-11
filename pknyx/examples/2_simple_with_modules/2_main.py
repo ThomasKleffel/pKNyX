@@ -38,6 +38,8 @@ Implements
 Documentation
 =============
 
+A simple example showing how to use the framework. Here, the code is split up to different modules.
+
 Usage
 =====
 
@@ -54,21 +56,21 @@ from pknyx.api import Scheduler
 
 from sunPositionBlock import SunPositionBlock
 
-# ETS Group Object Association Table (GrOAT)
-GROAT = {"1": dict(name="weather_station", desc="Weather station"),
-         "1/3": dict(name="sun_position", desc="Sun position"),
-         "1/3/1": dict(name="right_ascension", desc="Right ascension"),
-         "1/3/2": dict(name="declination", desc="Declination"),
-         "1/3/3": dict(name="elevation", desc="Elevation"),
-         "1/3/4": dict(name="azimuth", desc="Azimuth"),
-         "1/3/5": dict(name="latitude", desc="Latitude"),
-         "1/3/6": dict(name="longitude", desc="Longitude"),
-         "1/3/7": dict(name="time_zone", desc="Time zone"),
-         "1/3/8": dict(name="saving_time", desc="Saving time flag")
-        }
+# ETS group address map
+GAD_MAP = {"1": dict(name="weather_station", desc="Weather station"),
+           "1/3": dict(name="sun_position", desc="Sun position"),
+           "1/3/1": dict(name="right_ascension", desc="Right ascension"),
+           "1/3/2": dict(name="declination", desc="Declination"),
+           "1/3/3": dict(name="elevation", desc="Elevation"),
+           "1/3/4": dict(name="azimuth", desc="Azimuth"),
+           "1/3/5": dict(name="latitude", desc="Latitude"),
+           "1/3/6": dict(name="longitude", desc="Longitude"),
+           "1/3/7": dict(name="time_zone", desc="Time zone"),
+           "1/3/8": dict(name="saving_time", desc="Saving time flag")
+          }
 
 stack = Stack(individualAddress="1.2.3")
-ets = ETS(stack, groat=GROAT)
+ets = ETS(stack, gadMap=GAD_MAP)
 
 schedule = Scheduler()
 
@@ -77,11 +79,11 @@ logger = Logger()
 
 def main():
 
-    # Register Functional Blocks
+    # Register functional blocks
     ets.register(SunPositionBlock, name="sun_position", desc="sun 1")
 
-    # Weave weather station Datapoints to Group Addresses
-    # @todo: allow use of gad name, from GrOAT
+    # Weave weather station datapoints to group addresses
+    # @todo: allow use of gad name, from gad map
     ets.weave(fb="sun_position", dp="right_ascension", gad="1/3/1")
     ets.weave(fb="sun_position", dp="declination", gad="1/3/2")
     ets.weave(fb="sun_position", dp="elevation", gad="1/3/3")

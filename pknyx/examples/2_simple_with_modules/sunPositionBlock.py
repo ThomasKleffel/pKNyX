@@ -52,11 +52,12 @@ import time
 
 from pknyx.api import Logger
 from pknyx.api import FunctionalBlock
-from pknyx.api import Scheduler
+from pknyx.api import Scheduler, Notifier
 
 from sun import Sun
 
 schedule = Scheduler()
+notify = Notifier()
 
 logger = Logger()
 
@@ -70,7 +71,7 @@ class SunPositionBlock(FunctionalBlock):
     DP_04 = dict(name="azimuth", access="output", dptId="14.007", default=0.)
     DP_05 = dict(name="latitude", access="param", dptId="14.007", default=0.)
     DP_06 = dict(name="longitude", access="param", dptId="14.007", default=0.)
-    DP_07 = dict(name="time_zone", access="param", dptId="1.xxx", default=1)
+    DP_07 = dict(name="time_zone", access="param", dptId="8.007", default=1)
     DP_08 = dict(name="saving_time", access="param", dptId="1.xxx", default=1)
 
     GO_01 = dict(dp="right_ascension", flags="CRT", priority="low")
@@ -85,26 +86,24 @@ class SunPositionBlock(FunctionalBlock):
     DESC = "Sun position management block"
 
     def _init(self):
-        """ Additionnal inits of our Functional Block
+        """ Additionnal init of our functional block
         """
         self._sun = Sun(latitude=self.dp["latitude"].value,
                         longitude = self.dp["longitude"].value,
                         timeZone = self.dp["time_zone"].value,
                         savingTime = self.dp["saving_time"].value)
 
-    #@notify.datapoint("latitude")
-    #@notify.datapoint("longitude")
-    #@notify.datapoint("time_zone")
-    #@notify.datapoint("saving_time")
-    def updateParams(self):
+    @notify.datapoint(dp="latitude")
+    @notify.datapoint(dp="longitude")
+    @notify.datapoint(dp="time_zone")
+    @notify.datapoint(dp="saving_time")
+    @schedule.every(seconds=5)
+    def updateSunPosition(self, event=None):
+        """ This method will be trigger every xxx, and also when some datapoints change.
 
-        self._sun.latitude = self.dp["latitude"].value
-        self._sun.longitude = self.dp["longitude"].value
-        self._sun.timeZone = self.dp["time_zone"].value
-        self._sun.savingTime = self.dp["saving_time"].value
-
-    @schedule.every(minutes=15)
-    def updateSunPosition(self):
+        Note the 'event=None' param. This is mandatory, as the scheduler trigger this method without param, but the
+        notifier passes an event (dict)
+        """
         logger.trace("WeatherSunPositionBlock.updatePosition()")
 
         # Read inputs/params

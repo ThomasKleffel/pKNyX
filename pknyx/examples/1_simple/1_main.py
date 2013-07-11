@@ -58,7 +58,7 @@ import time
 
 from pknyx.api import Logger
 from pknyx.api import FunctionalBlock, Stack, ETS
-from pknyx.api import Scheduler
+from pknyx.api import Scheduler, Notifier
 
 # ETS group address map
 GAD_MAP = {"1": dict(name="weather_station", desc="Weather station"),
@@ -76,6 +76,7 @@ stack = Stack(individualAddress="1.2.3")
 ets = ETS(stack, gadMap=GAD_MAP)
 
 schedule = Scheduler()
+notify = Notifier()
 
 logger = Logger()
 
@@ -91,6 +92,8 @@ class DummyBlock(FunctionalBlock):
 
 
 class WeatherTemperatureBlock(FunctionalBlock):
+    """ External emperature/humidity handling block
+    """
 
     # Datapoints definition
     DP_01 = dict(name="temperature", access="output", dptId="9.001", default=19.)
@@ -103,6 +106,8 @@ class WeatherTemperatureBlock(FunctionalBlock):
 
     @schedule.every(minutes=1)
     def updateTemperatureHumidity(self):
+        """ This method is called every xxx to refresh the temperature/himidity
+        """
         logger.trace("WeatherTemperatureBlock.updateTemperatureHumidity()")
 
         # Retreive temperature/humidity
@@ -113,6 +118,8 @@ class WeatherTemperatureBlock(FunctionalBlock):
 
 
 class WeatherWindBlock(FunctionalBlock):
+    """ Wind handling block
+    """
 
     # Datapoints definition
     DP_01 = dict(name="wind_speed", access="output", dptId="9.005", default=0.)
@@ -127,25 +134,35 @@ class WeatherWindBlock(FunctionalBlock):
 
     DESC = "Wind management block"
 
-    @schedule.every(minutes=1)
+    @schedule.every(seconds=5)
     def updateWindSpeed(self):
+        """This method is called every xxx to refresh the wind speed
+        """
         logger.trace("WeatherWindBlock.updateWindSpeed()")
 
         # Retreive speed
-        speed = 12.
+        speed = 20.
 
         # Write the new speed value to matching Datapoint
         # This will trigger the bus notification (if a group object is associated)
         self.dp["wind_speed"].value = speed
 
-    #notify.datapoint(name="wind_speed_limit")  # single DP
-    #notify.datapoint()  # all DP
-    #notify.group(gad="1/1/1")  # single group address
+    @notify.datapoint(dp="wind_speed", condition="always")
+    @notify.datapoint(dp="wind_alarm_enable", condition="change")
+    @notify.datapoint(dp="wind_speed_limit", condition="change")
     def checkWindSpeed(self, event):
-        logger.trace("WeatherWindBlock.checkWindSpeed()")
+        """ This method is called when some datapoints value are set
+
+        Depending on the 'condition' value, the method is triggerd only when the corresponding datapoint value changes,
+        or in any case.
+
+        Here, we set the wind_alarm datapoint value accordingly to other datapoints values.
+        """
+        logger.debug("WeatherWindBlock.checkWindSpeed(): event=%s" % repr(event))
 
         # Read inputs/params
         windSpeed = self.dp["wind_speed"].value
+        windAlarm = self.dp["wind_alarm"].value
         windAlarmEnable = self.dp["wind_alarm_enable"].value
         windSpeedLimit = self.dp["wind_speed_limit"].value
 
@@ -177,22 +194,15 @@ def main():
     ets.weave(fb="weather_wind", dp="wind_alarm_enable", gad="1/2/4")
 
     print
-    print
     ets.printGroat("gad")
     print
-    print
     ets.printGroat("go")
-
-    # Start the scheduler
     print
-    schedule.start()
     schedule.printJobs()
     print
 
     # Run the stack main loop (blocking call)
     stack.mainLoop()
-
-    schedule.stop()
 
 
 if __name__ == "__main__":

@@ -94,23 +94,15 @@ def main():
     ets.weave(fb="sun_position", dp="saving_time", gad="1/3/8")
 
     print
-    print
     ets.printGroat("gad")
     print
-    print
     ets.printGroat("go")
-
-    # Start the scheduler
-    # @todo: move to a better place
     print
-    schedule.start()
     schedule.printJobs()
     print
 
     # Run the stack main loop (blocking call)
     stack.mainLoop()
-
-    schedule.stop()
 
 
 if __name__ == "__main__":

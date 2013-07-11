@@ -73,7 +73,20 @@ Usage
 @copyright: (C) 2013 Frédéric Mantegazza
 @license: GPL
 
-@todo: solve name conflicts between blocks -> also store block name when registering
+@todo: solve name conflicts between blocks -> also store block name when registering?
+
+@todo: use metaclass for FunctionalBlock to store funcs in the class itself. Is it usefull?
+--------------------
+Juste une idée comme ça: tu pourrais aussi utiliser une métaclasse. Cela permet de personnaliser la création d'une classe. La création de la classe a lieu après que son corps ait été interprété; cela veut dire que les décorateurs sont exécutés avant.
+
+    Donc pour les décorateurs, pas grand chose ne change: ils stockent les fonctions décorées dans une liste (funcs).
+    La métaclasse va récupérer les fonctions; comme la classe est maintenant connue (en cours de création, en fait), tu peux les associer à celle-ci (par exemple faire de funcs un attribut de la classe).
+
+[edit]... ou bien avec un décorateur de classe (Python 2.6+), ça devrait fonctionner aussi
+---------------------
+See: http://www.developpez.net/forums/d1361199/autres-langages/python-zope/general-python/apschduler-methodes-classe/#post7387938
+
+Idem for scheduler.
 """
 
 __revision__ = "$Id: scheduler.py 165 2013-07-10 14:18:06Z fma $"

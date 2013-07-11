@@ -92,6 +92,9 @@ class Transmission(object):
 
         self._condition = threading.Condition()
 
+    def __repr__(self):
+        return "<Transmission(lPDU=%s, waitConfirm=%s, result=%d)>" % (repr(self._lPDU), self._waitConfirm, self._result)
+
     @property
     def lPDU(self):
         return self._lPDU

@@ -54,6 +54,7 @@ import threading
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.stack.groupAddress import GroupAddress
+from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.priorityQueue import PriorityQueue
 from pknyx.stack.layer3.n_groupDataListener import N_GroupDataListener
 from pknyx.stack.transceiver.transceiverLSAP import TransceiverLSAP
@@ -133,17 +134,17 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         # Get priority from lPDU (move test in Priority object)
         if (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_SYSTEM:
             priority = Priority('system')
-        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_ALARM:
-            priority = Priority('alarm')
-        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_HIGH:
-            priority = Priority('high')
+        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_NORMAL:
+            priority = Priority('normal')
+        elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_URGENT:
+            priority = Priority('urgent')
         elif (lPDU[TFrame.PR_BYTE] & TFrame.PR_MASK) == TFrame.PR_LOW:
             priority = Priority('low')
         else:
             priority = Priority('low')
 
         # Add to inQueue and notify inQueue handler
-        lPDU[TFrame.PR_BYTE] = priority  # memorize priority
+        #lPDU[TFrame.PR_BYTE] = priority  # memorize priority
         self._inQueue.acquire()
         try:
             self._inQueue.add(lPDU, priority)
@@ -176,7 +177,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
     def dataReq(self, src, dest, priority, lSDU):
         """
         """
-        Logger().debug("N_GroupDataService.groupDataReq(): src=%s, dest=%s, priority=%s, lSDU=%s" % \
+        Logger().debug("L_DataService.dataReq(): src=%s, dest=%s, priority=%s, lSDU=%s" % \
                        (src, dest, priority, repr(lSDU)))
 
         if dest.isNull():
@@ -195,7 +196,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         lSDU[TFrame.DAF_BYTE] |= TFrame.DAF_GAD if isinstance(dest, GroupAddress) else TFrame.DAF_IA
         lSDU[TFrame.LEN_BYTE] |= (TFrame.len2LenCode(length) if length > 15 else length) << TFrame.LEN_BITPOS
 
-        waitL2Con = True
+        waitL2Con = True  # ???!!!???
         transmission = Transmission(lSDU, waitL2Con)
         transmission.acquire()
         try:
@@ -229,20 +230,24 @@ class L_DataService(threading.Thread, TransceiverLSAP):
                     while lPDU is None and self._running:
                         self._inQueue.wait()
                         lPDU = self._inQueue.remove()
+                        Logger().debug("L_DataService.run(): lPDU=%s" % repr(lPDU))
                 finally:
                     self._inQueue.release()
 
                 # Handle frame
                 if lPDU is not None:
-                    src = ((lPDU[TFrame.SAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.SAL_BYTE] & 0xff)
-                    dest = ((lPDU[TFrame.DAH_BYTE] & 0xff) << 8) + (lPDU[TFrame.DAL_BYTE] & 0xff)
-                    isGA = (lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_GAD
+                    src = ((lPDU[TFrame.SAH_BYTE] & 0xff) << 8) | (lPDU[TFrame.SAL_BYTE] & 0xff)
+                    dest = ((lPDU[TFrame.DAH_BYTE] & 0xff) << 8) | (lPDU[TFrame.DAL_BYTE] & 0xff)
+                    if (lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK) == TFrame.DAF_GAD:
+                        dest = GroupAddress(dest)
+                    else:
+                        dest = IndividualAddress(dest)
                     priority = lPDU[TFrame.PR_BYTE]
                     if self._ldl is not None:
-                        self.lgdl.dataInd(src, dest, isGA, priority, lPDU)
+                        self.lgdl.dataInd(src, dest, priority, lPDU)
 
             except:
-                Logger().exception("L_DataService.run()", debug=True)
+                Logger().exception("L_DataService.run()")  #, debug=True)
 
         Logger().info("Stop")
 

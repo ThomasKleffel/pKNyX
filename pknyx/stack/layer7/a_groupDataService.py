@@ -91,7 +91,7 @@ class A_GroupDataService(T_GroupDataListener):
                        (src, gad, priority, repr(tSDU)))
 
         if self._agdl is None:
-            Logger().warning("A_GroupDataService.groupDataInd(): not listener defined")
+            Logger().warning("A_GroupDataService.groupDataInd(): no listener defined")
             return
 
         length = len(tSDU) - TFrame.MIN_LENGTH
@@ -105,12 +105,12 @@ class A_GroupDataService(T_GroupDataListener):
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_READ:
                 if length == 1:
-                    self._agdl.groupValue_ReadInd(src, gad, priority)
+                    self._agdl.groupValueReadInd(src, gad, priority)
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_RES:
                 if length >= 1:
                     data = APDU.getGroupValueData(tSDU, length)
-                    self._agdl.groupValue_ReadCon(src, gad, priority, data)
+                    self._agdl.groupValueReadCon(src, gad, priority, data)
 
     def setListener(self, agdl):
         """

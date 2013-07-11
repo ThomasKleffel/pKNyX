@@ -50,6 +50,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.layer2.l_dataListener import L_DataListener
 from pknyx.stack.transceiver.tFrame import TFrame
 
@@ -98,9 +99,9 @@ class N_GroupDataService(L_DataListener):
         """
         return (nPDU[TFrame.HC_BYTE] & TFrame.HC_MASK) >> TFrame.HC_BITPOS
 
-    def dataInd(self, src, dest, isGAD, priority, lSDU):
-        Logger().debug("N_GroupDataService.groupDataInd(): src=%s, dest=%s, isGAD=%s, priority=%s, lSDU=%s" % \
-                       (src, dest, isGAD, priority, repr(lSDU)))
+    def dataInd(self, src, dest, priority, lSDU):
+        Logger().debug("N_GroupDataService.groupDataInd(): src=%s, dest=%s, priority=%s, lSDU=%s" % \
+                       (src, dest, priority, repr(lSDU)))
 
         if self._ngdl is None:
             Logger().warning("N_GroupDataService.dataInd(): not listener defined")
@@ -108,14 +109,15 @@ class N_GroupDataService(L_DataListener):
 
         hopCount = self._getHopCount(lSDU)
 
-        if isGAD:  # Should be True for groupXXX
-            if dest.isNull():
+        if isinstance(dest, GroupAddress):  # Should be True for groupXXX
+            if dest.isNull:
                 self._ngdl.broadcastInd(src, priority, hopCount, lSDU)
             else:
                 self._ngdl.groupDataInd(src, dest, priority, lSDU)
                 #self._ngdl.groupDataInd(src, dest, priority, hopCount, lSDU)
         else:
-            self._ngdl.dataInd(src, priority, hopCount, lSDU)
+            self._ngdl.dataInd(src, priority, lSDU)
+            #self._ngdl.dataInd(src, priority, hopCount, lSDU)
 
 
     def setListener(self, ngdl):

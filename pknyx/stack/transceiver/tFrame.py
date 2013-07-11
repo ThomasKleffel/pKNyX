@@ -74,8 +74,8 @@ class TFrame(object):
     PR_BYTE   = L2_START
     PR_MASK   = 0x0c
     PR_SYSTEM = 0x00
-    PR_NORMAL = 0x08
-    PR_URGENT = 0x04
+    PR_NORMAL = 0x04
+    PR_URGENT = 0x08
     PR_LOW    = 0x0c
     PR_CODE = (PR_SYSTEM, PR_NORMAL, PR_URGENT, PR_LOW)
 

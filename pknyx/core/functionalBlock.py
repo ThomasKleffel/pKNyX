@@ -54,6 +54,7 @@ __revision__ = "$Id$"
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.utils import reprStr
 from pknyx.services.logger import Logger
+from pknyx.services.notifier import Notifier
 from pknyx.core.datapoint import Datapoint
 from pknyx.core.groupObject import GroupObject
 from pknyx.stack.individualAddress import IndividualAddress
@@ -180,13 +181,13 @@ class FunctionalBlock(object):
     def go(self):
         return self._groupObjects
 
-    def notify(self, dpName, oldValue, newValue):
+    def notify(self, dp, oldValue, newValue):
         """ Notify the functional block of a datapoint value change
 
         The functional block must trigger all methods bound to this notification with xxx.notify.datapoint()
 
-        @param dpName: name of the datapoint which sent this notification
-        @type dpName: str
+        @param dp: name of the datapoint which sent this notification
+        @type dp: str
 
         @param oldValue: old value of the datapoint
         @type oldValue: depends on the datapoint DPT
@@ -196,7 +197,9 @@ class FunctionalBlock(object):
 
         @todo: use an Event as param
         """
-        Logger().debug("FuntionalBlock.notify(): datapoint=%s, oldValue=%s, newValue=%s" % (dpName, oldValue, newValue))
+        Logger().debug("FuntionalBlock.notify(): dp=%s, oldValue=%s, newValue=%s" % (dp, oldValue, newValue))
+
+        Notifier().datapointNotify(dp, oldValue, newValue)
 
 
 if __name__ == '__main__':

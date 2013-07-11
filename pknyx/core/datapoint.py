@@ -242,6 +242,11 @@ class Datapoint(GroupDataListener):
         # Notify associated GroupObject (and other proxies), if any
         self._signalChanged.emit(oldValue, value)
 
+        # Notify owner (=FunctionalBlock)
+        # In turn, the owner will have to notify all its methods registered by @xxx.notify.datapoint()
+        self._owner.notify(self.name, oldValue, self.value)
+        # @todo: use an event as param
+
     @property
     def unit(self):
         return self._dptXlator.unit

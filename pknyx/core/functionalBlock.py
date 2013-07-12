@@ -212,12 +212,12 @@ if __name__ == '__main__':
     class FunctionalBlockTestCase(unittest.TestCase):
 
         class TestFunctionalBlock(FunctionalBlock):
-            DP_01 = dict(name="temperature", access="output", dptId="9.001", defaultValue=19.)
-            DP_02 = dict(name="humidity", access="output", dptId="9.007", defaultValue=50.)
-            DP_03 = dict(name="wind_speed", access="output", dptId="9.005", defaultValue=0.)
-            DP_04 = dict(name="wind_alarm",  access="output", dptId="1.005", defaultValue="No alarm")
-            DP_05 = dict(name="wind_speed_limit",  access="input", dptId="9.005", defaultValue=15.)
-            DP_06 = dict(name="wind_alarm_enable", access="input", dptId="1.003", defaultValue="Disable")
+            DP_01 = dict(name="temperature", access="output", dptId="9.001", default=19.)
+            DP_02 = dict(name="humidity", access="output", dptId="9.007", default=50.)
+            DP_03 = dict(name="wind_speed", access="output", dptId="9.005", default=0.)
+            DP_04 = dict(name="wind_alarm",  access="output", dptId="1.005", default="No alarm")
+            DP_05 = dict(name="wind_speed_limit",  access="input", dptId="9.005", default=15.)
+            DP_06 = dict(name="wind_alarm_enable", access="input", dptId="1.003", default="Disable")
 
             DESC = "Dummy description"
 

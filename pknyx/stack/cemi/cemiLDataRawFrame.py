@@ -54,7 +54,22 @@ Usage
 =====
 
 >>> from cemiLDataRawFrame import CEMILDataRawFrame
->>> f = CEMILDataRawFrame()
+>>> f = CEMILDataRawFrame(")\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")
+>>> f.raw
+bytearray(b')\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80')
+>>> f.mc
+41
+>>> f.addIL
+0
+>>> f.addInfo
+>>> f.ctrl1
+188
+>>> f.ctrl2
+208
+>>> f.sa
+4366
+>>> f.da
+6402
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -99,7 +114,7 @@ class CEMILDataRawFrame(object):
             self._raw[1] = addIL
 
     def __repr__(self):
-        return "<CEMILDataRawFrame(%s)>" % repr(str(self._raw))
+        return "<CEMILDataRawFrame(mc=%s, addIL=%d, ctrl1=%s, ctrl2=%s, src=%s, dest=%s)>" % (hex(self.mc), self.addIL, hex(self.ctrl1), hex(self.ctrl2), hex(self.sa), hex(self.da))
 
     def __str__(self):
         return repr(str(self._raw))
@@ -212,13 +227,13 @@ class CEMILDataRawFrame(object):
         else:
             self._raw[6+self.addIL:8+self.addIL] = da
 
-    #@property
-    #def npdu(self):
-        #return self._raw[8+self.addIL:]
+    @property
+    def npdu(self):
+        return self._raw[8+self.addIL:]
 
-    #@npdu.setter
-    #def npdu(self, npdu):
-        #self._raw[8+self.addIL:] = npdu
+    @npdu.setter
+    def npdu(self, npdu):
+        self._raw[8+self.addIL:] = npdu
 
     #@property
     #def l(self):
@@ -237,11 +252,6 @@ if __name__ == '__main__':
 
 
     class CEMILDataRawFrameTestCase(unittest.TestCase):
-        """
-        def test_(self):
-            self.assertEqual(self.frame1., )
-            self.assertEqual(self.frame2., )
-        """
 
         def setUp(self):
             self.frame1 = CEMILDataRawFrame()
@@ -339,5 +349,11 @@ if __name__ == '__main__':
             self.assertEqual(self.frame1.sa, 2000)
             self.assertEqual(self.frame2.da, 6402)
 
+        def test_npdu(self):
+            self.assertEqual(self.frame1.npdu, '\x00')
+            self.frame1.npdu = '\xff\xff'
+            self.assertEqual(self.frame1.npdu, '\xff\xff')
+            self.assertEqual(self.frame2.npdu, '\x01\x00\x80')
+            self.assertEqual(self.frame3.npdu, '\x03\x00\x80\x19,')
 
     unittest.main()

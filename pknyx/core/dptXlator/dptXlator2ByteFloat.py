@@ -91,6 +91,9 @@ class DPTXlator2ByteFloat(DPTXlatorBase):
     DPT_Value_Temp_F = DPT("9.027", "Temperature (°F)", (-459.6, 670760.), "°F")
     DPT_Value_Wsp_kmh = DPT("9.028", "Wind speed (km/h)", (0., 670760.), "km/h")
 
+    def __init__(self, dptId):
+        super(DPTXlator2ByteFloat, self).__init__(dptId, 2)
+
     def checkData(self, data):
         if not 0x0000 <= data <= 0xffff:
             raise DPTXlatorValueError("data %s not in (0x0000, 0xffff)" % hex(data))
@@ -158,6 +161,9 @@ if __name__ == '__main__':
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
 
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 2)
+
         def testcheckValue(self):
             with self.assertRaises(DPTXlatorValueError):
                 self.dptXlator.checkValue(self.dptXlator._dpt.limits[1] + 1)
@@ -185,5 +191,6 @@ if __name__ == '__main__':
                 data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
+
 
     unittest.main()

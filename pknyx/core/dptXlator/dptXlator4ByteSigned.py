@@ -77,6 +77,9 @@ class DPTXlator4ByteSigned(DPTXlatorBase):
     DPT_ReactiveEnergy_KVARh = DPT("13.015", "Reactive energy (kVARh)", (-214748.3648, 214748.3647), "kVAR.h")
     DPT_LongDeltaTimeSec = DPT("13.100", "Long delta time", (-214748.3648, 214748.3647), "s")
 
+    def __init__(self, dptId):
+        super(DPTXlator4ByteSigned, self).__init__(dptId, 4)
+
     def checkData(self, data):
         if not 0x00000000 <= data <= 0xffffffff:
             raise DPTXlatorValueError("data %s not in (0x00000000, 0xffffffff)" % hex(data))
@@ -139,6 +142,9 @@ if __name__ == '__main__':
 
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
+
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 4)
 
         def testcheckValue(self):
             with self.assertRaises(DPTXlatorValueError):

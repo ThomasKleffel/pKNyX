@@ -77,6 +77,9 @@ class DPTXlatorBase(object):
     @ivar _dpt: current DPT object of the DPTXlator
     @type _dpt: L{DPT}
 
+    @ivar _typeSize: size of the data type. 0 for data size <= 6bits
+    @type _typeSize: int
+
     @ivar _data: KNX encoded data
     @type _data: depends on sub-class
 
@@ -96,11 +99,14 @@ class DPTXlatorBase(object):
 
         return self
 
-    def __init__(self, dptId):
+    def __init__(self, dptId, typeSize):
         """ Creates a DPT for the given Datapoint Type ID
 
         @param dptId: available implemented Datapoint Type ID
         @type dptId: str or L{DPTID}
+
+        @param typeSize: size of the data type. Use 0 for data size <= 6bits
+        @type typeSize: int
 
         @raise DPTXlatorValueError:
         """
@@ -113,6 +119,7 @@ class DPTXlatorBase(object):
         except KeyError:
             Logger().exception("DPTXlatorBase.__init__()", debug=True)
             raise DPTXlatorValueError("unhandled DPT ID (%s)" % dptId)
+        self._typeSize = typeSize
 
         self._data = None
 
@@ -145,6 +152,10 @@ class DPTXlatorBase(object):
         except KeyError:
             Logger().exception("DPTXlatorBase.dpt", debug=True)
             raise DPTXlatorValueError("unhandled DPT ID (%s)" % dptId)
+
+    @property
+    def typeSize(self):
+        return self._typeSize
 
     @property
     def unit(self):
@@ -225,6 +236,9 @@ class DPTXlatorBase(object):
 if __name__ == '__main__':
     import unittest
 
+    # Mute logger
+    Logger().setLevel('error')
+
 
     class DPTXlatorBaseTestCase(unittest.TestCase):
 
@@ -239,7 +253,6 @@ if __name__ == '__main__':
 
         def test_constructor(self):
             with self.assertRaises(DPTXlatorValueError):
-                DPTXlatorBase("1.001")
-
+                DPTXlatorBase("1.001", 0)
 
     unittest.main()

@@ -153,6 +153,9 @@ class DPTXlator4ByteFloat(DPTXlatorBase):
     DPT_Value_Weight = DPT("14.078", "Weight", (-3.4028234663852886e+38, 3.4028234663852886e+38), "N")
     DPT_Value_Work = DPT("14.079", "Work", (-3.4028234663852886e+38, 3.4028234663852886e+38), "J")
 
+    def __init__(self, dptId):
+        super(DPTXlator4ByteFloat, self).__init__(dptId, 4)
+
     def checkData(self, data):
         if not 0x00000000 <= data <= 0xffffffff:
             raise DPTXlatorValueError("data %s not in (0x00000000, 0xffffffff)" % hex(data))
@@ -202,6 +205,9 @@ if __name__ == '__main__':
 
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
+
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 4)
 
         def testcheckValue(self):
             with self.assertRaises(DPTXlatorValueError):

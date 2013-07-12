@@ -111,6 +111,9 @@ class DPTXlatorBoolean(DPTXlatorBase):
     DPT_Scene_AB = DPT("1.022", "Scene A/B", ("Scene A", "Scene B"))
     DPT_ShutterBlinds_Mode = DPT("1.023", "Shutter/Blinds mode", ("Only move Up/Down", "Move Up/Down + StepStop"))
 
+    def __init__(self, dptId):
+        super(DPTXlatorBoolean, self).__init__(dptId, 0)
+
     def checkData(self, data):
         if data not in (0x00, 0x01):
             try:
@@ -162,6 +165,9 @@ if __name__ == '__main__':
 
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
+
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 0)
 
         def test_dpt(self):
             self.assertEqual(self.dptXlator.dpt, DPTXlatorBoolean.DPT_Generic)

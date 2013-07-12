@@ -85,6 +85,9 @@ class DPTXlatorString(DPTXlatorBase):
     DPT_String_ASCII = DPT("16.000", "String", (14 * (0,), 14 * (127,)))
     DPT_String_8859_1 = DPT("16.001", "String", (14 * (0,), 14 * (255,)))
 
+    def __init__(self, dptId):
+        super(DPTXlatorString, self).__init__(dptId, 14)
+
     def checkData(self, data):
         if not 0x0000000000000000000000000000 <= data <= 0xffffffffffffffffffffffffffff:
             raise DPTXlatorValueError("data %s not in (0x0000000000000000000000000000, 0xffffffffffffffffffffffffffff)" % hex(data))
@@ -148,6 +151,9 @@ if __name__ == '__main__':
 
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
+
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 14)
 
         #def testcheckValue(self):
             #with self.assertRaises(DPTXlatorValueError):

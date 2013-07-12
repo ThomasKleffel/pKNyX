@@ -79,6 +79,9 @@ class DPTXlator2ByteUnsigned(DPTXlatorBase):
     #DPT_UEICurrentmA = DPT("7.012", "Electrical current", (0, 65535), "mA")  # Add special meaning for 0 (create Limit object)
     DPT_Brightness = DPT("7.013", "Brightness", (0, 65535), "lx")
 
+    def __init__(self, dptId):
+        super(DPTXlator2ByteUnsigned, self).__init__(dptId, 2)
+
     def checkData(self, data):
         if not 0x0000 <= data <= 0xffff:
             raise DPTXlatorValueError("data %s not in (0x0000, 0xffff)" % hex(data))
@@ -137,6 +140,9 @@ if __name__ == '__main__':
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
 
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 2)
+
         def testcheckValue(self):
             with self.assertRaises(DPTXlatorValueError):
                 self.dptXlator.checkValue(self.dptXlator._dpt.limits[1] + 1)
@@ -164,5 +170,6 @@ if __name__ == '__main__':
                 data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %
                                  (frame, hex(data_), hex(data)))
+
 
     unittest.main()

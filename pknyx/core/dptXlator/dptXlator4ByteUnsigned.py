@@ -69,6 +69,9 @@ class DPTXlator4ByteUnsigned(DPTXlatorBase):
 
     DPT_Value_4_Ucount = DPT("12.001", "Unsigned count", (0, 4294967295), "pulses")
 
+    def __init__(self, dptId):
+        super(DPTXlator4ByteUnsigned, self).__init__(dptId, 4)
+
     def checkData(self, data):
         if not 0x00000000 <= data <= 0xffffffff:
             raise DPTXlatorValueError("data %s not in (0x00000000, 0xffffffff)" % hex(data))
@@ -116,6 +119,9 @@ if __name__ == '__main__':
 
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
+
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 4)
 
         def testcheckValue(self):
             with self.assertRaises(DPTXlatorValueError):

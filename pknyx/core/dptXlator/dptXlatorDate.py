@@ -87,6 +87,9 @@ class DPTXlatorDate(DPTXlatorBase):
 
     DPT_Date = DPT("11.001", "Date", ((1, 1, 1969), (31, 12, 2068)))
 
+    def __init__(self, dptId):
+        super(DPTXlatorDate, self).__init__(dptId, 3)
+
     def checkData(self, data):
         if not 0x000000 <= data <= 0xffffff:
             raise DPTXlatorValueError("data %s not in (0x000000, 0xffffff)" % hex(data))
@@ -164,6 +167,9 @@ if __name__ == '__main__':
 
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
+
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 3)
 
         def testcheckValue(self):
             with self.assertRaises(DPTXlatorValueError):

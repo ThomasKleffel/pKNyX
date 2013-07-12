@@ -79,7 +79,7 @@ class DPTXlator3BitControl(DPTXlatorBase):
     DPT_Control_Blinds = DPT("3.008", "Blinds", (-7, 7))
 
     def __init__(self, dptId):
-        super(DPTXlator3BitControl, self).__init__(dptId)
+        super(DPTXlator3BitControl, self).__init__(dptId, 0)
 
         mainId, subId = dptId.split('.')
         dptId_ = "1.%s" % subId
@@ -185,6 +185,9 @@ if __name__ == '__main__':
 
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
+
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 0)
 
         def testcheckValue(self):
             with self.assertRaises(DPTXlatorValueError):

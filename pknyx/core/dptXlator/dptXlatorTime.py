@@ -73,6 +73,9 @@ class DPTXlatorTime(DPTXlatorBase):
 
     DPT_TimeOfDay = DPT("10.001", "Time of day", ((0, 0, 0, 0), (7, 23, 59, 59)))
 
+    def __init__(self, dptId):
+        super(DPTXlatorTime, self).__init__(dptId, 3)
+
     def checkData(self, data):
         if not 0x000000 <= data <= 0xffffff:
             raise DPTXlatorValueError("data %s not in (0x000000, 0xffffff)" % hex(data))
@@ -157,6 +160,9 @@ if __name__ == '__main__':
 
         #def test_constructor(self):
             #print self.dptXlator.handledDPT
+
+        def test_typeSize(self):
+            self.assertEqual(self.dptXlator.typeSize, 3)
 
         def testcheckValue(self):
             with self.assertRaises(DPTXlatorValueError):

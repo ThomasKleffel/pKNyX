@@ -112,6 +112,8 @@ class GroupAddress(KnxAddress):
         @type outFormatLevel: int
 
         @raise GroupAddressValueError:
+
+        @todo: add constructor with simple int
         """
         #Logger().debug("GroupAddress.__init__(): address=%s" % repr(address))
 
@@ -134,8 +136,9 @@ class GroupAddress(KnxAddress):
             else:
                 raise GroupAddressValueError("invalid group address")
         except TypeError:
-            Logger().exception("GroupAddress.__init__()", debug=True)
-            raise GroupAddressValueError("invalid group address")
+            if not isinstance(address, int):
+                Logger().exception("GroupAddress.__init__()", debug=True)
+                raise GroupAddressValueError("invalid group address")
 
         if outFormatLevel not in (2, 3):
             raise GroupAddressValueError("outFormatLevel %d must be 2 or 3" % outFormatLevel)
@@ -212,8 +215,8 @@ if __name__ == '__main__':
             print self.ad3
 
         def test_constructor(self):
-            with self.assertRaises(GroupAddressValueError):
-                GroupAddress(0)
+            #with self.assertRaises(GroupAddressValueError):
+                #GroupAddress(0)
             with self.assertRaises(GroupAddressValueError):
                 GroupAddress("0")
             with self.assertRaises(GroupAddressValueError):

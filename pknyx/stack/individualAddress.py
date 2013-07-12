@@ -91,6 +91,8 @@ class IndividualAddress(KnxAddress):
         @type address: str or tuple of int
 
         raise IndividualAddressValueError: invalid address
+
+        @todo: add constructor with simple int
         """
         #Logger().debug("IndividualAddress.__init__(): address=%s" % repr(address))
 
@@ -109,8 +111,9 @@ class IndividualAddress(KnxAddress):
             else:
                 raise IndividualAddressValueError("invalid individual address")
         except TypeError:
-            Logger().exception("IndividualAddress.__init__()", debug=True)
-            raise IndividualAddressValueError("invalid individual address")
+            if not isinstance(address, int):
+                Logger().exception("IndividualAddress.__init__()", debug=True)
+                raise IndividualAddressValueError("invalid individual address")
 
         super(IndividualAddress, self).__init__(address)
 
@@ -155,6 +158,7 @@ if __name__ == '__main__':
             self.ad1 = IndividualAddress("1.2.3")
             self.ad2 = IndividualAddress((1, 2, 3))
             self.ad3 = IndividualAddress((1, 2, 4))
+            self.ad4 = IndividualAddress(1256)
 
         def tearDown(self):
             pass
@@ -164,8 +168,8 @@ if __name__ == '__main__':
             print self.ad2
 
         def test_constructor(self):
-            with self.assertRaises(IndividualAddressValueError):
-                IndividualAddress(0)
+            #with self.assertRaises(IndividualAddressValueError):
+                #IndividualAddress(0)
             with self.assertRaises(IndividualAddressValueError):
                 IndividualAddress("0")
             with self.assertRaises(IndividualAddressValueError):

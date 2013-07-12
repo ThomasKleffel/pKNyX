@@ -97,7 +97,7 @@ class KNXnetIPHeader(object):
     raise KNXnetIPHeaderValueError:
     """
 
-    # Services type identifier values
+    # Services identifier values
     CONNECT_REQ = 0x0205
     CONNECT_RES = 0x0206
     CONNECTIONSTATE_REQ = 0x0207
@@ -115,20 +115,20 @@ class KNXnetIPHeader(object):
     ROUTING_IND = 0x0530
     ROUTING_LOST_MSG = 0x0531
 
-    SERVICE_TYPES = (CONNECT_REQ, CONNECT_RES,
-                     CONNECTIONSTATE_REQ, CONNECTIONSTATE_RES,
-                     DISCONNECT_REQ, DISCONNECT_RES,
-                     DESCRIPTION_REQ, DESCRIPTION_RES,
-                     SEARCH_REQ, SEARCH_RES,
-                     DEVICE_CONFIGURATION_REQ, DEVICE_CONFIGURATION_ACK,
-                     TUNNELING_REQ, TUNNELING_ACK,
-                     ROUTING_IND, ROUTING_LOST_MSG
-                     )
+    SERVICE = (CONNECT_REQ, CONNECT_RES,
+               CONNECTIONSTATE_REQ, CONNECTIONSTATE_RES,
+               DISCONNECT_REQ, DISCONNECT_RES,
+               DESCRIPTION_REQ, DESCRIPTION_RES,
+               SEARCH_REQ, SEARCH_RES,
+               DEVICE_CONFIGURATION_REQ, DEVICE_CONFIGURATION_ACK,
+               TUNNELING_REQ, TUNNELING_ACK,
+               ROUTING_IND, ROUTING_LOST_MSG
+              )
 
     HEADER_SIZE = 0x06
     KNXNETIP_VERSION = 0x10
 
-    def __init__(self, frame=None, serviceType=None, serviceLength=0):
+    def __init__(self, frame=None, service=None, serviceLength=0):
         """ Creates a new KNXnet/IP header
 
         Header can be loaded either from frame or from sratch
@@ -136,8 +136,8 @@ class KNXnetIPHeader(object):
         @param frame: byte array with contained KNXnet/IP frame
         @type frame: sequence
 
-        @param serviceType: service type identifier
-        @type serviceType: int
+        @param service: service identifier
+        @type service: int
 
         @param serviceLength: length of the service structure
         @type serviceLength: int
@@ -146,7 +146,7 @@ class KNXnetIPHeader(object):
         """
 
         # Check params
-        if frame is not None and serviceType is not None:
+        if frame is not None and service is not None:
             raise KNXnetIPHeaderValueError("can't give both frame and service type")
 
         if frame is not None:
@@ -162,27 +162,27 @@ class KNXnetIPHeader(object):
             if protocolVersion != KNXnetIPHeader.KNXNETIP_VERSION:
                 raise KNXnetIPHeaderValueError("unsupported KNXnet/IP protocol (%d)" % protocolVersion)
 
-            self._serviceType = (frame[2] & 0xff) << 8 | (frame[3] & 0xff)
-            if self._serviceType not in KNXnetIPHeader.SERVICE_TYPES:
-                raise KNXnetIPHeaderValueError("unsupported service type (%d)" % self._serviceType)
+            self._service = (frame[2] & 0xff) << 8 | (frame[3] & 0xff)
+            if self._service not in KNXnetIPHeader.SERVICE:
+                raise KNXnetIPHeaderValueError("unsupported service (%d)" % self._service)
 
             self._totalSize = (frame[4] & 0xff) << 8 | (frame[5] & 0xff)
             if len(frame) != self._totalSize:
                 raise KNXnetIPHeaderValueError("wrong frame length (%d; should be %d)" % (len(frame), self._totalSize))
 
-        elif serviceType is not None:
-            if serviceType not in KNXnetIPHeader.SERVICE_TYPES:
-                raise KNXnetIPHeaderValueError("unsupported service type (%d)" % self._serviceType)
+        elif service is not None:
+            if service not in KNXnetIPHeader.SERVICE:
+                raise KNXnetIPHeaderValueError("unsupported service (%d)" % self._service)
             if not serviceLength:
                 raise KNXnetIPHeaderValueError("service length missing")
-            self._serviceType = serviceType
+            self._service = service
             self._totalSize = KNXnetIPHeader.HEADER_SIZE + serviceLength
 
         else:
             raise KNXnetIPHeaderValueError("must give either frame or service type")
 
     def __repr__(self):
-        s = "<KNXnetIPHeader(serviceType='%s', totalSize=)>" % self.serviceName
+        s = "<KNXnetIPHeader(service='%s', totalSize=%d)>" % (self.serviceName, self._totalSize)
         return s
 
     def __str__(self):
@@ -190,8 +190,8 @@ class KNXnetIPHeader(object):
         return s
 
     @property
-    def serviceType(self):
-        return self._serviceType
+    def service(self):
+        return self._service
 
     @property
     def totalSize(self):
@@ -199,42 +199,42 @@ class KNXnetIPHeader(object):
 
     @property
     def frame(self):
-        s = struct.pack(">2B2H", KNXnetIPHeader.HEADER_SIZE, KNXnetIPHeader.KNXNETIP_VERSION, self._serviceType, self._totalSize)
+        s = struct.pack(">2B2H", KNXnetIPHeader.HEADER_SIZE, KNXnetIPHeader.KNXNETIP_VERSION, self._service, self._totalSize)
         return bytearray(s)
 
     @property
     def serviceName(self):
-        if self._serviceType == KNXnetIPHeader.CONNECT_REQ:
+        if self._service == KNXnetIPHeader.CONNECT_REQ:
             return "connect.req"
-        elif self._serviceType == KNXnetIPHeader.CONNECT_RES:
+        elif self._service == KNXnetIPHeader.CONNECT_RES:
             return "connect.res"
-        elif self._serviceType == KNXnetIPHeader.CONNECTIONSTATE_REQ:
+        elif self._service == KNXnetIPHeader.CONNECTIONSTATE_REQ:
             return "connectionstate.req"
-        elif self._serviceType == KNXnetIPHeader.CONNECTIONSTATE_RES:
+        elif self._service == KNXnetIPHeader.CONNECTIONSTATE_RES:
             return "connectionstate.res"
-        elif self._serviceType == KNXnetIPHeader.DISCONNECT_REQ:
+        elif self._service == KNXnetIPHeader.DISCONNECT_REQ:
             return "disconnect.req"
-        elif self._serviceType == KNXnetIPHeader.DISCONNECT_RES:
+        elif self._service == KNXnetIPHeader.DISCONNECT_RES:
             return "disconnect.res"
-        elif self._serviceType == KNXnetIPHeader.DESCRIPTION_REQ:
+        elif self._service == KNXnetIPHeader.DESCRIPTION_REQ:
             return "description.req"
-        elif self._serviceType == KNXnetIPHeader.DESCRIPTION_RES:
+        elif self._service == KNXnetIPHeader.DESCRIPTION_RES:
             return "description.res"
-        elif self._serviceType == KNXnetIPHeader.SEARCH_REQ:
+        elif self._service == KNXnetIPHeader.SEARCH_REQ:
             return "search.req"
-        elif self._serviceType == KNXnetIPHeader.SEARCH_RES:
+        elif self._service == KNXnetIPHeader.SEARCH_RES:
             return "search.res"
-        elif self._serviceType == KNXnetIPHeader.DEVICE_CONFIGURATION_REQ:
+        elif self._service == KNXnetIPHeader.DEVICE_CONFIGURATION_REQ:
             return "device-configuration.req"
-        elif self._serviceType == KNXnetIPHeader.DEVICE_CONFIGURATION_ACK:
+        elif self._service == KNXnetIPHeader.DEVICE_CONFIGURATION_ACK:
             return "device-configuration.ack"
-        elif self._serviceType == KNXnetIPHeader.TUNNELING_REQ:
+        elif self._service == KNXnetIPHeader.TUNNELING_REQ:
             return "tunneling.req"
-        elif self._serviceType == KNXnetIPHeader.TUNNELING_ACK:
+        elif self._service == KNXnetIPHeader.TUNNELING_ACK:
             return "tunneling.ack"
-        elif self._serviceType == KNXnetIPHeader.ROUTING_IND:
+        elif self._service == KNXnetIPHeader.ROUTING_IND:
             return "routing.ind"
-        elif self._serviceType == KNXnetIPHeader.ROUTING_LOST_MSG:
+        elif self._service == KNXnetIPHeader.ROUTING_LOST_MSG:
             return "routing-lost.msg"
         else:
             return "unknown/unsupported service"
@@ -252,8 +252,7 @@ if __name__ == '__main__':
         def setUp(self):
             self._header1 = KNXnetIPHeader(frame="\x06\x10\x05\x30\x00\x11\x29\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")
             data = "\x29\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80\x00"
-            self._header2 = KNXnetIPHeader(serviceType=KNXnetIPHeader.ROUTING_IND,
-                                           totalSize=KNXnetIPHeader.HEADER_SIZE+len(data))
+            self._header2 = KNXnetIPHeader(service=KNXnetIPHeader.ROUTING_IND, serviceLength=len(data))
 
         def tearDown(self):
             pass
@@ -266,13 +265,13 @@ if __name__ == '__main__':
             with self.assertRaises(KNXnetIPHeaderValueError):
                 KNXnetIPHeader(frame="\x06\x11\x05\x30\x00\x11\x29\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")  # protocol version
             with self.assertRaises(KNXnetIPHeaderValueError):
-                KNXnetIPHeader(frame="\x06\x10\x05\x31\x00\x11\x29\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")  # service type
+                KNXnetIPHeader(frame="\x06\x10\xff\xff\x00\x11\x29\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")  # service
             with self.assertRaises(KNXnetIPHeaderValueError):
                 KNXnetIPHeader(frame="\x06\x10\x05\x30\x00\x10\x29\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")  # total length
 
-        def test_serviceType(self):
-            self.assertEqual(self._header1.serviceType, KNXnetIPHeader.ROUTING_IND)
-            self.assertEqual(self._header2.serviceType, KNXnetIPHeader.ROUTING_IND)
+        def test_service(self):
+            self.assertEqual(self._header1.service, KNXnetIPHeader.ROUTING_IND)
+            self.assertEqual(self._header2.service, KNXnetIPHeader.ROUTING_IND)
 
         def test_totalSize(self):
             self.assertEqual(self._header1.totalSize, 17)

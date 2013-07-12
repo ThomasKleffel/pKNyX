@@ -89,7 +89,7 @@ See: http://www.developpez.net/forums/d1361199/autres-langages/python-zope/gener
 Idem for scheduler.
 """
 
-__revision__ = "$Id: scheduler.py 165 2013-07-10 14:18:06Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.utils import reprStr

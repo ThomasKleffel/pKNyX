@@ -266,7 +266,7 @@ if __name__ == '__main__':
     class DPTestCase(unittest.TestCase):
 
         def setUp(self):
-            self.dp = Datapoint(self, name="dp", access="output", dptId="1.001", default=0.)
+            self.dp = Datapoint(self, name="dp", access="output", dptId="1.xxx", default=0.)
 
         def tearDown(self):
             pass
@@ -277,7 +277,7 @@ if __name__ == '__main__':
 
         def test_constructor(self):
             with self.assertRaises(DatapointValueError):
-                DP = dict(name="dp", access="outpu", dptId="1.001", default=0.)
+                DP = dict(name="dp", access="outpu", dptId="1.xxx", default=0.)
                 Datapoint(self, **DP)
 
 

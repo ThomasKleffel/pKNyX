@@ -38,22 +38,11 @@ Implements
 Documentation
 =============
 
-Structure of a cEMI L_Data message:
-
- - Message code (MC): 1 byte
- - Additional Info Length (AddIL): 1 byte
- - Additional Information: 0 to n bytes (depending of AddIL)
- - Control field 1 (Ctrl1): 1 byte
- - Control field 2 (Ctrl2): 1 byte
- - Source address high/low (SAH/SAL): 2 bytes
- - Destination address high/low (DAH, DAL): 2 bytes
- - NPDU: 1 to n bytes
-
 Usage
 =====
 
 >>> from cemiLData import CEMILData
->>> f = CEMILData()
+>>> f = CEMILData(")\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")
 
 @author: Frédéric Mantegazza
 @author: B. Malinowsky

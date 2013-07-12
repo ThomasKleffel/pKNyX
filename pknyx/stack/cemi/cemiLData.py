@@ -5,7 +5,7 @@
 License
 =======
 
- - B{pKNyX} (U{http:#www.pknyx.org}) is Copyright:
+ - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
   - (C) 2013 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
@@ -23,12 +23,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 or see:
 
- - U{http:#www.gnu.org/licenses/gpl.html}
+ - U{http://www.gnu.org/licenses/gpl.html}
 
 Module purpose
 ==============
 
-cEMI frame management
+cEMI message management
 
 Implements
 ==========
@@ -38,6 +38,16 @@ Implements
 Documentation
 =============
 
+Structure of a cEMI L_Data message:
+
+ - Message code (MC): 1 byte
+ - Additional Info Length (AddIL): 1 byte
+ - Additional Information: 0 to n bytes (depending of AddIL)
+ - Control field 1 (Ctrl1): 1 byte
+ - Control field 2 (Ctrl2): 1 byte
+ - Source address high/low (SAH/SAL): 2 bytes
+ - Destination address high/low (DAH, DAL): 2 bytes
+ - NPDU: 1 to n bytes
 
 Usage
 =====
@@ -46,7 +56,9 @@ Usage
 >>> f = CEMILData()
 
 @author: Frédéric Mantegazza
+@author: B. Malinowsky
 @copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2006, 2011 B. Malinowsky
 @license: GPL
 """
 
@@ -55,71 +67,282 @@ __revision__ = "$Id$"
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.stack.cemi.cemi import CEMI, CEMIValueError
+from pknyx.stack.cemi.cemiLDataRawFrame import CEMILDataRawFrame
+from pknyx.stack.individualAddress import IndividualAddress, IndividualAddressValueError
+from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
+from pknyx.stack.priority import Priority
 
 
 class CEMILData(CEMI):
-    """ cEMI L-Data handling
+    """ cEMI L_Data message
 
-    @ivar data:
-    @type data:
+    @ivar _rawFrame: cEMI L_Data raw frame
+    @type _rawFrame: L{CEMILDataRawFrame}
     """
     MC_LDATA_REQ = 0x11  # message code for L-Data request
     MC_LDATA_CON = 0x2E  # message code for L-Data confirmation
     MC_LDATA_IND = 0x29  # message code for L-Data indication
-    BASIC_LENGTH = 9
 
-    def __init__(self, data=None):
-        """ Create a new cEMI L-Data object
+    MESSAGE_CODES = (MC_LDATA_REQ,
+                     MC_LDATA_CON,
+                     MC_LDATA_IND
+                    )
 
-        @param data:
-        @type data:
+    FT_EXT_FRAME = 0
+    FT_STD_FRAME = 1
+
+    R_REPEAT = 0
+    R_NO_REPEAT = 1
+
+    SB_SYSTEM_BROADCAST = 0
+    SB_BROADCAST = 1
+
+    ACK_NOT_REQUESTED = 0
+    ACK_REQUESTED = 0
+
+    C_NO_ERROR = 0
+    C_ERROR = 1
+
+    AT_INDIVIDUAL_ADDRESS = 0
+    AT_GROUP_ADDRESS = 1
+
+    EFF_STD_FRAME = 0
+    EFF_LTE_FRAME_MASK = 0x08
+
+    def __init__(self, frame=None):
+        """ Create a new cEMI L-Data message
+
+        @param frame: raw frame
+        @type frame: str or bytearray
         """
         super(CEMILData, self).__init__()
 
-        self._data = data  # TODO: check validity
+        self._rawFrame = CEMILDataRawFrame(frame)
 
-        self._messageCode = None
-        self._ctrlField1 = None  # Control field 1, the lower 8 bits contain control information
-        self._ctrlField2 = None  # Control field 2, the lower 8 bits contain control information
-        self._priority = None
-        self._sourceAddress = None
-        self._destAddress = None
+        if frame is not None:
+            if self.messageCode not in CEMILData.MESSAGE_CODES:
+                raise CEMIValueError("invalid Message Code (%d)" % mc)
+            elif self._rawFrame.addIL:
+                raise CEMIValueError("Additional Informations not supported")
+            elif self.frameType == CEMILData.FT_EXT_FRAME:
+                raise CEMIValueError("only standard frame supported")
+        else:
+            self.frameType == CEMILData.FT_STD_FRAME
 
-    def _checkData(self, data):
+    def __repr__(self):
+        return "<CEMILData(%s)>" % str(self._rawFrame)
+
+    def __str__(self):
+        return str(self._rawFrame)
+
+    @property
+    def raw(self):
+        return self._rawFrame
+
+    @property
+    def messageCode(self):
+        return self._rawFrame.mc
+
+    @messageCode.setter
+    def messageCode(self, mc):
+        if mc not in CEMILData.MESSAGE_CODES:
+            raise("invalid Message Code (%d)" % mc)
+        if mc == CEMILData.MC_LDATA_REQ:
+            self.systemBroadcast = CEMILData.SB_SYSTEM_BROADCAST
+            self.confirm = CEMILData.C_NO_ERROR
+        elif mc == CEMILData.MC_LDATA_CON:
+            self.systemBroadcast = CEMILData.SB_SYSTEM_BROADCAST
+        elif mc == CEMILData.MC_LDATA_IND:
+            self.systemBroadcast = CEMILData.SB_SYSTEM_BROADCAST
+        self._rawFrame.mc = mc
+
+    @property
+    def frameType(self):
+        return (self._rawFrame.ctrl1 >> 7) & 0x01
+
+    #@frameType.setter
+    #def frameType(self, ft):
+        #ctrl1 = self._rawFrame.ctrl1 & 0x7f
+        #ctrl1 |= (ft & 0x01) << 7
+        #self._rawFrame.ctrl1 = ctrl1
+
+    @property
+    def repeat(self):
+        """ According to calimero:
+        // ind: flag 0 = repeated frame, 1 = not repeated
+        if (mc == MC_LDATA_IND)
+            return (ctrl1 & 0x20) == 0;
+        // req, (con): flag 0 = do not repeat, 1 = default behavior
+        return (ctrl1 & 0x20) == 0x20;
         """
+        return (self._rawFrame.ctrl1 >> 5) & 0x01
 
-        @param data:
-        @type data:
+    @repeat.setter
+    def repeat(self, r):
+        """ According to calimero:
+        final boolean flag = mc == MC_LDATA_IND ? !repeat : repeat;
         """
-        if len(data) < CEMI.BASIC_LENGTH + 1:
-            raise CEMIValueError("too short data")
+        ctrl1 = self._rawFrame.ctrl1 & 0xdf
+        ctrl1 |= (r & 0x01) << 5
+        self._rawFrame.ctrl1 = ctrl1
 
-    def _toData(self):
-        """
-        """
+    @property
+    def systemBroadcast(self):
+        return (self._rawFrame.ctrl1 >> 4) & 0x01
 
-    def _fromData(self, data):
-        """
-        """
-        #self._data = data
+    @systemBroadcast.setter
+    def systemBroadcast(self, sb):
+        if sb:
+            raise CEMIValueError("only System Broadcast supported")
+        ctrl1 = self._rawFrame.ctrl1 & 0xef
+        ctrl1 |= (sb & 0x01) << 4
+        self._rawFrame.ctrl1 = ctrl1
 
-        #final ByteArrayInputStream is = new ByteArrayInputStream(data, offset, data.length - offset)
-        #readMC(is)
-        #readAddInfo(is)
-        #readCtrlAndAddr(is)
-        #if (ctrl1 & 0x80) == 0 :
-                #throw new KNXFormatException("only cEMI standard frame supported")
-        #readPayload(is);
+    @property
+    def priority(self):
+        pr = (self._rawFrame.ctrl1 >> 2) & 0x03
+        return Priority(pr)
 
-    def getPayload(self):
-        pass
+    @priority.setter
+    def priority(self, pr):
+        if isinstance(pr, Priority):
+            pr = pr.level
+        ctrl1 = self._rawFrame.ctrl1 & 0xf3
+        ctrl1 |= (pr & 0x03) << 2
+        self._rawFrame.ctrl1 = ctrl1
 
-    def getMessageCode(self):
-        pass
+    @property
+    def ack(self):
+        return (self._rawFrame.ctrl1 >> 1) & 0x01
 
-    def getStructLength(self):
-        pass
+    @ack.setter
+    def ack(self, ack):
+        ctrl1 = self._rawFrame.ctrl1 & 0xfd
+        ctrl1 |= (ack & 0x01) << 1
+        self._rawFrame.ctrl1 = ctrl1
 
-    def toByteArray(self):
-        pass
+    @property
+    def confirm(self):
+        return self._rawFrame.ctrl1 & 0x01
 
+    @confirm.setter
+    def confirm(self, c):
+        if c and self.mc == CEMILData.MC_LDATA_REQ:
+            raise CEMIValueError("Confirm flag must be 0 for L_Data.req")
+        ctrl1 = self._rawFrame.ctrl1 & 0xfe
+        ctrl1 |= c & 0x01
+        self._rawFrame.ctrl1 = ctrl1
+
+    @property
+    def addressType(self):
+        return (self._rawFrame.ctrl2 >> 7) & 0x01
+
+    @addressType.setter
+    def addressType(self, at):
+        ctrl2 = self._rawFrame.ctrl2 & 0x7f
+        ctrl2 |= (at & 0x01) << 7
+        self._rawFrame.ctrl2 = ctrl2
+
+    @property
+    def hopCount(self):
+        return (self._rawFrame.ctrl2 >> 4) & 0x07
+
+    @hopCount.setter
+    def hopCount(self, hop):
+        ctrl2 = self._rawFrame.ctrl2 & 0x8f
+        ctrl2 |= (hop & 0x07) << 4
+        self._rawFrame.ctrl2 = ctrl2
+
+    @property
+    def extFrameFormat(self):
+        return self._rawFrame.ctrl2 & 0x0f
+
+    @extFrameFormat.setter
+    def extFrameFormat(self, eff):
+        ctrl2 = self._rawFrame.ctrl2 & 0xf0
+        ctrl2 |= eff & 0x0f
+        self._rawFrame.ctrl2 = ctrl2
+
+    @property
+    def sourceAddress(self):
+        return IndividualAddress(self._rawFrame.sa)
+
+    @sourceAddress.setter
+    def sourceAddress(self, sa):
+        if not isinstance(sa, IndividualAddress):
+            sa = IndividualAddress(sa)
+        self._rawFrame.sa = sa.raw
+
+    @property
+    def destinationAddress(self):
+        if self.addressType == 0:
+            da = IndividualAddress(self._rawFrame.da)
+        else:
+            da = GroupAddress(self._rawFrame.da)
+        return da
+
+    @destinationAddress.setter
+    def destinationAddress(self, da):
+        if isinstance(da, str):
+            try:
+                da = GroupAddress(da)
+            except GroupAddressValueError:
+                try:
+                    da = IndividualAddress(da)
+                except IndividualAddressValueError:
+                    raise CEMIValueError("invalid address (%s)" % da)
+        elif isinstance(da, int):
+            da = IndividualAddress(da)
+
+        if isinstance(da, IndividualAddress):
+            self.addressType = CEMILData.AT_INDIVIDUAL_ADDRESS
+        elif isinstance(da, GroupAddress):
+            self.addressType = CEMILData.AT_GROUP_ADDRESS
+        else:
+            raise CEMIValueError("invalid address (%s)" % da)
+        self._rawFrame.da = da.raw
+
+    @property
+    def npdu(self):
+        return self._rawFrame.npdu
+
+    @npdu.setter
+    def npdu(self, npdu):
+        self._rawFrame.npdu = npdu
+
+    @property
+    def l(self):
+        return self._rawFrame.l
+
+    #@l.setter
+    #def l(self, l):
+        #self._rawFrame.l = l
+
+
+if __name__ == '__main__':
+    import unittest
+
+    # Mute logger
+    Logger().setLevel('error')
+
+
+    class CEMILDataTestCase(unittest.TestCase):
+
+        def setUp(self):
+            self.frame1 = CEMILData()
+            self.frame2 = CEMILData(")\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")
+            self.frame3 = CEMILData(")\x00\xbc\xd0\x11\x04\x10\x04\x03\x00\x80\x19,")
+
+        def tearDown(self):
+            pass
+
+        def test_display(self):
+            print repr(self.frame2)
+            print self.frame3
+
+        def test_constructor(self):
+            with self.assertRaises(CEMIValueError):
+                CEMILData(")\x03\xff\xff\xff\xbc\xd0\x11\x04\x10\x04\x03\x00\x80\x19,")  # ext frame
+
+
+    unittest.main()

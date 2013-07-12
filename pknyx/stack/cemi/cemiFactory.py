@@ -34,6 +34,7 @@ Implements
 ==========
 
  - B{CEMIFactory}
+ - B{CEMIFactoryValueError}
 
 Documentation
 =============
@@ -44,7 +45,9 @@ Usage
 
 
 @author: Frédéric Mantegazza
+@author: B. Malinowsky
 @copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2006, 2011 B. Malinowsky
 @license: GPL
 """
 
@@ -55,6 +58,11 @@ from pknyx.services.logger import Logger
 from pknyx.stack.cemi.cemi import CEMIValueError
 
 
+class CEMIFactoryValueError(PKNyXValueError):
+    """
+    """
+
+
 class CEMIFactory(object):
     """ cEMI frame creation handling class
     """
@@ -63,3 +71,24 @@ class CEMIFactory(object):
         """
         super(CEMIFactory, self).__init__()
 
+
+if __name__ == '__main__':
+    import unittest
+
+    # Mute logger
+    Logger().setLevel('error')
+
+
+    class CEMIFactoryTestCase(unittest.TestCase):
+
+        def setUp(self):
+            pass
+
+        def tearDown(self):
+            pass
+
+        def test_constructor(self):
+            pass
+
+
+    unittest.main()

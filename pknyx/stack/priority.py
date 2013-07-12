@@ -105,10 +105,10 @@ class Priority(object):
         self._level = level
 
     def __repr__(self):
-        return "<Priority('%s')>" % self.strLevel
+        return "<Priority('%s')>" % self.name
 
     def __str__(self):
-        return self.strLevel
+        return self.name
 
     #def __cmp__(self, other):
 
@@ -117,7 +117,7 @@ class Priority(object):
         return self._level
 
     @property
-    def strLevel(self):
+    def name(self):
         return Priority.CONV_TABLE[self._level]
 
 
@@ -161,10 +161,10 @@ if __name__ == '__main__':
             self.assertEqual(self.priority3.level, 0x02)
             self.assertEqual(self.priority4.level, 0x03)
 
-        def test_strLevel(self):
-            self.assertEqual(self.priority5.strLevel, 'system')
-            self.assertEqual(self.priority6.strLevel, 'normal')
-            self.assertEqual(self.priority7.strLevel, 'urgent')
-            self.assertEqual(self.priority8.strLevel, 'low')
+        def test_name(self):
+            self.assertEqual(self.priority5.name, 'system')
+            self.assertEqual(self.priority6.name, 'normal')
+            self.assertEqual(self.priority7.name, 'urgent')
+            self.assertEqual(self.priority8.name, 'low')
 
     unittest.main()

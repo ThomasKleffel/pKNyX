@@ -5,7 +5,7 @@
 License
 =======
 
- - B{pKNyX} (U{http:#www.pknyx.org}) is Copyright:
+ - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
   - (C) 2013 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 or see:
 
- - U{http:#www.gnu.org/licenses/gpl.html}
+ - U{http://www.gnu.org/licenses/gpl.html}
 
 Module purpose
 ==============
@@ -46,7 +46,11 @@ Usage
 >>> f = CEMI()
 
 @author: Frédéric Mantegazza
+@author: Bernhard Erb
+@author: B. Malinowsky
 @copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2005 B. Erb
+@copyright: (C) 2006, 2011 B. Malinowsky
 @license: GPL
 """
 

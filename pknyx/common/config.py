@@ -75,7 +75,9 @@ else:
     USER_GUIDE_URL = "http://www.pknyx.org/wiki/UserGuide%d.x" % VERSION_MAJOR
 
 # Logger
-LOGGER_FORMAT = "%(asctime)s::%(threadName)s::%(levelname)s::%(message)s"
+LOGGER_LONG_FORMAT = "%(asctime)s::%(threadName)s::%(levelname)s::%(message)s"
+LOGGER_SHORT_FORMAT = "%(threadName)s::%(message)s"
+LOGGER_FORMAT = LOGGER_SHORT_FORMAT
 LOGGER_MAX_COUNT_LINE = 1000
 LOGGER_FILENAME = "%s%slog" % (APP_NAME.lower(), os.path.extsep)
 LOGGER_MAX_BYTES = 100 * 1024

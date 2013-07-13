@@ -166,7 +166,7 @@ class CEMILDataRawFrame(object):
         return self._raw[3+self.addIL]
 
     @ctrl2.setter
-    def ctrl2(self, ctrl1):
+    def ctrl2(self, ctrl2):
         self._raw[3+self.addIL] = ctrl2
 
     @property
@@ -307,10 +307,14 @@ if __name__ == '__main__':
 
         def test_ctrl1(self):
             self.assertEqual(self.frame1.ctrl1, 0)
+            self.frame1.ctrl1 = 0xff
+            self.assertEqual(self.frame1.ctrl1, 0xff)
             self.assertEqual(self.frame2.ctrl1, 0xbc)
 
         def test_ctrl2(self):
             self.assertEqual(self.frame1.ctrl2, 0)
+            self.frame1.ctrl2 = 0xff
+            self.assertEqual(self.frame1.ctrl2, 0xff)
             self.assertEqual(self.frame2.ctrl2, 0xd0)
 
         def test_sah(self):

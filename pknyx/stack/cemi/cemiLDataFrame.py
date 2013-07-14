@@ -33,8 +33,8 @@ cEMI message management
 Implements
 ==========
 
- - B{CEMILDataRawFrame}
- - B{CEMILDataRawFrameValueError}
+ - B{CEMILDataFrame}
+ - B{CEMILDataFrameValueError}
 
 Documentation
 =============
@@ -53,8 +53,8 @@ Structure of a cEMI L_Data raw frame:
 Usage
 =====
 
->>> from cemiLDataRawFrame import CEMILDataRawFrame
->>> f = CEMILDataRawFrame(")\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")
+>>> from cemiLDataFrame import CEMILDataFrame
+>>> f = CEMILDataFrame(")\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")
 >>> f.raw
 bytearray(b')\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80')
 >>> f.mc
@@ -84,7 +84,7 @@ from pknyx.services.logger import Logger
 from pknyx.stack.cemi.cemi import CEMIValueError
 
 
-class CEMILDataRawFrame(object):
+class CEMILDataFrame(object):
     """ cEMI L_Data Raw Frame container
 
     @param _raw: raw frame
@@ -101,20 +101,20 @@ class CEMILDataRawFrame(object):
         @param addIL: additional info length
         @type addIL: int
         """
-        super(CEMILDataRawFrame, self).__init__()
+        super(CEMILDataFrame, self).__init__()
 
         if frame is not None:
             if addIL:
                 raise CEMIValueError("can't give both frame and addIL args")
-            elif len(frame) < CEMILDataRawFrame.BASIC_LENGTH:
+            elif len(frame) < CEMILDataFrame.BASIC_LENGTH:
                 raise CEMIValueError("data too short (%d)" % len(frame))
             self._raw = bytearray(frame)
         else:
-            self._raw = bytearray(CEMILDataRawFrame.BASIC_LENGTH+addIL)
+            self._raw = bytearray(CEMILDataFrame.BASIC_LENGTH+addIL)
             self._raw[1] = addIL
 
     def __repr__(self):
-        return "<CEMILDataRawFrame(mc=%s, addIL=%d, ctrl1=%s, ctrl2=%s, src=%s, dest=%s)>" % (hex(self.mc), self.addIL, hex(self.ctrl1), hex(self.ctrl2), hex(self.sa), hex(self.da))
+        return "<CEMILDataFrame(mc=%s, addIL=%d, ctrl1=%s, ctrl2=%s, src=%s, dest=%s)>" % (hex(self.mc), self.addIL, hex(self.ctrl1), hex(self.ctrl2), hex(self.sa), hex(self.da))
 
     def __str__(self):
         return repr(str(self._raw))
@@ -251,14 +251,14 @@ if __name__ == '__main__':
     Logger().setLevel('error')
 
 
-    class CEMILDataRawFrameTestCase(unittest.TestCase):
+    class CEMILDataFrameTestCase(unittest.TestCase):
 
         def setUp(self):
-            self.frame1 = CEMILDataRawFrame()
-            self.frame2 = CEMILDataRawFrame(")\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")
-            self.frame3 = CEMILDataRawFrame(")\x00\xbc\xd0\x11\x04\x10\x04\x03\x00\x80\x19,")
-            self.frame4 = CEMILDataRawFrame(addIL=2)
-            self.frame5 = CEMILDataRawFrame(")\x03\xff\xff\xff\xbc\xd0\x11\x04\x10\x04\x03\x00\x80\x19,")  # ext frame
+            self.frame1 = CEMILDataFrame()
+            self.frame2 = CEMILDataFrame(")\x00\xbc\xd0\x11\x0e\x19\x02\x01\x00\x80")
+            self.frame3 = CEMILDataFrame(")\x00\xbc\xd0\x11\x04\x10\x04\x03\x00\x80\x19,")
+            self.frame4 = CEMILDataFrame(addIL=2)
+            self.frame5 = CEMILDataFrame(")\x03\xff\xff\xff\xbc\xd0\x11\x04\x10\x04\x03\x00\x80\x19,")  # ext frame
 
         def tearDown(self):
             pass
@@ -269,9 +269,9 @@ if __name__ == '__main__':
 
         def test_constructor(self):
             with self.assertRaises(CEMIValueError):
-                CEMILDataRawFrame(frame=bytearray(10), addIL=1)  # too much args
+                CEMILDataFrame(frame=bytearray(10), addIL=1)  # too much args
             with self.assertRaises(CEMIValueError):
-                CEMILDataRawFrame(frame=bytearray(5))  # frame too short
+                CEMILDataFrame(frame=bytearray(5))  # frame too short
 
         def test_raw(self):
             self.assertEqual(self.frame1.raw, bytearray(9))

@@ -64,6 +64,7 @@ from pknyx.stack.multicastSocket import MulticastSocket
 from pknyx.stack.transceiver.transceiver import Transceiver
 from pknyx.stack.transceiver.tFrame import TFrame
 from pknyx.stack.knxnetip.knxNetIPHeader import KNXnetIPHeader, KNXnetIPHeaderValueError
+from pknyx.stack.cemi.cemiLData import CEMILData, CEMIValueError
 
 
 class GadSet(set):
@@ -199,27 +200,30 @@ class UDPTransceiver(Transceiver):
         while self._running:
             try:
                 transmission = self.tLSAP.getOutFrame()
-                #Logger().debug("UDPTransceiver._transmitterLoop(): transmission=%s" % repr(transmission))
+                Logger().debug("UDPTransceiver._transmitterLoop(): transmission=%s" % repr(transmission))
+
                 if transmission is not None:
-                    lPDU = transmission.lPDU
-                    Logger().debug("UDPTransceiver._transmitterLoop(): lPDU=%s" % repr(lPDU))
-                    lPDU[TFrame.CF_BYTE] |= TFrame.CF_L_DATA
-                    lPDU[TFrame.SAH_BYTE] = self.individualAddress.high
-                    lPDU[TFrame.SAL_BYTE] = self.individualAddress.low
 
-                    checksum = 0x00
-                    for c in lPDU[self.OVERHEAD:]:
-                        checksum = (checksum ^ c) & 0xff
+                    #lPDU = transmission.lPDU
+                    #Logger().debug("UDPTransceiver._transmitterLoop(): lPDU=%s" % repr(lPDU))
+                    #lPDU[TFrame.CF_BYTE] |= TFrame.CF_L_DATA
+                    #lPDU[TFrame.SAH_BYTE] = self.individualAddress.high
+                    #lPDU[TFrame.SAL_BYTE] = self.individualAddress.low
 
-                    lPDU[self.OVERHEAD:] = lPDU[self.OVERHEAD-1:]
-                    lPDU[-1] = checksum ^ 0xff
+                    #checksum = 0x00
+                    #for c in lPDU[self.OVERHEAD:]:
+                        #checksum = (checksum ^ c) & 0xff
 
-                    outFrame = lPDU[self.OVERHEAD-1:]
-                    header = KNXnetIPHeader(serviceType=KNXnetIPHeader.ROUTING_IND, serviceLength=len(outFrame))
-                    outFrame = header.frame + outFrame
-                    Logger().debug("UDPTransceiver._transmitterLoop(): outFrame= %s" % repr(outFrame))
+                    #lPDU[self.OVERHEAD:] = lPDU[self.OVERHEAD-1:]
+                    #lPDU[-1] = checksum ^ 0xff
+
+                    #outFrame = lPDU[self.OVERHEAD-1:]  # use eCMI
+                    #header = KNXnetIPHeader(service=KNXnetIPHeader.ROUTING_IND, serviceLength=len(outFrame))
+                    #outFrame = header.frame + outFrame
+                    #Logger().debug("UDPTransceiver._transmitterLoop(): outFrame= %s" % repr(outFrame))
+
                     try:
-                        self._transmitterSock.transmit(outFrame)
+                        #self._transmitterSock.transmit(outFrame)
                         transmission.result = Result.OK
                     except IOError:
                         Logger().exception("UDPTransceiver._transmitterLoop()")
@@ -259,41 +263,29 @@ class UDPTransceiver(Transceiver):
                 inFrame = bytearray(inFrame)
                 try:
                     header = KNXnetIPHeader(inFrame)
-                    Logger().debug("UDPTransceiver._receiverLoop(): KNXnetIP header=%s" % repr(header))
                 except KNXnetIPHeaderValueError:
                     Logger().exception("UDPTransceiver._receiverLoop()", debug=True)
+                Logger().debug("UDPTransceiver._receiverLoop(): KNXnetIP header=%s" % repr(header))
 
+                frame = inFrame[KNXnetIPHeader.HEADER_SIZE:]
+                try:
+                    cEMI = CEMILData(frame)
+                except CEMIValueError:
+                    Logger().exception("UDPTransceiver._receiverLoop()", debug=True)
+                Logger().debug("UDPTransceiver._receiverLoop(): cEMI=%s" % cEMI)
 
-        #length = len(data)
-        #checksum = 0x00
-        #for i in range(length):
-            ##checkSum = (byte)(checkSum ^ data[i]);
-            #checksum = (checksum ^ data[i]) & 0xff
-
-        #length -= 1
-        ##if checksum == 0xff and \
-        #if TFrame.MIN_LENGTH - self._parent.OVERHEAD <= length <= TFrame.MAX_LENGTH - self._parent.OVERHEAD and \
-           #(fromPort != self._parent.localPort or fromAddr != self._parent.localAddr):
-            ##byte[] lPDU = new byte[length + OVERHEAD];
-            ##System.arraycopy(data, 0, lPDU, OVERHEAD, length);
-            #lPDU = bytearray(self._parent.OVERHEAD + length)
-            #lPDU[self._parent.OVERHEAD:] = data
-
-            #domainAddr = lPDU[TFrame.DAL_BYTE] | lPDU[TFrame.DAH_BYTE] << 8
-            #Logger().debug("UDPTransceiver._receiverLoop(): domainAddr=%s - %s" % (GroupAddress(domainAddr), IndividualAddress(domainAddr)))
-            #if lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK == TFrame.DAF_IA:  # domainAddr is an Individual Address
-                #if domainAddr == self._parent.individualAddress:  # destination matches
-                    #self._parent.tLSAP.putInFrame(lPDU)
-            #else:  # domainAddr is an Group Address
-                #self._parent.gadSet.acquire()
-                #try:
-                    #if domainAddr in self._parent.gadSet or GroupAddress("0/0/0") in self._parent.gadSet:
-                        #self._parent.tLSAP.putInFrame(lPDU)
-                #finally:
-                    #self._parent.gadSet.release()
-
-        #else:
-            #Logger().error("UDPTransceiver._receiverLoop(): invalid checksum (%s)" % hex(checksum))
+                destAddr = cEMI.destinationAddress
+                if isinstance(destAddr, IndividualAddress) and destAddr == self._individualAddress:  # destination matches
+                    self._tLSAP.putInFrame(cEMI)
+                elif isinstance(cEMI.destinationAddress, GroupAddress):
+                    self._gadSet.acquire()
+                    try:
+                        if destAddr in self._gadSet or GroupAddress("0/0/0").raw in self._gadSet:
+                            self._tLSAP.putInFrame(cEMI)
+                    finally:
+                        self._gadSet.release()
+                else:
+                    Logger().warning("UDPTransceiver._receiverLoop(): unknown destination address type (%s)" % repr(destAddr))
 
             except socket.timeout:
                 pass
@@ -314,7 +306,7 @@ class UDPTransceiver(Transceiver):
 
         self._gadSet.acquire()
         try:
-            self._gadSet.add(gad)
+            self._gadSet.add(gad.raw)  # Make a GADSet object with a .contain() method
         finally:
             self._gadSet.release()
 
@@ -326,21 +318,6 @@ class UDPTransceiver(Transceiver):
             self._gadSet.remove(gad)
         finally:
             self._gadSet.release()
-
-    #def onReceive(self, frame, fromAddr, fromPort):
-        #""" Frame receive handler
-
-        #@param frame: received frame
-        #@type frame: sequence
-        #"""
-        #frame = bytearray(frame)
-        #try:
-            #header = KNXnetIPHeader(frame)
-
-        #conn.handleServiceType(h, data, offset + h.getStructLength(), fromAddr, fromPort)
-
-        #except KNXnetIPHeaderValueError:
-            #Logger().exception("UDPTransceiver.onReceive()", debug=True)
 
     def start(self):
         """
@@ -383,202 +360,3 @@ if __name__ == '__main__':
 
 
     unittest.main()
-
-
-
-
-
-
-
-
-
-
-#class UDPTransmitter(threading.Thread):
-    #""" Transmitter thread of the UDP transceiver
-
-    #@ivar _sock: multicast socket
-    #@type _sock: L{MulticastSocket}
-
-    #@ivar _running: True if thread is running
-    #@type _running: bool
-
-    #@ivar _localPort: local port used by the socket
-    #@type _localPort: int
-    #"""
-    #def __init__(self, parent):
-        #"""
-
-        #@param parent:
-        #@type parent:
-
-        #@param tLSAP:
-        #@type tLSAP: L{TransceiverLSAP}
-        #"""
-        #super(UDPTransmitter, self).__init__(name="UDP Transmitter")
-
-        #self._parent = parent
-
-        #self._sock = MulticastSocket(self._parent.mcastPort, self._parent.mcastAddr)
-
-        #self._running = False
-
-        ##self.setDaemon(True)
-
-    #@property
-    #def localPort(self):
-        #return self._sock.localPort
-
-    #def run(self):
-        #"""
-        #"""
-        #Logger().info("Start")
-
-        #self._running = True
-        #while self._running:
-            #try:
-                #transmission = self._parent.tLSAP.getOutFrame()
-                ##Logger().debug("UDPTransmitter.run(): transmission=%s" % repr(transmission))
-                #if transmission is not None:
-                    #lPDU = transmission.lPDU
-                    #lPDU[TFrame.CF_BYTE] |= TFrame.CF_L_DATA
-                    #lPDU[TFrame.SAH_BYTE] = self._parent.individualAddress.high
-                    #lPDU[TFrame.SAL_BYTE] = self._parent.individualAddress.low
-
-                    #checksum = 0x00
-                    #for i in range(self._parent.OVERHEAD, len(lPDU)):
-                        ##checkSum = (byte)(checkSum ^ lPDU[i]);
-                        #checksum = (checksum ^ lPDU[i]) & 0xff
-
-                    ##System.arraycopy(lPDU, self._parent.OVERHEAD, lPDU, self.OVERHEAD-1, len(lPDU)-self.OVERHEAD)
-                    #lPDU[self._parent.OVERHEAD:] = lPDU[self._parent.OVERHEAD-1:-1]
-                    ##lPDU[lPDU.length-1] = (byte)~checkSum;
-                    #lPDU[len(lPDU)-1] = checksum ^ 0xff
-
-                    #outFrame = lPDU[self._parent.OVERHEAD-1:]
-                    #Logger().debug("UDPTransmitter.run(): outFrame= %s" % repr(outFrame))
-                    #try:
-                        #self._sock.send(outFrame)
-                        #transmission.result = Result.OK
-                    #except IOError:
-                        #transmission.result = Result.ERROR
-
-                    #if transmission.waitConfirm:
-                        #transmission.acquire()
-                        #try:
-                            #transmission.waitConfirm = False
-                            #transmission.notify()
-                        #finally:
-                            #transmission.release()
-
-            ##except socket.timeout:
-                ##Logger().exception("UDPReceiver.run()", debug=True)
-
-            #except:
-                #Logger().exception("UDPTransmitter.run()", debug=True)
-
-        #self._sock.close()
-
-        #Logger().info("Stopped")
-
-    #def stop(self):
-        #""" stop thread
-        #"""
-        #Logger().trace("UDPTransmitter.stop()")
-
-        #self._running = False
-        #self.join()
-        #Logger().info("UDP Transmitter stopped")
-
-
-#class UDPReceiver(threading.Thread):
-    #""" Receiver thread for the UDP transceiver
-
-    #@ivar _localPort: local port used by the socket
-    #@type _localPort: int
-    #"""
-    #def __init__(self, parent):
-        #"""
-
-        #@param parent:
-        #@type parent:
-        #"""
-        #super(UDPReceiver, self).__init__(name="UDP Receiver")
-
-        #self._parent = parent
-
-        #self._sock = MulticastSocket(self._parent.mcastPort)
-        #try:
-            #self._sock.joinGroup(self._parent.mcastAddr)
-        #except:
-            #self._sock.close();
-            #raise
-
-        #self._running = False
-
-        ##self.setDaemon(True)
-
-    #def run(self):
-        #"""
-        #"""
-        #Logger().info("Start")
-
-        #self._running = True
-        #while self._running:
-            #try:
-                #inFrame, (fromAddr, fromPort) = self._sock.receive()
-                #Logger().debug("UDPReceiver.run(): inFrame=%s" % repr(inFrame))
-                #inFrame = bytearray(inFrame)
-                #try:
-                    #header = KNXnetIPHeader(inFrame)
-                #except KNXnetIPHeaderValueError:
-                    #Logger().exception("UDPReceiver.run()", debug=True)
-
-
-        ##length = len(data)
-        ##checksum = 0x00
-        ##for i in range(length):
-            ###checkSum = (byte)(checkSum ^ data[i]);
-            ##checksum = (checksum ^ data[i]) & 0xff
-
-        ##length -= 1
-        ###if checksum == 0xff and \
-        ##if TFrame.MIN_LENGTH - self._parent.OVERHEAD <= length <= TFrame.MAX_LENGTH - self._parent.OVERHEAD and \
-           ##(fromPort != self._parent.localPort or fromAddr != self._parent.localAddr):
-            ###byte[] lPDU = new byte[length + OVERHEAD];
-            ###System.arraycopy(data, 0, lPDU, OVERHEAD, length);
-            ##lPDU = bytearray(self._parent.OVERHEAD + length)
-            ##lPDU[self._parent.OVERHEAD:] = data
-
-            ##domainAddr = lPDU[TFrame.DAL_BYTE] | lPDU[TFrame.DAH_BYTE] << 8
-            ##Logger().debug("UDPReceiver.run(): domainAddr=%s - %s" % (GroupAddress(domainAddr), IndividualAddress(domainAddr)))
-            ##if lPDU[TFrame.DAF_BYTE] & TFrame.DAF_MASK == TFrame.DAF_IA:  # domainAddr is an Individual Address
-                ##if domainAddr == self._parent.individualAddress:  # destination matches
-                    ##self._parent.tLSAP.putInFrame(lPDU)
-            ##else:  # domainAddr is an Group Address
-                ##self._parent.gadSet.acquire()
-                ##try:
-                    ##if domainAddr in self._parent.gadSet or GroupAddress("0/0/0") in self._parent.gadSet:
-                        ##self._parent.tLSAP.putInFrame(lPDU)
-                ##finally:
-                    ##self._parent.gadSet.release()
-
-        ##else:
-            ##Logger().error("UDPReceiver.run(): invalid checksum (%s)" % hex(checksum))
-
-            #except socket.timeout:
-                #pass
-                ##Logger().exception("UDPReceiver.run()", debug=True)
-
-            #except:
-                #Logger().exception("UDPReceiver.run()", debug=True)
-
-        #Logger().info("Stopped")
-
-    #def stop(self):
-        #""" stop thread
-        #"""
-        #Logger().trace("UDPReceiver.stop()")
-
-        #self._running = False
-        #self.join()
-        #Logger().info("UDP Receiver stopped")

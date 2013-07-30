@@ -56,7 +56,7 @@ __revision__ = "$Id$"
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.stack.cemi.cemi import CEMI, CEMIValueError
-from pknyx.stack.cemi.cemiLDataRawFrame import CEMILDataRawFrame
+from pknyx.stack.cemi.cemiLDataFrame import CEMILDataFrame
 from pknyx.stack.individualAddress import IndividualAddress, IndividualAddressValueError
 from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
 from pknyx.stack.priority import Priority
@@ -65,8 +65,8 @@ from pknyx.stack.priority import Priority
 class CEMILData(CEMI):
     """ cEMI L_Data message
 
-    @ivar _rawFrame: cEMI L_Data raw frame
-    @type _rawFrame: L{CEMILDataRawFrame}
+    @ivar _frame: cEMI L_Data raw frame
+    @type _frame: L{CEMILDataFrame}
     """
     MC_LDATA_REQ = 0x11  # message code for L-Data request
     MC_LDATA_CON = 0x2E  # message code for L-Data confirmation
@@ -86,8 +86,8 @@ class CEMILData(CEMI):
     SB_SYSTEM_BROADCAST = 0
     SB_BROADCAST = 1
 
-    ACK_NOT_REQUESTED = 0
-    ACK_REQUESTED = 0
+    ACQ_DONT_CARE = 0
+    ACK_REQUESTED = 1
 
     C_NO_ERROR = 0
     C_ERROR = 1
@@ -106,12 +106,12 @@ class CEMILData(CEMI):
         """
         super(CEMILData, self).__init__()
 
-        self._rawFrame = CEMILDataRawFrame(frame)
+        self._frame = CEMILDataFrame(frame)
 
         if frame is not None:
             if self.messageCode not in CEMILData.MESSAGE_CODES:
                 raise CEMIValueError("invalid Message Code (%d)" % mc)
-            elif self._rawFrame.addIL:
+            elif self._frame.addIL:
                 raise CEMIValueError("Additional Informations not supported")
             elif self.frameType == CEMILData.FT_EXT_FRAME:
                 raise CEMIValueError("only standard frame supported")
@@ -119,18 +119,22 @@ class CEMILData(CEMI):
             self.frameType == CEMILData.FT_STD_FRAME
 
     def __repr__(self):
-        return "<CEMILData(%s)>" % str(self._rawFrame)
+        s= "<CEMILData(mc=%s, priority=%s, src=%s, dest=%s, npdu=%s)>" % \
+            (hex(self.messageCode), repr(self.priority), repr(self.sourceAddress), repr(self.destinationAddress), repr(self.npdu))
+        return s
 
     def __str__(self):
-        return str(self._rawFrame)
+        s= "<CEMILData(mc=%s, priority=%s, src=%s, dest=%s, npdu=%s)>" % \
+            (hex(self.messageCode), self.priority, self.sourceAddress, self.destinationAddress, repr(self.npdu))
+        return s
 
     @property
-    def raw(self):
-        return self._rawFrame
+    def frame(self):
+        return self._frame
 
     @property
     def messageCode(self):
-        return self._rawFrame.mc
+        return self._frame.mc
 
     @messageCode.setter
     def messageCode(self, mc):
@@ -143,17 +147,17 @@ class CEMILData(CEMI):
             self.systemBroadcast = CEMILData.SB_SYSTEM_BROADCAST
         elif mc == CEMILData.MC_LDATA_IND:
             self.systemBroadcast = CEMILData.SB_SYSTEM_BROADCAST
-        self._rawFrame.mc = mc
+        self._frame.mc = mc
 
     @property
     def frameType(self):
-        return (self._rawFrame.ctrl1 >> 7) & 0x01
+        return (self._frame.ctrl1 >> 7) & 0x01
 
     #@frameType.setter
     #def frameType(self, ft):
-        #ctrl1 = self._rawFrame.ctrl1 & 0x7f
+        #ctrl1 = self._frame.ctrl1 & 0x7f
         #ctrl1 |= (ft & 0x01) << 7
-        #self._rawFrame.ctrl1 = ctrl1
+        #self._frame.ctrl1 = ctrl1
 
     @property
     def repeat(self):
@@ -164,110 +168,110 @@ class CEMILData(CEMI):
         // req, (con): flag 0 = do not repeat, 1 = default behavior
         return (ctrl1 & 0x20) == 0x20;
         """
-        return (self._rawFrame.ctrl1 >> 5) & 0x01
+        return (self._frame.ctrl1 >> 5) & 0x01
 
     @repeat.setter
     def repeat(self, r):
         """ According to calimero:
         final boolean flag = mc == MC_LDATA_IND ? !repeat : repeat;
         """
-        ctrl1 = self._rawFrame.ctrl1 & 0xdf
+        ctrl1 = self._frame.ctrl1 & 0xdf
         ctrl1 |= (r & 0x01) << 5
-        self._rawFrame.ctrl1 = ctrl1
+        self._frame.ctrl1 = ctrl1
 
     @property
     def systemBroadcast(self):
-        return (self._rawFrame.ctrl1 >> 4) & 0x01
+        return (self._frame.ctrl1 >> 4) & 0x01
 
     @systemBroadcast.setter
     def systemBroadcast(self, sb):
         if sb:
             raise CEMIValueError("only System Broadcast supported")
-        ctrl1 = self._rawFrame.ctrl1 & 0xef
+        ctrl1 = self._frame.ctrl1 & 0xef
         ctrl1 |= (sb & 0x01) << 4
-        self._rawFrame.ctrl1 = ctrl1
+        self._frame.ctrl1 = ctrl1
 
     @property
     def priority(self):
-        pr = (self._rawFrame.ctrl1 >> 2) & 0x03
+        pr = (self._frame.ctrl1 >> 2) & 0x03
         return Priority(pr)
 
     @priority.setter
     def priority(self, pr):
         if isinstance(pr, Priority):
             pr = pr.level
-        ctrl1 = self._rawFrame.ctrl1 & 0xf3
+        ctrl1 = self._frame.ctrl1 & 0xf3
         ctrl1 |= (pr & 0x03) << 2
-        self._rawFrame.ctrl1 = ctrl1
+        self._frame.ctrl1 = ctrl1
 
     @property
     def ack(self):
-        return (self._rawFrame.ctrl1 >> 1) & 0x01
+        return (self._frame.ctrl1 >> 1) & 0x01
 
     @ack.setter
     def ack(self, ack):
-        ctrl1 = self._rawFrame.ctrl1 & 0xfd
+        ctrl1 = self._frame.ctrl1 & 0xfd
         ctrl1 |= (ack & 0x01) << 1
-        self._rawFrame.ctrl1 = ctrl1
+        self._frame.ctrl1 = ctrl1
 
     @property
     def confirm(self):
-        return self._rawFrame.ctrl1 & 0x01
+        return self._frame.ctrl1 & 0x01
 
     @confirm.setter
     def confirm(self, c):
         if c and self.mc == CEMILData.MC_LDATA_REQ:
             raise CEMIValueError("Confirm flag must be 0 for L_Data.req")
-        ctrl1 = self._rawFrame.ctrl1 & 0xfe
+        ctrl1 = self._frame.ctrl1 & 0xfe
         ctrl1 |= c & 0x01
-        self._rawFrame.ctrl1 = ctrl1
+        self._frame.ctrl1 = ctrl1
 
     @property
     def addressType(self):
-        return (self._rawFrame.ctrl2 >> 7) & 0x01
+        return (self._frame.ctrl2 >> 7) & 0x01
 
     @addressType.setter
     def addressType(self, at):
-        ctrl2 = self._rawFrame.ctrl2 & 0x7f
+        ctrl2 = self._frame.ctrl2 & 0x7f
         ctrl2 |= (at & 0x01) << 7
-        self._rawFrame.ctrl2 = ctrl2
+        self._frame.ctrl2 = ctrl2
 
     @property
     def hopCount(self):
-        return (self._rawFrame.ctrl2 >> 4) & 0x07
+        return (self._frame.ctrl2 >> 4) & 0x07
 
     @hopCount.setter
     def hopCount(self, hop):
-        ctrl2 = self._rawFrame.ctrl2 & 0x8f
+        ctrl2 = self._frame.ctrl2 & 0x8f
         ctrl2 |= (hop & 0x07) << 4
-        self._rawFrame.ctrl2 = ctrl2
+        self._frame.ctrl2 = ctrl2
 
     @property
     def extFrameFormat(self):
-        return self._rawFrame.ctrl2 & 0x0f
+        return self._frame.ctrl2 & 0x0f
 
     @extFrameFormat.setter
     def extFrameFormat(self, eff):
-        ctrl2 = self._rawFrame.ctrl2 & 0xf0
+        ctrl2 = self._frame.ctrl2 & 0xf0
         ctrl2 |= eff & 0x0f
-        self._rawFrame.ctrl2 = ctrl2
+        self._frame.ctrl2 = ctrl2
 
     @property
     def sourceAddress(self):
-        return IndividualAddress(self._rawFrame.sa)
+        return IndividualAddress(self._frame.sa)
 
     @sourceAddress.setter
     def sourceAddress(self, sa):
         if not isinstance(sa, IndividualAddress):
             sa = IndividualAddress(sa)
-        self._rawFrame.sa = sa.raw
+        self._frame.sa = sa.raw
 
     @property
     def destinationAddress(self):
         if self.addressType == 0:
-            da = IndividualAddress(self._rawFrame.da)
+            da = IndividualAddress(self._frame.da)
         else:
-            da = GroupAddress(self._rawFrame.da)
+            da = GroupAddress(self._frame.da)
         return da
 
     @destinationAddress.setter
@@ -289,23 +293,23 @@ class CEMILData(CEMI):
             self.addressType = CEMILData.AT_GROUP_ADDRESS
         else:
             raise CEMIValueError("invalid address (%s)" % da)
-        self._rawFrame.da = da.raw
+        self._frame.da = da.raw
 
     @property
     def npdu(self):
-        return self._rawFrame.npdu
+        return self._frame.npdu
 
     @npdu.setter
     def npdu(self, npdu):
-        self._rawFrame.npdu = npdu
+        self._frame.npdu = npdu
 
     @property
     def l(self):
-        return self._rawFrame.l
+        return self._frame.l
 
     #@l.setter
     #def l(self, l):
-        #self._rawFrame.l = l
+        #self._frame.l = l
 
 
 if __name__ == '__main__':

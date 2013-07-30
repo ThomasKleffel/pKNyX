@@ -51,7 +51,7 @@ Usage
 __revision__ = "$Id$"
 
 
-class APCI():
+class APCI(object):
 
     _4  = 0x03c00000
     _10 = 0x03ff0000

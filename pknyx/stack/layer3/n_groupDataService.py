@@ -51,6 +51,7 @@ __revision__ = "$Id$"
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.stack.groupAddress import GroupAddress
+from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.layer2.l_dataListener import L_DataListener
 from pknyx.stack.transceiver.tFrame import TFrame
 
@@ -99,26 +100,29 @@ class N_GroupDataService(L_DataListener):
         """
         return (nPDU[TFrame.HC_BYTE] & TFrame.HC_MASK) >> TFrame.HC_BITPOS
 
-    def dataInd(self, src, dest, priority, lSDU):
-        Logger().debug("N_GroupDataService.groupDataInd(): src=%s, dest=%s, priority=%s, lSDU=%s" % \
-                       (src, dest, priority, repr(lSDU)))
+    #def dataInd(self, src, dest, priority, lSDU):
+    def dataInd(self, cEMI):
+        #Logger().debug("N_GroupDataService.groupDataInd(): src=%s, dest=%s, priority=%s, lSDU=%s" % \
+                       #(src, dest, priority, repr(lSDU)))
 
         if self._ngdl is None:
             Logger().warning("N_GroupDataService.dataInd(): not listener defined")
             return
 
-        hopCount = self._getHopCount(lSDU)
+        #hopCount = self._getHopCount(lSDU)
 
         if isinstance(dest, GroupAddress):  # Should be True for groupXXX
             if dest.isNull:
                 self._ngdl.broadcastInd(src, priority, hopCount, lSDU)
             else:
-                self._ngdl.groupDataInd(src, dest, priority, lSDU)
+                self._ngdl.groupDataInd(cEMI)
+                #self._ngdl.groupDataInd(src, dest, priority, lSDU)
                 #self._ngdl.groupDataInd(src, dest, priority, hopCount, lSDU)
-        else:
+        elif isinstance(dest, IndividualAddress):
             self._ngdl.dataInd(src, priority, lSDU)
             #self._ngdl.dataInd(src, priority, hopCount, lSDU)
-
+        else:
+            Logger().warning("N_GroupDataService.dataInd(): unknown destination address type (%s)" % repr(dest))
 
     def setListener(self, ngdl):
         """
@@ -134,14 +138,14 @@ class N_GroupDataService(L_DataListener):
         Logger().debug("N_GroupDataService.groupDataReq(): src=%s, gad=%s, priority=%s,nSDU=%s" % \
                        (src, gad, priority, repr(nSDU)))
 
-        if gad.isNull():
+        if gad.isNull:
             raise N_GDSValueError("GAD is null")
 
         hopCount = 6  # force hopCount as we don't transmit it for now
 
         if (hopCount & 0xFFFFFFF8) != 0:
             raise N_GDSValueError("invalid hopCount (%d)" % hopCount)
-        self._setHopCount(nSDU, hopCount)
+        #self._setHopCount(nSDU, hopCount)
 
         return self._lds.dataReq(src, gad, priority, nSDU)
 

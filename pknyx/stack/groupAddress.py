@@ -128,11 +128,11 @@ class GroupAddress(KnxAddress):
             if len(address) == 2:
                 if not 0 <= address[0] <= 0x1f or not 0 <= address[1] <= 0x7ff:
                     raise GroupAddressValueError("group address out of range")
-                raw = address[0] << 11 | address[1]
+                address = address[0] << 11 | address[1]
             elif len(address) == 3:
                 if not 0 <= address[0] <= 0x1f or not 0 <= address[1] <= 0x7 or not 0 <= address[2] <= 0xff:
                     raise GroupAddressValueError("group address out of range")
-                raw = address[0] << 11 | address[1] << 8 | address[2]
+                address = address[0] << 11 | address[1] << 8 | address[2]
             else:
                 raise GroupAddressValueError("invalid group address")
         except TypeError:
@@ -144,7 +144,7 @@ class GroupAddress(KnxAddress):
             raise GroupAddressValueError("outFormatLevel %d must be 2 or 3" % outFormatLevel)
         self._outFormatLevel = outFormatLevel
 
-        super(GroupAddress, self).__init__(raw)
+        super(GroupAddress, self).__init__(address)
 
     def __repr__(self):
         return "<GroupAddress('%s')>" % self.address
@@ -206,6 +206,7 @@ if __name__ == '__main__':
             self.ad2 = GroupAddress("1/2")
             self.ad3 = GroupAddress((1, 2, 3))
             self.ad4 = GroupAddress((1, 2))
+            self.ad5 = GroupAddress(4321)
 
         def tearDown(self):
             pass

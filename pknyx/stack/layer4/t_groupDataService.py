@@ -124,16 +124,18 @@ class T_GroupDataService(N_GroupDataListener):
             packetType = tPDU[TFrame.TPCI_BYTE] & 0xc3
         return packetType
 
-    def groupDataInd(self, src, gad, priority, nSDU):
-        Logger().debug("T_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, nSDU=%s" % \
-                       (src, gad, priority, repr(nSDU)))
+    #def groupDataInd(self, src, gad, priority, nSDU):
+    def groupDataInd(self, cEMI):
+        #Logger().debug("T_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, nSDU=%s" % \
+                       #(src, gad, priority, repr(nSDU)))
 
         if self._tgdl is None:
             Logger().warning("T_GroupDataService.groupDataInd(): not listener defined")
             return
 
-        if self._getPacketType(nSDU) == T_GroupDataService.UNNUMBERED_DATA:
-            self._tgdl.groupDataInd(src.gad, priority, nSDU)
+        #if self._getPacketType(nSDU) == T_GroupDataService.UNNUMBERED_DATA:
+            #self._tgdl.groupDataInd(src.gad, priority, nSDU)
+        self._tgdl.groupDataInd(cEMI.nPDU)
 
     def setListener(self, tgdl):
         """

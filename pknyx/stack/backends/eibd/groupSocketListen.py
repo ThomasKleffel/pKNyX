@@ -28,7 +28,7 @@ or see:
 Module purpose
 ==============
 
-KNX Bus management
+KNX Bus access
 
 Implements
 ==========

@@ -51,7 +51,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-from pknyx.stack.transceiver.tFrame import TFrame
+from pknyx.stack.layer7.apci import APCI
 
 
 class APDUValueError(PKNyXValueError):
@@ -62,48 +62,51 @@ class APDUValueError(PKNyXValueError):
 class APDU(object):
     """ APDU class
     """
-    def __init__(self):
-        """
-
-        raise APDUValueError:
-        """
-        super(APDU, self).__init__()
-
     @classmethod
-    def makeNoParamsReq(cls, apci):
+    def makeGroupValue(cls, apci, data="\x00", size=0):
+        """ Create an APDU from apci and data
+
+        @param apci: L{APCI}
+        @type apci: int
+
+        @param data: data
+        @type data: str or bytearray
+
+        @param size: size of the data
+        @type size: int
         """
-        """
-        aPDU = TFrame.create(1)
-        aPDU[TFrame.APDU_START + 0] = (apci >> 24) & 0xff
-        aPDU[TFrame.APDU_START + 1] = (apci >> 16) & 0xff
+        data = bytearray(data)
+
+        if apci not in (APCI.GROUPVALUE_READ, APCI.GROUPVALUE_RES, APCI.GROUPVALUE_WRITE):
+            raise APDUValueError("unsoported APCI")
+
+        if size and len(data) != size or not size and (len(data) != 1 or data[0] & 0x3f != data[0]):
+            raise APDUValueError("incompatible data/size values")
+
+        aPDU = bytearray(2 + size)
+        if size:
+            aPDU[0:1] = apci
+            aPDU[2:] = data
+        else:
+            aPDU[0] = (apci >> 8) & 0xff
+            aPDU[1] = apci | data & 0x3f
 
         return aPDU
 
     @classmethod
-    def makeGroupValue(cls, apci, data):
-        """
-        """
-        if len(data) == 0:
-            raise APDUValueError("empty data")
+    def getGroupValue(cls, aPDU, size):
+        """ Extract data from given APDU
 
-        aPDU = TFrame.create(len(data))
-        aPDU[TFrame.APDU_START+0] = (apci >> 24) & 0xff
-        aPDU[TFrame.APDU_START+1] = (apci >> 16) & 0xff
-        #System.arraycopy(data, 1, aPDU, TFrame.APDU_START + 2, len(data) - 1)
-        aPDU[TFrame.APDU_START+2:TFrame.APDU_START+2+len(data)-1] = data[1:]
+        @param data: data
+        @type data: str or bytearray
 
-        return aPDU
-
-    @classmethod
-    def getGroupValueData(cls, aPDU, length):
+        @param size: size of the data
+        @type size: int
         """
-        """
-        data = bytearray(length)
-        #System.arraycopy(aPDU, TFrame.APDU_START + 1, data, 0, length)
-        data = aPDU[TFrame.APDU_START+1:TFrame.APDU_START+1+length]
-        data[0] &= 0x3f
-
-        return data
+        if len(aPDU) > 2:
+            data = aPDU[2:]
+        else:
+            data = aPDU[1] & 0x3f
 
 
 if __name__ == '__main__':

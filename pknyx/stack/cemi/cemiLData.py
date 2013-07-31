@@ -305,7 +305,8 @@ class CEMILData(CEMI):
 
     @property
     def l(self):
-        return self._frame.l
+        #return self._frame.l
+        return self.npdu[0]
 
     #@l.setter
     #def l(self, l):

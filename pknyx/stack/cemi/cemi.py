@@ -71,19 +71,19 @@ class CEMI(object):
     @ivar payload:
     @type payload: bytearray
     """
-    def __init__(self, payload=None):
+    def __init__(self):  #, payload=None):
         """ Create a new cEMI object
 
-        @param payload:
-        @type payload: bytearray
+        #@param payload:
+        #@type payload: bytearray
         """
         super(CEMI, self).__init__()
 
-        self._payload = payload  # TODO: check validity
+        #self._payload = payload  # TODO: check validity
 
-    @property
-    def payload(self):
-        return self._payload
+    #@property
+    #def payload(self):
+        #return self._payload
 
     @property
     def messageCode(self):

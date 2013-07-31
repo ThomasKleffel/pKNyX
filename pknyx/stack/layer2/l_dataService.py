@@ -152,36 +152,12 @@ class L_DataService(threading.Thread, TransceiverLSAP):
 
         return transmission
 
-    def dataReq(self, src, dest, priority, lSDU):
+    def dataReq(self, cEMI):
         """
         """
-        Logger().debug("L_DataService.dataReq(): src=%s, dest=%s, priority=%s, lSDU=%s" % \
-                       (src, dest, priority, repr(lSDU)))
+        Logger().debug("L_DataService.dataReq(): cEMI=%s" % repr(cEMI))
 
-        if dest.isNull:
-            raise N_GDSValueError("destination address is null")
-
-        cEMI = CEMILData()
-        cEMI.messageCode = CEMILData.MC_LDATA_REQ
-        cEMI.sourceAddress = src
-        cEMI.destinationAddress = dest
-        cEMI.priority = priority
-
-        #length = len(lSDU) - TFrame.MIN_LENGTH
-
-        #lSDU[TFrame.LTP_BYTE] = TFrame.LTP_TABLE if length > 15 else TFrame.LTP_BYTES
-        #lSDU[TFrame.PR_BYTE] |= TFrame.PR_CODE[priority.level]
-
-        #lSDU[TFrame.SAH_BYTE] = (src.raw >> 8) & 0xff
-        #lSDU[TFrame.SAL_BYTE] = src.raw & 0xff
-        #lSDU[TFrame.DAH_BYTE] = (dest.raw >> 8) & 0xff
-        #lSDU[TFrame.DAL_BYTE] = dest.raw & 0xff
-
-        #lSDU[TFrame.DAF_BYTE] |= TFrame.DAF_GAD if isinstance(dest, GroupAddress) else TFrame.DAF_IA
-        #lSDU[TFrame.LEN_BYTE] |= (TFrame.len2LenCode(length) if length > 15 else length) << TFrame.LEN_BITPOS
-
-        waitL2Con = True  # ???!!!???
-        transmission = Transmission(lSDU, waitL2Con)
+        transmission = Transmission(cEMI)
         transmission.acquire()
         try:
             self._outQueue.acquire()
@@ -220,12 +196,11 @@ class L_DataService(threading.Thread, TransceiverLSAP):
 
                 # Handle frame
                 if cEMI is not None:
-                    src = cEMI.sourceAddress
-                    dest = cEMI.destinationAddress
-                    priority = cEMI.priority
-                    if self._ldl is not None:
-                        self._ldl.dataInd(cEMI)
-                        #self._ldl.dataInd(src, dest, priority, cEMI.npdu)
+                    if cEMI.messageCode == CEMILData.MC_LDATA_IND:  #in (CEMILData.MC_LDATA_CON, CEMILData.MC_LDATA_IND):
+                        if self._ldl is None:
+                            Logger().warning("L_GroupDataService.run(): not listener defined")
+                        else:
+                            self._ldl.dataInd(cEMI)
 
             except:
                 Logger().exception("L_DataService.run()")  #, debug=True)

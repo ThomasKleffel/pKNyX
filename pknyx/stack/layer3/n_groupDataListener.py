@@ -70,7 +70,7 @@ class N_GroupDataListener(object):
         """
         super(N_GroupDataListener, self).__init__()
 
-    def groupDataInd(self, src, gad, priority, hopCount, lSDU):
+    def groupDataInd(self, src, gad, priority, lSDU):
         """
         """
         raise NotImplementedError

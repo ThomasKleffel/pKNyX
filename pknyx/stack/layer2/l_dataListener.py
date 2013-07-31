@@ -71,7 +71,7 @@ class L_DataListener(object):
         """
         super(L_DataListener, self).__init__()
 
-    def dataInd(self, src, dest, isGAD, priority, lSDU):
+    def dataInd(self, src, dest, priority, lSDU):
         """
         """
         raise NotImplementedError

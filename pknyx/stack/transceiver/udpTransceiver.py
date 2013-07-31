@@ -276,12 +276,16 @@ class UDPTransceiver(Transceiver):
 
                 destAddr = cEMI.destinationAddress
                 if isinstance(destAddr, IndividualAddress) and destAddr == self._individualAddress:  # destination matches
-                    self._tLSAP.putInFrame(cEMI)
+                    #self._tLSAP.putInFrame(cEMI)
+                    Logger().warning("UDPTransceiver._receiverLoop(): IndividualAddress destination not supported")
                 elif isinstance(cEMI.destinationAddress, GroupAddress):
                     self._gadSet.acquire()
                     try:
+
+                        # @todo: add cmp support in KnxAddress to avoid .raw usage
                         if destAddr in self._gadSet or GroupAddress("0/0/0").raw in self._gadSet:
                             self._tLSAP.putInFrame(cEMI)
+
                     finally:
                         self._gadSet.release()
                 else:

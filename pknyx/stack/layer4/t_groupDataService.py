@@ -92,50 +92,52 @@ class T_GroupDataService(N_GroupDataListener):
 
         ngds.setListener(self)
 
-    def _setTPCI(self, tPDU, packetType, seqNo):
-        """ Generate the TPCI
+    #def _setTPCI(self, tPDU, packetType, seqNo):
+        #""" Generate the TPCI
 
-        @param tPDU: Transport Packet Data Unit
-        @type tPDU: bytearray
+        #@param tPDU: Transport Packet Data Unit
+        #@type tPDU: bytearray
 
-        @param packetType:
-        @type packetType:
+        #@param packetType:
+        #@type packetType:
 
-        @param seqNo:
-        @type seqNo:
+        #@param seqNo:
+        #@type seqNo:
 
-        @todo: create a TPDU object, and move this method there
-        """
-        if packetType in (T_GroupDataService.UNNUMBERED_DATA, T_GroupDataService.NUMBERED_DATA):
-            tPDU[TFrame.TPCI_BYTE] = (tPDU[TFrame.TPCI_BYTE] & 0x03) | packetType | (seqNo << 2)
-        else:
-            tPDU[TFrame.TPCI_BYTE] = packetType | (seqNo << 2)
+        #@todo: create a TPDU object, and move this method there
+        #"""
+        #if packetType in (T_GroupDataService.UNNUMBERED_DATA, T_GroupDataService.NUMBERED_DATA):
+            #tPDU[TFrame.TPCI_BYTE] = (tPDU[TFrame.TPCI_BYTE] & 0x03) | packetType | (seqNo << 2)
+        #else:
+            #tPDU[TFrame.TPCI_BYTE] = packetType | (seqNo << 2)
 
-    def _getPacketType(self, tPDU):
-        """ Extract packet type fro given tPDU
+    #def _getPacketType(self, tPDU):
+        #""" Extract packet type fro given tPDU
 
-        @param tPDU: Transport Packet Data Unit
-        @type tPDU: bytearray
+        #@param tPDU: Transport Packet Data Unit
+        #@type tPDU: bytearray
 
-        @todo: create a TPDU object, and move this method there
-        """
-        packetType = tPDU[TFrame.TPCI_BYTE] & 0xc0
-        if packetType not in (T_GroupDataService.UNNUMBERED_DATA, T_GroupDataService.NUMBERED_DATA):
-            packetType = tPDU[TFrame.TPCI_BYTE] & 0xc3
-        return packetType
+        #@todo: create a TPDU object, and move this method there
+        #"""
+        #packetType = tPDU[TFrame.TPCI_BYTE] & 0xc0
+        #if packetType not in (T_GroupDataService.UNNUMBERED_DATA, T_GroupDataService.NUMBERED_DATA):
+            #packetType = tPDU[TFrame.TPCI_BYTE] & 0xc3
+        #return packetType
 
-    #def groupDataInd(self, src, gad, priority, nSDU):
-    def groupDataInd(self, cEMI):
-        #Logger().debug("T_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, nSDU=%s" % \
-                       #(src, gad, priority, repr(nSDU)))
+    def groupDataInd(self, src, gad, priority, nPDU):
+        Logger().debug("T_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, nPDU=%s" % \
+                       (src, gad, priority, repr(nPDU)))
 
         if self._tgdl is None:
             Logger().warning("T_GroupDataService.groupDataInd(): not listener defined")
             return
 
         #if self._getPacketType(nSDU) == T_GroupDataService.UNNUMBERED_DATA:
-            #self._tgdl.groupDataInd(src.gad, priority, nSDU)
-        self._tgdl.groupDataInd(cEMI.nPDU)
+        tPCI = nPDU[0] & 0xc0
+        if tPCI == T_GroupDataService.UNNUMBERED_DATA:
+            nSDU = nPDU
+            nSDU[0] &= 0x3f
+            self._tgdl.groupDataInd(src, gad, priority, nSDU)
 
     def setListener(self, tgdl):
         """
@@ -151,8 +153,9 @@ class T_GroupDataService(N_GroupDataListener):
         Logger().debug("T_GroupDataService.groupDataReq(): src=%s, gad=%s, priority=%s, tSDU=%s" % \
                        (src, gad, priority, repr(tSDU)))
 
-        self._setTPCI(tSDU, T_GroupDataService.UNNUMBERED_DATA, 0)
-        return self._ngds.groupDataReq(src, gad, priority, tSDU)
+        #self._setTPCI(tSDU, T_GroupDataService.UNNUMBERED_DATA, 0)
+        tPDU = tSDU[0] | T_GroupDataService.UNNUMBERED_DATA
+        return self._ngds.groupDataReq(src, gad, priority, tPDU)
 
 
 if __name__ == '__main__':

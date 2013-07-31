@@ -53,7 +53,7 @@ from pknyx.services.logger import Logger
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.layer2.l_dataListener import L_DataListener
-from pknyx.stack.transceiver.tFrame import TFrame
+from pknyx.stack.cemi.cemiLData import CEMILData, CEMIValueError
 
 
 class N_GDSValueError(PKNyXValueError):
@@ -70,7 +70,7 @@ class N_GroupDataService(L_DataListener):
     @ivar _ngdl: network group data listener
     @type _ngdl: L{N_GroupDataListener<pknyx.core.layer3.n_groupDataListener>}
     """
-    def __init__(self, lds):
+    def __init__(self, lds, hopCount=6):
         """
 
         @param lds: Link data service object
@@ -83,46 +83,38 @@ class N_GroupDataService(L_DataListener):
         self._lds = lds
 
         self._ngdl = None
+        if not 0 < hopCount < 7:
+            raise N_GDSValueError("invalid hopCount (%d)" % hopCount)
+        self._hopCount = hopCount
 
         lds.setListener(self)
 
-    def _setHopCount(self, nPDU, hc):
-        """
-
-        @todo: create a NPDU object, and move this method there
-        """
-        nPDU[TFrame.HC_BYTE] = (hc << TFrame.HC_BITPOS) & TFrame.HC_MASK
-
-    def _getHopCount(self, nPDU):
-        """
-
-        @todo: create a NPDU object, and move this method there
-        """
-        return (nPDU[TFrame.HC_BYTE] & TFrame.HC_MASK) >> TFrame.HC_BITPOS
-
-    #def dataInd(self, src, dest, priority, lSDU):
     def dataInd(self, cEMI):
-        #Logger().debug("N_GroupDataService.groupDataInd(): src=%s, dest=%s, priority=%s, lSDU=%s" % \
-                       #(src, dest, priority, repr(lSDU)))
+        Logger().debug("N_GroupDataService.groupDataInd(): cEMI=%s" % repr(cEMI))
 
         if self._ngdl is None:
             Logger().warning("N_GroupDataService.dataInd(): not listener defined")
             return
 
-        #hopCount = self._getHopCount(lSDU)
+        hopCount = cEMI.hopCount
+        mc = cEMI.messageCode
+        src = cEMI.sourceAddress
+        dest = cEMI.destinationAddress
+        priority = cEMI.priority
+        hopCount = cEMI.hopCount
+        lSDU = cEMI.npdu[1:]
 
-        if isinstance(dest, GroupAddress):  # Should be True for groupXXX
-            if dest.isNull:
-                self._ngdl.broadcastInd(src, priority, hopCount, lSDU)
-            else:
-                self._ngdl.groupDataInd(cEMI)
-                #self._ngdl.groupDataInd(src, dest, priority, lSDU)
-                #self._ngdl.groupDataInd(src, dest, priority, hopCount, lSDU)
-        elif isinstance(dest, IndividualAddress):
-            self._ngdl.dataInd(src, priority, lSDU)
+        if isinstance(dest, GroupAddress):
+            if not dest.isNull:
+                self._ngdl.groupDataInd(src, dest, priority, lSDU)
+            #else:
+                #self._ngdl.broadcastInd(src, priority, hopCount, lSDU)
+        #elif isinstance(dest, IndividualAddress):
             #self._ngdl.dataInd(src, priority, hopCount, lSDU)
+        #else:
+            #Logger().warning("N_GroupDataService.dataInd(): unknown destination address type (%s)" % repr(dest))
         else:
-            Logger().warning("N_GroupDataService.dataInd(): unknown destination address type (%s)" % repr(dest))
+            Logger().warning("N_GroupDataService.dataInd(): unsupported destination address type (%s)" % repr(dest))
 
     def setListener(self, ngdl):
         """
@@ -139,15 +131,20 @@ class N_GroupDataService(L_DataListener):
                        (src, gad, priority, repr(nSDU)))
 
         if gad.isNull:
-            raise N_GDSValueError("GAD is null")
+            raise N_GDSValueError("invalid Group Address")
 
-        hopCount = 6  # force hopCount as we don't transmit it for now
+        cEMI = CEMILData()
+        cEMI.messageCode = CEMILData.MC_LDATA_REQ
+        cEMI.sourceAddress = src
+        cEMI.destinationAddress = gad
+        cEMI.priority = priority
+        cEMI.hopCount = self._hopCount
+        nPDU = bytearray(len(nSDU) + 1)
+        nPDU[0] = len(nSDU) - 1
+        nPDU[1:] = nSDU
+        cEMI.npdu = nPDU
 
-        if (hopCount & 0xFFFFFFF8) != 0:
-            raise N_GDSValueError("invalid hopCount (%d)" % hopCount)
-        #self._setHopCount(nSDU, hopCount)
-
-        return self._lds.dataReq(src, gad, priority, nSDU)
+        return self._lds.dataReq(cEMI)
 
 
 if __name__ == '__main__':

@@ -53,13 +53,19 @@ __revision__ = "$Id$"
 
 class APCI(object):
 
-    _4  = 0x03c00000
-    _10 = 0x03ff0000
-    _18 = 0x03ffff00
+    _4  = 0x03c0
 
-    GROUPVALUE_WRITE     = 0x00800000  # 4 bit
-    GROUPVALUE_READ      = 0x00000000  # 4 bit
-    GROUPVALUE_RES       = 0x00400000  # 4 bit
+    GROUPVALUE_READ      = 0x0000  # 4 bit
+    GROUPVALUE_RES       = 0x0040  # 4 bit
+    GROUPVALUE_WRITE     = 0x0080  # 4 bit
+
+    #_4  = 0x03c00000
+    #_10 = 0x03ff0000
+    #_18 = 0x03ffff00
+
+    #GROUPVALUE_WRITE     = 0x00800000  # 4 bit
+    #GROUPVALUE_READ      = 0x00000000  # 4 bit
+    #GROUPVALUE_RES       = 0x00400000  # 4 bit
 
     #PHYSADDR_WRITE       = 0x00C00000  # 4 bit
     #PHYSADDR_READ        = 0x01000000  # 4 bit

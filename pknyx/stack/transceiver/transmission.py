@@ -73,7 +73,7 @@ class Transmission(object):
     @ivar _result:
     @type _result: int
     """
-    def __init__(self, lPDU, waitConfirm):
+    def __init__(self, lPDU, waitConfirm=True):
         """
 
         @param lPDU:

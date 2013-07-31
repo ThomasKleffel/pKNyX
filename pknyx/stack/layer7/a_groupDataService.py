@@ -86,22 +86,21 @@ class A_GroupDataService(T_GroupDataListener):
 
         tgds.setListener(self)
 
-    #def groupDataInd(src, gad, priority, tSDU):
-    def groupDataInd(self, nPDU):
-        #Logger().debug("A_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, tSDU=%s" % \
-                       #(src, gad, priority, repr(tSDU)))
+    def groupDataInd(src, gad, priority, aSDU):
+        Logger().debug("A_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, aSDU=%s" % \
+                       (src, gad, priority, repr(aSDU)))
 
         if self._agdl is None:
             Logger().warning("A_GroupDataService.groupDataInd(): no listener defined")
             return
 
-        length = len(tSDU) - TFrame.MIN_LENGTH
+        length = len(aSDU) - TFrame.MIN_LENGTH
         if length >= 1:
-            apci = ((tSDU[TFrame.APDU_START+0] & 0x03) << 24) | ((tSDU[TFrame.APDU_START+1] & 0xff) << 16)
+            apci = ((aSDU[TFrame.APDU_START+0] & 0x03) << 24) | ((aSDU[TFrame.APDU_START+1] & 0xff) << 16)
 
             if (apci & APCI._4) == APCI.GROUPVALUE_WRITE:
                 if length >= 1:
-                    data = APDU.getGroupValueData(tSDU, length)
+                    data = APDU.getGroupValueData(aSDU, length)
                     self._agdl.groupValueWriteInd(src, gad, priority, data)
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_READ:
@@ -110,7 +109,7 @@ class A_GroupDataService(T_GroupDataListener):
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_RES:
                 if length >= 1:
-                    data = APDU.getGroupValueData(tSDU, length)
+                    data = APDU.getGroupValueData(aSDU, length)
                     self._agdl.groupValueReadCon(src, gad, priority, data)
 
     def setListener(self, agdl):
@@ -121,13 +120,13 @@ class A_GroupDataService(T_GroupDataListener):
         """
         self._agdl = agdl
 
-    def groupValueWriteReq(self, src, gad, priority, data):
+    def groupValueWriteReq(self, src, gad, priority, data, size):
         """
         """
-        Logger().debug("A_GroupDataService.groupValueWriteReq(): src=%s, gad=%s, priority=%s, data=%s" % \
-                       (src, gad, priority, repr(data)))
+        Logger().debug("A_GroupDataService.groupValueWriteReq(): src=%s, gad=%s, priority=%s, data=%s, size=%d" % \
+                       (src, gad, priority, repr(data), size))
 
-        aPDU = APDU.makeGroupValue(APCI.GROUPVALUE_WRITE, data)
+        aPDU = APDU.makeGroupValue(APCI.GROUPVALUE_WRITE, data, size)
         return self._tgds.groupDataReq(src, gad, priority, aPDU)
 
     def groupValueReadReq(self, src, gad, priority):
@@ -136,16 +135,16 @@ class A_GroupDataService(T_GroupDataListener):
         Logger().debug("A_GroupDataService.groupValueReadReq(): src=%s, gad=%s, priority=%s" % \
                        (src, gad, priority))
 
-        aPDU = APDU.makeNoParamsReq(PCI.GROUPVALUE_READ)
+        aPDU = APDU.makeGroupValue(PCI.GROUPVALUE_READ)
         return self._tgds.groupDataReq(src, gad, priority, aPDU)
 
-    def groupValueReadRes(self, src, gad, priority, data):
+    def groupValueReadRes(self, src, gad, priority, data, size):
         """
         """
-        Logger().debug("A_GroupDataService.groupValueReadRes(): src=%s, gad=%s, priority=%s, data=%s" % \
-                       (src, gad, priority, repr(data)))
+        Logger().debug("A_GroupDataService.groupValueReadRes(): src=%s, gad=%s, priority=%s, data=%s, size=%d" % \
+                       (src, gad, priority, repr(data), size))
 
-        aPDU = APDU.makeGroupValue(APCI.GROUPVALUE_RES, data)
+        aPDU = APDU.makeGroupValue(APCI.GROUPVALUE_RES, data, size)
         return self._tgds.groupDataReq(src, gad, priority, aPDU)
 
 

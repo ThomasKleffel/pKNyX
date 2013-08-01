@@ -67,7 +67,6 @@ from pknyx.services.logger import Logger
 from pknyx.common.signal import Signal
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.dptXlator.dpt import DPTID
-from pknyx.core.groupDataListener import GroupDataListener
 from pknyx.stack.flags import Flags
 from pknyx.stack.priority import Priority
 
@@ -77,7 +76,7 @@ class DatapointValueError(PKNyXValueError):
     """
 
 
-class Datapoint(GroupDataListener):
+class Datapoint(object):
     """ Datapoint handling class
 
     The term B{data} refers to the KNX representation of the python type B{value}. It is stored in this object.

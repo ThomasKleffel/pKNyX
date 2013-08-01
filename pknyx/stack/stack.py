@@ -53,7 +53,6 @@ import time
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-from pknyx.core.groupDataService import GroupDataService
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.layer7.a_groupDataService import A_GroupDataService
 from pknyx.stack.layer4.t_groupDataService import T_GroupDataService
@@ -70,11 +69,16 @@ class StackValueError(PKNyXValueError):
 class Stack(object):
     """ Stack class
 
-    @ivar _agds: Application group data service object
+    @ivar _agds: Application Group Data Service object
     @type _agds: L{A_GroupDataService}
 
-    @ivar _gds: Group data service object
-    @type _gds: L{GroupDataService}
+    @ivar _tgds:
+
+    @ivar _ngds:
+
+    @ivar _lds
+
+    @ivar_tc:
     """
     PRIORITY_DISTRIBUTION = (-1, 3, 2)
 
@@ -86,22 +90,17 @@ class Stack(object):
         """
         super(Stack, self).__init__()
         if not isinstance(individualAddress, IndividualAddress):
-            individualAddress=IndividualAddress(individualAddress)
+            individualAddress = IndividualAddress(individualAddress)
 
         self._lds = L_DataService(Stack.PRIORITY_DISTRIBUTION, individualAddress)
         self._tc = transCls(self._lds, **transParams)
         self._ngds = N_GroupDataService(self._lds)
         self._tgds = T_GroupDataService(self._ngds)
         self._agds = A_GroupDataService(self._tgds)
-        self._gds = GroupDataService(self._agds)
 
     @property
     def agds(self):
         return self._agds
-
-    @property
-    def gds(self):
-        return self._gds
 
     @property
     def individualAddress(self):

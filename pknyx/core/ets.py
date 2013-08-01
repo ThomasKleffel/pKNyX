@@ -173,7 +173,7 @@ class ETS(object):
 
         # Ask the group data service to subscribe this GroupObject to the given gad
         # In return, get the created group
-        group = self._stack.gds.subscribe(gad, groupObject)
+        group = self._stack.agds.subscribe(gad, groupObject)
 
         # If not already done, set the GroupObject group. This group will be used when the GroupObject wants to
         # communicate on the bus. This mimics the S flag of ETS real application.
@@ -190,7 +190,7 @@ class ETS(object):
 
         # Retreive all bound gad
         gads = []
-        for gad in self._stack.gds.groups.keys():
+        for gad in self._stack.agds.groups.keys():
             gads.append(GroupAddress(gad, outFormatLevel))
         gads.sort()
 
@@ -224,7 +224,7 @@ class ETS(object):
                         print u" │    ├── %3d %-21s" % (gad.sub, ""),
                     gadSub = gad.sub
 
-                for i, go in enumerate(self._stack.gds.groups[gad.address].listeners):
+                for i, go in enumerate(self._stack.agds.groups[gad.address].listeners):
                     dp = go.datapoint
                     fb = dp.owner
                     if not i:
@@ -251,7 +251,7 @@ class ETS(object):
                         #print "%-30s" % "",
                     gads_ = []
                     for gad in gads:
-                        if go in self._stack.gds.groups[gad.address].listeners:
+                        if go in self._stack.agds.groups[gad.address].listeners:
                             gads_.append(gad.address)
                     if gads_:
                         print "%-25s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, ", ".join(gads_), go.flags, go.priority)

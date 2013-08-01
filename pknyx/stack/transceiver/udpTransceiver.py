@@ -62,7 +62,6 @@ from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.multicastSocket import MulticastSocket
 from pknyx.stack.transceiver.transceiver import Transceiver
-from pknyx.stack.transceiver.tFrame import TFrame
 from pknyx.stack.knxnetip.knxNetIPHeader import KNXnetIPHeader, KNXnetIPHeaderValueError
 from pknyx.stack.cemi.cemiLData import CEMILData, CEMIValueError
 

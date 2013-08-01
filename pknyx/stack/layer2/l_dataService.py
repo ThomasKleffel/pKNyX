@@ -58,7 +58,6 @@ from pknyx.stack.priorityQueue import PriorityQueue
 from pknyx.stack.layer3.n_groupDataListener import N_GroupDataListener
 from pknyx.stack.transceiver.transceiverLSAP import TransceiverLSAP
 from pknyx.stack.transceiver.transmission import Transmission
-from pknyx.stack.transceiver.tFrame import TFrame
 from pknyx.stack.cemi.cemiLData import CEMILData
 
 

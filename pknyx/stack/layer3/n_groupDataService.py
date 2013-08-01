@@ -90,7 +90,7 @@ class N_GroupDataService(L_DataListener):
         lds.setListener(self)
 
     def dataInd(self, cEMI):
-        Logger().debug("N_GroupDataService.groupDataInd(): cEMI=%s" % repr(cEMI))
+        Logger().debug("N_GroupDataService.dataInd(): cEMI=%s" % repr(cEMI))
 
         if self._ngdl is None:
             Logger().warning("N_GroupDataService.dataInd(): not listener defined")

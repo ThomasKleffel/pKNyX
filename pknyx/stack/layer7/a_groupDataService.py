@@ -50,10 +50,11 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.core.group import Group
+from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.layer7.apci import APCI
 from pknyx.stack.layer7.apdu import APDU
 from pknyx.stack.layer4.t_groupDataListener import T_GroupDataListener
-from pknyx.stack.transceiver.tFrame import TFrame
 
 
 class A_GDSValueError(PKNyXValueError):
@@ -67,8 +68,8 @@ class A_GroupDataService(T_GroupDataListener):
     @ivar _tgds: transport group data service object
     @type _tgds: L{T_GroupDataService<pknyx.core.layer4.t_groupDataService>}
 
-    @ivar _agdl: application group data listener
-    @type _agdl: L{A_GroupDataListener<pknyx.core.layer7.a_groupDataListener>}
+    @ivar _groups: Groups managed
+    @type _groups: set of L{Group}
     """
     def __init__(self, tgds):
         """
@@ -82,7 +83,7 @@ class A_GroupDataService(T_GroupDataListener):
 
         self._tgds = tgds
 
-        self._agdl = None
+        self._groups = {}
 
         tgds.setListener(self)
 
@@ -90,33 +91,54 @@ class A_GroupDataService(T_GroupDataListener):
         Logger().debug("A_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, aPDU=%s" % \
                        (src, gad, priority, repr(aPDU)))
 
-        if self._agdl is None:
-            Logger().warning("A_GroupDataService.groupDataInd(): no listener defined")
-            return
-
         length = len(aPDU) - 2
         if length >= 0:
             apci = aPDU[0:1]
 
+            try:
+                group = self._group[gad]
+            except KeyError:
+                Logger().exception("A_GroupDataService.groupDataInd()", debug=True)
+                Logger().debug("A_GroupDataService.groupDataInd(): no registered group for that GAD (%s)" % repr(gad))
+                return
+
             if (apci & APCI._4) == APCI.GROUPVALUE_WRITE:
                 data = APDU.getGroupValueData(aPDU)
-                self._agdl.groupValueWriteInd(src, gad, priority, data)
+                group.groupValueWriteInd(src, gad, priority, data)
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_READ:
                 if length == 0:
-                    self._agdl.groupValueReadInd(src, gad, priority)
+                    group.groupValueReadInd(src, gad, priority)
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_RES:
                 data = APDU.getGroupValueData(aPDU)
-                self._agdl.groupValueReadCon(src, gad, priority, data)
+                group.groupValueReadCon(src, gad, priority, data)
 
-    def setListener(self, agdl):
+    @property
+    def groups(self):
+        return self._groups
+
+    def subscribe(self, gad, listener):
         """
 
-        @param agdl: listener to use to transmit data
-        @type agdl: L{A_GroupDataListener<pknyx.core.layer7.a_groupDataListener>}
+        @param gad: Group address the listener wants to subscribe to
+        @type gad : L{GroupAddress}
+
+        @param listener: object to link to the GAD
+        @type listener: L{GroupObject<pknyx.core.groupObject>}
         """
-        self._agdl = agdl
+        Logger().debug("A_GroupDataService.subscribe(): gad=%s, listener=%s" % (gad, repr(listener)))
+        if not isinstance(gad, GroupAddress):
+            gad = GroupAddress(gad)
+
+        try:
+            group = self._groups[gad.address]
+        except KeyError:
+            group = self._groups[gad.address] = Group(gad, self)
+
+        group.addListener(listener)
+
+        return group
 
     def groupValueWriteReq(self, gad, priority, data, size):
         """

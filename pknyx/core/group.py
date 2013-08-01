@@ -55,7 +55,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-from pknyx.core.groupDataListener import GroupDataListener
+from pknyx.stack.layer7.a_groupDataListener import A_GroupDataListener
 from pknyx.stack.groupAddress import GroupAddress
 
 
@@ -64,26 +64,26 @@ class GroupValueError(PKNyXValueError):
     """
 
 
-class Group(GroupDataListener):
+class Group(A_GroupDataListener):
     """ Group class
 
     @ivar _gad: Group address (GAD) identifying this group
     @type _gad: L{GroupAddress}
 
-    @ivar _gds: Group data service object
-    @type _gds: L{GroupDataService}
+    @ivar _agds: Application Group Data Service object
+    @type _agds: L{A_GroupDataService}
 
     @ivar _listeners: Listeners bound to the group handled GAD
     @type _listeners: set of L{GroupObject<pknyx.core.groupObject>}
     """
-    def __init__(self, gad, gds):
+    def __init__(self, gad, agds):
         """ Init the Group object
 
         @param gad: Group address identifying this group
         @type gad: L{GroupAddress}
 
-        @param gds: Group data service object
-        @type gds: L{GroupDataService}
+        @param agds: Application Group Data Service object
+        @type agds: L{GroupDataService}
 
         raise GroupValueError:
         """
@@ -93,7 +93,7 @@ class Group(GroupDataListener):
             gad = GroupAddress(gad)
         self._gad = gad
 
-        self._gds = gds
+        self._agds = agds
 
         self._listeners = set()
 
@@ -102,6 +102,32 @@ class Group(GroupDataListener):
 
     def __str__(self):
         return "<Group('%s')>" % self._gad
+
+    def groupValueWriteInd(self, src, gad, priority, data):
+        Logger().debug("Group.groupValueWriteInd(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (src, gad, priority, repr(data)))
+        for listener in self._listeners:
+            try:
+                listener.onWrite(src, self._gad, data)
+            except PKNyXValueError:
+                Logger().exception("Group.groupValueWriteInd()")
+
+    def groupValueReadInd(self, src, gad, priority):
+        Logger().debug("Group.groupValueReadInd(): src=%s, gad=%s, priority=%s" % (src, gad, priority))
+        for listener in self._listeners:
+            try:
+                listener.onRead(src, self._gad)
+            except PKNyXValueError:
+                Logger().exception("Group.groupValueReadInd()")
+
+    def groupValueReadCon(self, src, gad, data, priority):
+        Logger().debug("Group.groupValueReadCon(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (src, gad, priority, repr(data)))
+        for listener in self._listeners:
+            try:
+                listener.onResponse(src, self._gad, data)
+            except PKNyXValueError:
+                Logger().exception("Group.groupValueReadCon()")
 
     @property
     def gad(self):
@@ -121,44 +147,20 @@ class Group(GroupDataListener):
         """
         self._listeners.add(listener)
 
-    def onGroupValueWrite(self, src, data):
-        Logger().debug("Group.onGroupValueWrite(): src=%s, data=%s" % (src, repr(data)))
-        for listener in self._listeners:
-            try:
-                listener.onWrite(src, self._gad, data)
-            except PKNyXValueError:
-                Logger().exception("Group.onGroupValueWrite()")
-
-    def onGroupValueRead(self, src):
-        Logger().debug("Group.onGroupValueRead(): src=%s" % src)
-        for listener in self._listeners:
-            try:
-                listener.onRead(src, self._gad)
-            except PKNyXValueError:
-                Logger().exception("Group.onGroupValueRead()")
-
-    def onGroupValueResponse(self, src, data):
-        Logger().debug("Group.onGroupValueResponse(): src=%s, data=%s" % (src, repr(data)))
-        for listener in self._listeners:
-            try:
-                listener.onResponse(src, self._gad, data)
-            except PKNyXValueError:
-                Logger().exception("Group.onGroupValueResponse()")
-
     def groupValueWrite(self, priority, data, size):
         """ Write data request on the GAD associated with this group
         """
-        self._gds.agds.groupValueWriteReq(self._gad, priority, data, size)
+        self._agds.groupValueWriteReq(self._gad, priority, data, size)
 
     def groupValueRead(self, priority):
         """ Read data request on the GAD associated with this group
         """
-        self._gds.agds.groupValueReadReq(self._gad, priority)
+        self._agds.groupValueReadReq(self._gad, priority)
 
     def groupValueResponse(self, priority, data, size):
         """ Response data request on the GAD associated with this group
         """
-        self._gds.agds.groupValueReadRes(self._gad, priority, data, size)
+        self._agds.groupValueReadRes(self._gad, priority, data, size)
 
 
 if __name__ == '__main__':

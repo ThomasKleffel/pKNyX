@@ -199,11 +199,11 @@ class Datapoint(object):
 
     def _setData(self, data):
         self._dptXlator.checkData(data)
-        oldValue = self.value
         self._data = data
 
     @data.setter
     def data(self, data):
+        oldValue = self.value
         self._setData(data)
 
         # Notify owner (=FunctionalBlock)
@@ -253,6 +253,11 @@ class Datapoint(object):
     @property
     def frame(self):
         return (self._dptXlator.dataToFrame(self._data), self._dptXlator.typeSize)
+
+    @frame.setter
+    def frame(self, frame):
+        data = self._dptXlator.frameToData(frame)
+        self.data = data  # Note usage of .data, and not ._data!
 
 
 if __name__ == '__main__':

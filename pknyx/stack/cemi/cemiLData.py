@@ -116,7 +116,7 @@ class CEMILData(CEMI):
             elif self.frameType == CEMILData.FT_EXT_FRAME:
                 raise CEMIValueError("only standard frame supported")
         else:
-            self.frameType == CEMILData.FT_STD_FRAME
+            self.frameType = CEMILData.FT_STD_FRAME
 
     def __repr__(self):
         s= "<CEMILData(mc=%s, priority=%s, src=%s, dest=%s, npdu=%s)>" % \
@@ -153,11 +153,11 @@ class CEMILData(CEMI):
     def frameType(self):
         return (self._frame.ctrl1 >> 7) & 0x01
 
-    #@frameType.setter
-    #def frameType(self, ft):
-        #ctrl1 = self._frame.ctrl1 & 0x7f
-        #ctrl1 |= (ft & 0x01) << 7
-        #self._frame.ctrl1 = ctrl1
+    @frameType.setter
+    def frameType(self, ft):
+        ctrl1 = self._frame.ctrl1 & 0x7f
+        ctrl1 |= (ft & 0x01) << 7
+        self._frame.ctrl1 = ctrl1
 
     @property
     def repeat(self):

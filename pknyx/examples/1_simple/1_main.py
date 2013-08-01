@@ -134,7 +134,7 @@ class WeatherWindBlock(FunctionalBlock):
 
     DESC = "Wind management block"
 
-    @schedule.every(seconds=5)
+    @schedule.every(seconds=10)
     def updateWindSpeed(self):
         """This method is called every xxx to refresh the wind speed
         """

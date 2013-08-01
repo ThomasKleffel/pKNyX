@@ -177,7 +177,7 @@ class GroupObject(object):
 
         # Check if datapoint should be updated
         if self._flags.write:  # and data != self.datapoint.data:
-            self.datapoint.data = data
+            self.datapoint.frame = data
 
     def onRead(self, src, gad):
         Logger().debug("GroupObject.onRead(): src=%s" % src)
@@ -193,7 +193,7 @@ class GroupObject(object):
 
         # Check if datapoint should be updated
         if self._flags.update:  # and data != self.datapoint.data:
-            self.datapoint.data = data
+            self.datapoint.frame = data
 
 
 if __name__ == '__main__':

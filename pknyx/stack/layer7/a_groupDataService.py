@@ -87,23 +87,23 @@ class A_GroupDataService(T_GroupDataListener):
 
         tgds.setListener(self)
 
-    def groupDataInd(src, gad, priority, aPDU):  # aPDU -> tSDU
+    def groupDataInd(self, src, gad, priority, aPDU):  # aPDU -> tSDU
         Logger().debug("A_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, aPDU=%s" % \
                        (src, gad, priority, repr(aPDU)))
 
         length = len(aPDU) - 2
         if length >= 0:
-            apci = aPDU[0:1]
+            apci = aPDU[0] << 8 | aPDU[1]
 
             try:
-                group = self._group[gad]
+                group = self._groups[gad.address]
             except KeyError:
                 Logger().exception("A_GroupDataService.groupDataInd()", debug=True)
                 Logger().debug("A_GroupDataService.groupDataInd(): no registered group for that GAD (%s)" % repr(gad))
                 return
 
             if (apci & APCI._4) == APCI.GROUPVALUE_WRITE:
-                data = APDU.getGroupValueData(aPDU)
+                data = APDU.getGroupValue(aPDU)
                 group.groupValueWriteInd(src, gad, priority, data)
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_READ:
@@ -111,7 +111,7 @@ class A_GroupDataService(T_GroupDataListener):
                     group.groupValueReadInd(src, gad, priority)
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_RES:
-                data = APDU.getGroupValueData(aPDU)
+                data = APDU.getGroupValue(aPDU)
                 group.groupValueReadCon(src, gad, priority, data)
 
     @property

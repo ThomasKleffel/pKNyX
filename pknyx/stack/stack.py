@@ -54,7 +54,6 @@ import time
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.core.groupDataService import GroupDataService
-from pknyx.stack.knxAddress import KnxAddress
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.layer7.a_groupDataService import A_GroupDataService
 from pknyx.stack.layer4.t_groupDataService import T_GroupDataService
@@ -79,25 +78,22 @@ class Stack(object):
     """
     PRIORITY_DISTRIBUTION = (-1, 3, 2)
 
-    def __init__(self, domainAddr=KnxAddress(0), individualAddress=IndividualAddress("0.0.0"), serNo=-1,
+    def __init__(self, individualAddress=IndividualAddress("0.0.0"),
                  transCls=UDPTransceiver, transParams=dict(mcastAddr="224.0.23.12", mcastPort=3671)):
         """
 
         raise StackValueError:
         """
         super(Stack, self).__init__()
-
-        if not isinstance(domainAddr, KnxAddress):
-            domainAddr = KnxAddress(domainAddr)
         if not isinstance(individualAddress, IndividualAddress):
             individualAddress=IndividualAddress(individualAddress)
 
-        self._lds = L_DataService(Stack.PRIORITY_DISTRIBUTION)
+        self._lds = L_DataService(Stack.PRIORITY_DISTRIBUTION, individualAddress)
+        self._tc = transCls(self._lds, **transParams)
         self._ngds = N_GroupDataService(self._lds)
         self._tgds = T_GroupDataService(self._ngds)
         self._agds = A_GroupDataService(self._tgds)
         self._gds = GroupDataService(self._agds)
-        self._tc = transCls(self._lds, domainAddr, individualAddress, **transParams)
 
     @property
     def agds(self):
@@ -109,7 +105,7 @@ class Stack(object):
 
     @property
     def individualAddress(self):
-        return self._tc.individualAddress
+        return self._lds.individualAddress
 
     def start(self):
         """ Start the stack threads

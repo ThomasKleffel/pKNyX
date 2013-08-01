@@ -50,8 +50,6 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-from pknyx.stack.knxAddress import KnxAddress
-from pknyx.stack.individualAddress import IndividualAddress
 
 
 class Transceiver(object):
@@ -59,52 +57,20 @@ class Transceiver(object):
 
     @ivar _tLSAP:
     @type _tLSAP:
-
-    @ivar _domainAddr:
-    @type _domainAddr:
-
-    @ivar _individualAddress: own individual address
-    @type _individualAddress: L{IndividualAddress}
     """
     OVERHEAD = 2
 
-    def __init__(self, tLSAP, domainAddr=0, individualAddress="0.0.0"):
+    def __init__(self, tLSAP):
         """
 
         @param tLSAP:
         @type tLSAP:
-
-        @param domainAddr:
-        @type domainAddr:
-
-        @param individualAddress: own individual address (use as source address in lSDU)
-        @type individualAddress: L{IndividualAddress<pknyx.core.individualAddress>}
         """
         super(Transceiver, self).__init__()
 
         self._tLSAP = tLSAP
-        if not isinstance(domainAddr, KnxAddress):
-            domainAddr = KnxAddress(domainAddr)
-        self._domainAddr = domainAddr
-        if not isinstance(individualAddress, IndividualAddress):
-            individualAddress = IndividualAddress(individualAddress)
-        self._individualAddress = individualAddress
 
     def cleanup(self):
-        raise NotImplementedError
-
-    @property
-    def domainAddress(self):
-        return self._domainAddress
-
-    @property
-    def individualAddress(self):
-        return self._individualAddress
-
-    def addGroupAddress(self, gad, sendL2Ack):
-        raise NotImplementedError
-
-    def removeGroupAddress(self, gad):
         raise NotImplementedError
 
 

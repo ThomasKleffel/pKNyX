@@ -128,7 +128,8 @@ class GroupObject(object):
 
         if self._flags.communicate:
             if (oldValue != newValue and self._flags.transmit) or self._flags.stateless:
-                self._group.groupValueWrite(self._datapoint.owner.individualAddress, self._priority, self._datapoint.frame)
+                frame, size = self._datapoint.frame
+                self._group.groupValueWrite(self._priority, frame, size)
 
     @property
     def datapoint(self):
@@ -165,33 +166,30 @@ class GroupObject(object):
         # If the flag init is set, send a read request on that accesspoint, which is bound to the default GAD
         #if self._flags.communicate:
             #if self._flags.init:
-                #self._group.groupValueRead(self._datapoint.owner.individualAddress, self._priority)
+                #self._group.groupValueRead(self._priority)
 
     @property
     def name(self):
         return self._datapoint.name
 
-    def onWrite(self, cEMI):
-        Logger().debug("GroupObject.onWrite(): cEMI=%s" % repr(cEMI))
-
-        data = cEMI.data
+    def onWrite(self, src, gad, data):
+        Logger().debug("GroupObject.onWrite(): src=%s, data=%s" % (src, repr(data)))
 
         # Check if datapoint should be updated
         if self._flags.write:  # and data != self.datapoint.data:
             self.datapoint.data = data
 
-    def onRead(self, cEMI):
-        Logger().debug("GroupObject.onRead(): cEMI=%s" % repr(cEMI))
+    def onRead(self, src, gad):
+        Logger().debug("GroupObject.onRead(): src=%s" % src)
 
         # Check if data should be send over the bus
         if self._flags.communicate:
             if self._flags.read:
-                self._group.groupValueResponse(self._datapoint.owner.individualAddress, self._datapoint.data, self._priority)
+                frame, size = self._datapoint.frame
+                self._group.groupValueResponse(self._priority, frame, size)
 
-    def onResponse(self, cEMI):
-        Logger().debug("GroupObject.onResponse(): cEMI=%s" % repr(cEMI))
-
-        data = cEMI.data
+    def onResponse(self, src, gad, data):
+        Logger().debug("GroupObject.onResponse(): src=%s, data=%s" % (src, repr(data)))
 
         # Check if datapoint should be updated
         if self._flags.update:  # and data != self.datapoint.data:

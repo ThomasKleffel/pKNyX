@@ -116,18 +116,11 @@ class UDPTransceiver(Transceiver):
     @ivar _gadSet: set of GAD
     @type _gadSet: L{GadSet}
     """
-    def __init__(self, tLSAP, domainAddr=KnxAddress(0), individualAddress=IndividualAddress("0.0.0"),
-                 mcastAddr="224.0.23.12", mcastPort=3671):
+    def __init__(self, tLSAP, mcastAddr="224.0.23.12", mcastPort=3671):
         """
 
         @param tLSAP:
         @type tLSAP: L{TransceiverLSAP}
-
-        @param domainAddr:
-        @type domainAddr:
-
-        @param individualAddress: own Individual Address (used when no source address is given in lSDU)
-        @type individualAddress: str or L{IndividualAddress<pknyx.core.individualAddress>}
 
         @param mcastAddr: multicast address to bind to
         @type mcastAddr: str
@@ -137,22 +130,14 @@ class UDPTransceiver(Transceiver):
 
         raise UDPTransceiverValueError:
         """
-        super(UDPTransceiver, self).__init__(tLSAP, domainAddr, individualAddress)
+        super(UDPTransceiver, self).__init__(tLSAP)
 
-        if not isinstance(domainAddr, KnxAddress):
-            domainAddr = KnxAddress(domainAddr)
-        self._domainAddr = domainAddr
-        if not isinstance(individualAddress, IndividualAddress):
-            individualAddress = IndividualAddress(individualAddress)
-        self._individualAddress = individualAddress
         self._mcastAddr = mcastAddr
         self._mcastPort = mcastPort
 
         self._transmitterSock = MulticastSocket(mcastPort, mcastAddr)
         self._receiverSock = MulticastSocket(mcastPort)
         self._gadSet = GadSet()
-
-        self.addGroupAddress(GroupAddress("0/0/0"))
 
         # Create transmitter and receiver threads
         self._transmitter = threading.Thread(target=self._transmitterLoop, name="UDP transmitter")
@@ -163,14 +148,6 @@ class UDPTransceiver(Transceiver):
     @property
     def tLSAP(self):
         return self._tLSAP
-
-    @property
-    def domainAddr(self):
-        return self._domainAddr
-
-    @property
-    def individualAddress(self):
-        return self._individualAddress
 
     @property
     def mcastAddr(self):
@@ -188,10 +165,6 @@ class UDPTransceiver(Transceiver):
     def localPort(self):
         return self._transmitterSock.localPort
 
-    @property
-    def gadSet(self):
-        return self._gadSet
-
     def _transmitterLoop(self):
         """
         """
@@ -204,26 +177,14 @@ class UDPTransceiver(Transceiver):
 
                 if transmission is not None:
 
-                    #lPDU = transmission.lPDU
-                    #Logger().debug("UDPTransceiver._transmitterLoop(): lPDU=%s" % repr(lPDU))
-                    #lPDU[TFrame.CF_BYTE] |= TFrame.CF_L_DATA
-                    #lPDU[TFrame.SAH_BYTE] = self.individualAddress.high
-                    #lPDU[TFrame.SAL_BYTE] = self.individualAddress.low
-
-                    #checksum = 0x00
-                    #for c in lPDU[self.OVERHEAD:]:
-                        #checksum = (checksum ^ c) & 0xff
-
-                    #lPDU[self.OVERHEAD:] = lPDU[self.OVERHEAD-1:]
-                    #lPDU[-1] = checksum ^ 0xff
-
-                    #outFrame = lPDU[self.OVERHEAD-1:]  # use eCMI
-                    #header = KNXnetIPHeader(service=KNXnetIPHeader.ROUTING_IND, serviceLength=len(outFrame))
-                    #outFrame = header.frame + outFrame
-                    #Logger().debug("UDPTransceiver._transmitterLoop(): outFrame= %s" % repr(outFrame))
+                    cEMIFrame = transmission.payload
+                    cEMIRawFrame = cEMIFrame.raw
+                    header = KNXnetIPHeader(service=KNXnetIPHeader.ROUTING_IND, serviceLength=len(cEMIRawFrame))
+                    frame = header.frame + cEMIRawFrame
+                    Logger().debug("UDPTransceiver._transmitterLoop(): frame= %s" % repr(frame))
 
                     try:
-                        #self._transmitterSock.transmit(outFrame)
+                        self._transmitterSock.transmit(frame)
                         transmission.result = Result.OK
                     except IOError:
                         Logger().exception("UDPTransceiver._transmitterLoop()")
@@ -268,26 +229,24 @@ class UDPTransceiver(Transceiver):
                 Logger().debug("UDPTransceiver._receiverLoop(): KNXnetIP header=%s" % repr(header))
 
                 frame = inFrame[KNXnetIPHeader.HEADER_SIZE:]
+                Logger().debug("UDPTransceiver._receiverLoop(): frame=%s" % repr(frame))
                 try:
                     cEMI = CEMILData(frame)
                 except CEMIValueError:
-                    Logger().exception("UDPTransceiver._receiverLoop()", debug=True)
+                    Logger().exception("UDPTransceiver._receiverLoop()")  #, debug=True)
+                    continue
                 Logger().debug("UDPTransceiver._receiverLoop(): cEMI=%s" % cEMI)
 
                 destAddr = cEMI.destinationAddress
-                if isinstance(destAddr, IndividualAddress) and destAddr == self._individualAddress:  # destination matches
-                    #self._tLSAP.putInFrame(cEMI)
-                    Logger().warning("UDPTransceiver._receiverLoop(): IndividualAddress destination not supported")
-                elif isinstance(cEMI.destinationAddress, GroupAddress):
+                if isinstance(cEMI.destinationAddress, GroupAddress):
                     self._gadSet.acquire()
                     try:
-
-                        # @todo: add cmp support in KnxAddress to avoid .raw usage
-                        if destAddr in self._gadSet or GroupAddress("0/0/0").raw in self._gadSet:
-                            self._tLSAP.putInFrame(cEMI)
-
+                        self._tLSAP.putInFrame(cEMI)
                     finally:
                         self._gadSet.release()
+
+                elif isinstance(destAddr, IndividualAddress):
+                    Logger().warning("UDPTransceiver._receiverLoop(): unsupported destination address type (%s)" % repr(destAddr))
                 else:
                     Logger().warning("UDPTransceiver._receiverLoop(): unknown destination address type (%s)" % repr(destAddr))
 
@@ -301,27 +260,6 @@ class UDPTransceiver(Transceiver):
         self._receiverSock.close()
 
         Logger().info("Stopped")
-
-    def addGroupAddress(self, gad):
-        """
-        """
-        if not isinstance(gad, GroupAddress):
-            gad = GroupAddress(gad)
-
-        self._gadSet.acquire()
-        try:
-            self._gadSet.add(gad.raw)  # Make a GADSet object with a .contain() method
-        finally:
-            self._gadSet.release()
-
-    def removeGroupAddress(self, gad):
-        """
-        """
-        self._gadSet.acquire()
-        try:
-            self._gadSet.remove(gad)
-        finally:
-            self._gadSet.release()
 
     def start(self):
         """

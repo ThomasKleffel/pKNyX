@@ -124,20 +124,20 @@ class T_GroupDataService(N_GroupDataListener):
             #packetType = tPDU[TFrame.TPCI_BYTE] & 0xc3
         #return packetType
 
-    def groupDataInd(self, src, gad, priority, nPDU):
-        Logger().debug("T_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, nPDU=%s" % \
-                       (src, gad, priority, repr(nPDU)))
+    def groupDataInd(self, src, gad, priority, tPDU):
+        Logger().debug("T_GroupDataService.groupDataInd(): src=%s, gad=%s, priority=%s, tPDU=%s" % \
+                       (src, gad, priority, repr(tPDU)))
 
         if self._tgdl is None:
             Logger().warning("T_GroupDataService.groupDataInd(): not listener defined")
             return
 
-        #if self._getPacketType(nSDU) == T_GroupDataService.UNNUMBERED_DATA:
-        tPCI = nPDU[0] & 0xc0
+        #if self._getPacketType(tPDU) == T_GroupDataService.UNNUMBERED_DATA:
+        tPCI = tPDU[0] & 0xc0
         if tPCI == T_GroupDataService.UNNUMBERED_DATA:
-            nSDU = nPDU
-            nSDU[0] &= 0x3f
-            self._tgdl.groupDataInd(src, gad, priority, nSDU)
+            tSDU = tPDU
+            tSDU[0] &= 0x3f
+            self._tgdl.groupDataInd(src, gad, priority, tSDU)
 
     def setListener(self, tgdl):
         """
@@ -147,15 +147,16 @@ class T_GroupDataService(N_GroupDataListener):
         """
         self._tgdl = tgdl
 
-    def groupDataReq(self, src, gad, priority, tSDU):
+    def groupDataReq(self, gad, priority, tSDU):
         """
         """
-        Logger().debug("T_GroupDataService.groupDataReq(): src=%s, gad=%s, priority=%s, tSDU=%s" % \
-                       (src, gad, priority, repr(tSDU)))
+        Logger().debug("T_GroupDataService.groupDataReq(): gad=%s, priority=%s, tSDU=%s" % \
+                       (gad, priority, repr(tSDU)))
 
         #self._setTPCI(tSDU, T_GroupDataService.UNNUMBERED_DATA, 0)
-        tPDU = tSDU[0] | T_GroupDataService.UNNUMBERED_DATA
-        return self._ngds.groupDataReq(src, gad, priority, tPDU)
+        tPDU = tSDU
+        tPDU[0] |= T_GroupDataService.UNNUMBERED_DATA
+        return self._ngds.groupDataReq(gad, priority, tPDU)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Python KNX framework
+""" Python KNX payloadwork
 
 License
 =======
@@ -64,8 +64,8 @@ class TransmissionValueError(PKNyXValueError):
 class Transmission(object):
     """ Transmission class
 
-    @ivar _frame:
-    @type _frame: bytearray
+    @ivar _payload:
+    @type _payload: bytearray
 
     @ivar _waitConfirm:
     @type _waitConfirm: bool
@@ -73,11 +73,11 @@ class Transmission(object):
     @ivar _result:
     @type _result: int
     """
-    def __init__(self, lPDU, waitConfirm=True):
+    def __init__(self, payload, waitConfirm=True):
         """
 
-        @param lPDU:
-        @type lPDU: bytearray
+        @param payload:
+        @type payload: bytearray
 
         @param waitConfirm:
         @type waitConfirm: bool
@@ -86,18 +86,18 @@ class Transmission(object):
         """
         super(Transmission, self).__init__()
 
-        self._lPDU = lPDU
+        self._payload = payload
         self._waitConfirm = waitConfirm
         self._result = Result.OK
 
         self._condition = threading.Condition()
 
     def __repr__(self):
-        return "<Transmission(lPDU=%s, waitConfirm=%s, result=%d)>" % (repr(self._lPDU), self._waitConfirm, self._result)
+        return "<Transmission(payload=%s, waitConfirm=%s, result=%d)>" % (repr(self._payload), self._waitConfirm, self._result)
 
     @property
-    def lPDU(self):
-        return self._lPDU
+    def payload(self):
+        return self._payload
 
     @property
     def waitConfirm(self):

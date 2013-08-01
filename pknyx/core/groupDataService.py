@@ -86,8 +86,9 @@ class GroupDataService(A_GroupDataListener):
 
         agds.setListener(self)
 
-    def groupValueWriteInd(self, src, gad, data, priority):
-        Logger().debug("GroupDataService.groupValueWriteInd(): src=%s, gad=%s, data=%s, priority=%s" % (src, gad, repr(data), priority))
+    def groupValueWriteInd(self, src, gad, priority, data):
+        Logger().debug("GroupDataService.groupValueWriteInd(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (src, gad, priority, repr(data)))
         try:
             group = self._group[gad]
             group.onGroupValueWrite(src, data)
@@ -105,7 +106,8 @@ class GroupDataService(A_GroupDataListener):
             Logger().debug("GroupDataService.groupValueReadInd(): no registered group for that GAD (%s)" % repr(gad))
 
     def groupValueReadCon(self, src, gad, data, priority):
-        Logger().debug("GroupDataService.groupValue_ReadCon(): src=%s, gad=%s, data=%s, priority=%s" % (src, gad, repr(data), priority))
+        Logger().debug("GroupDataService.groupValue_ReadCon(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (src, gad, priority, repr(data)))
         try:
             group = self._group[gad]
             group.onGroupValueResponse(src, data)

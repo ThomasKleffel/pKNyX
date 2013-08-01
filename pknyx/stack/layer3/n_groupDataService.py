@@ -102,15 +102,15 @@ class N_GroupDataService(L_DataListener):
         dest = cEMI.destinationAddress
         priority = cEMI.priority
         hopCount = cEMI.hopCount
-        lSDU = cEMI.npdu[1:]
+        nSDU = cEMI.npdu[1:]
 
         if isinstance(dest, GroupAddress):
             if not dest.isNull:
-                self._ngdl.groupDataInd(src, dest, priority, lSDU)
+                self._ngdl.groupDataInd(src, dest, priority, nSDU)
             #else:
-                #self._ngdl.broadcastInd(src, priority, hopCount, lSDU)
+                #self._ngdl.broadcastInd(src, priority, hopCount, nSDU)
         #elif isinstance(dest, IndividualAddress):
-            #self._ngdl.dataInd(src, priority, hopCount, lSDU)
+            #self._ngdl.dataInd(src, priority, hopCount, nSDU)
         #else:
             #Logger().warning("N_GroupDataService.dataInd(): unknown destination address type (%s)" % repr(dest))
         else:
@@ -124,18 +124,18 @@ class N_GroupDataService(L_DataListener):
         """
         self._ngdl = ngdl
 
-    def groupDataReq(self, src, gad, priority, nSDU):
+    def groupDataReq(self, gad, priority, nSDU):
         """
         """
-        Logger().debug("N_GroupDataService.groupDataReq(): src=%s, gad=%s, priority=%s,nSDU=%s" % \
-                       (src, gad, priority, repr(nSDU)))
+        Logger().debug("N_GroupDataService.groupDataReq(): gad=%s, priority=%s, nSDU=%s" % \
+                       (gad, priority, repr(nSDU)))
 
         if gad.isNull:
             raise N_GDSValueError("invalid Group Address")
 
         cEMI = CEMILData()
         cEMI.messageCode = CEMILData.MC_LDATA_REQ
-        cEMI.sourceAddress = src
+        #cEMI.sourceAddress = src  # Added by Link Data Layer
         cEMI.destinationAddress = gad
         cEMI.priority = priority
         cEMI.hopCount = self._hopCount

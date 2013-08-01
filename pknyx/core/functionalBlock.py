@@ -126,7 +126,7 @@ class FunctionalBlock(object):
 
         return self
 
-    def __init__(self, name, desc=None, individualAddress=None):
+    def __init__(self, name, desc=None, individualAddress=None):  # TODO: remove individualAddress?
         """
 
         @param name: name of the device

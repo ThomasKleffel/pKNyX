@@ -253,7 +253,7 @@ class Datapoint(GroupDataListener):
 
     @property
     def frame(self):
-        return self._dptXlator.dataToFrame(self._data)
+        return (self._dptXlator.dataToFrame(self._data), self._dptXlator.typeSize)
 
 
 if __name__ == '__main__':

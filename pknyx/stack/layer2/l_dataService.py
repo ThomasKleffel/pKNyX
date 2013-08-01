@@ -53,7 +53,6 @@ import threading
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.priorityQueue import PriorityQueue
 from pknyx.stack.layer3.n_groupDataListener import N_GroupDataListener
@@ -71,8 +70,8 @@ class L_DSValueError(PKNyXValueError):
 class L_DataService(threading.Thread, TransceiverLSAP):
     """ L_DataService class
 
-    @ivar _ldl: link data listener
-    @type _ldl: L{L_DataListener<pknyx.core.layer2.l_dataListener>}
+    @ivar _individualAddress: own Individual Address
+    @type _individualAddress: str or L{IndividualAddress<pknyx.core.individualAddress>}
 
     @ivar _inQueue: input queue
     @type _inQueue: L{PriorityQueue}
@@ -80,11 +79,17 @@ class L_DataService(threading.Thread, TransceiverLSAP):
     @ivar _outQueue: output queue
     @type _outQueue: L{PriorityQueue}
 
+    @ivar _ldl: link data listener
+    @type _ldl: L{L_DataListener<pknyx.core.layer2.l_dataListener>}
+
     @ivar _running: True if thread is running
     @type _running: bool
     """
-    def __init__(self, priorityDistribution):
+    def __init__(self, priorityDistribution, individualAddress=IndividualAddress("0.0.0")):
         """
+
+        @param individualAddress: own Individual Address
+        @type individualAddress: str or L{IndividualAddress}
 
         @param priorityDistribution:
         @type priorityDistribution:
@@ -93,15 +98,23 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         """
         super(L_DataService, self).__init__(name="LinkLayer")
 
-        self._ldl = None
+        if not isinstance(individualAddress, IndividualAddress):
+            individualAddress = IndividualAddress(individualAddress)
+        self._individualAddress = individualAddress
 
         self._inQueue  = PriorityQueue(4, priorityDistribution)
         self._outQueue = PriorityQueue(4, priorityDistribution)
+
+        self._ldl = None
 
         self._running = False
 
         self.setDaemon(True)
         #self.start()
+
+    @property
+    def individualAddress(self):
+        return self._individualAddress
 
     def setListener(self, ldl):
         """
@@ -115,7 +128,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         """ Set input frame
 
         @param cEMI:
-        @type:
+        @type cEMI:
         """
         Logger().debug("L_DataService.putInFrame(): cEMI=%s" % cEMI)
 
@@ -155,9 +168,14 @@ class L_DataService(threading.Thread, TransceiverLSAP):
     def dataReq(self, cEMI):
         """
         """
-        Logger().debug("L_DataService.dataReq(): cEMI=%s" % repr(cEMI))
+        Logger().debug("L_DataService.dataReq(): cEMI=%s" % cEMI)
 
-        transmission = Transmission(cEMI)
+        # Add source address to cEMI
+        cEMI.sourceAddress = self._individualAddress
+
+        priority = cEMI.priority
+
+        transmission = Transmission(cEMI.frame)
         transmission.acquire()
         try:
             self._outQueue.acquire()
@@ -194,7 +212,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
                 finally:
                     self._inQueue.release()
 
-                # Handle frame
+                # Handle cEMI message
                 if cEMI is not None:
                     if cEMI.messageCode == CEMILData.MC_LDATA_IND:  #in (CEMILData.MC_LDATA_CON, CEMILData.MC_LDATA_IND):
                         if self._ldl is None:

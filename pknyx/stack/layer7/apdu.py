@@ -85,23 +85,21 @@ class APDU(object):
 
         aPDU = bytearray(2 + size)
         if size:
-            aPDU[0:1] = apci
+            aPDU[0] = (apci >> 8) & 0xff
+            aPDU[1] = apci & 0xff
             aPDU[2:] = data
         else:
             aPDU[0] = (apci >> 8) & 0xff
-            aPDU[1] = apci | data & 0x3f
+            aPDU[1] = apci & 0xff | data[0] & 0x3f
 
         return aPDU
 
     @classmethod
-    def getGroupValue(cls, aPDU, size):
+    def getGroupValue(cls, aPDU):
         """ Extract data from given APDU
 
         @param data: data
         @type data: str or bytearray
-
-        @param size: size of the data
-        @type size: int
         """
         if len(aPDU) > 2:
             data = aPDU[2:]

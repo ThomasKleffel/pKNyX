@@ -57,7 +57,6 @@ from pknyx.services.logger import Logger
 from pknyx.services.notifier import Notifier
 from pknyx.core.datapoint import Datapoint
 from pknyx.core.groupObject import GroupObject
-from pknyx.stack.individualAddress import IndividualAddress
 
 
 class FunctionalBlockValueError(PKNyXValueError):
@@ -126,7 +125,7 @@ class FunctionalBlock(object):
 
         return self
 
-    def __init__(self, name, desc=None, individualAddress=None):  # TODO: remove individualAddress?
+    def __init__(self, name, desc=None):
         """
 
         @param name: name of the device
@@ -135,9 +134,6 @@ class FunctionalBlock(object):
         @param desc: description of the device
         @type desc: str
 
-        @param individualAddress: individual address used as source address when transmitting on the bus
-        @type individualAddress: L{IndividualAddress}
-
         raise FunctionalBlockValueError:
         """
         super(FunctionalBlock, self).__init__()
@@ -145,7 +141,6 @@ class FunctionalBlock(object):
         self._name = name
         if desc is not None:
             self._desc = "%s - %s" % (desc, self._desc)
-        self._individualAddress = individualAddress
 
         # Call for additionnal init
         self._init()
@@ -168,10 +163,6 @@ class FunctionalBlock(object):
     @property
     def desc(self):
         return self._desc
-
-    @property
-    def individualAddress(self):
-        return self._individualAddress
 
     @property
     def dp(self):

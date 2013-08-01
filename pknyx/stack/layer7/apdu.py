@@ -106,6 +106,8 @@ class APDU(object):
         else:
             data = aPDU[1] & 0x3f
 
+        return data
+
 
 if __name__ == '__main__':
     import unittest

@@ -33,9 +33,7 @@ Example 3 - light timer
 Implements
 ==========
 
- - B{DummyBlock}
- - B{WeatherTemperatureBlock}
- - B{WeatherWindBlock}
+ - B{LightTimerFB}
  - B{main}
 
 Documentation

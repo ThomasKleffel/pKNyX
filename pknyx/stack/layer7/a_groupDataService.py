@@ -155,7 +155,7 @@ class A_GroupDataService(T_GroupDataListener):
         Logger().debug("A_GroupDataService.groupValueReadReq(): gad=%s, priority=%s" % \
                        (gad, priority))
 
-        aPDU = APDU.makeGroupValue(PCI.GROUPVALUE_READ)
+        aPDU = APDU.makeGroupValue(APCI.GROUPVALUE_READ)
         return self._tgds.groupDataReq(gad, priority, aPDU)
 
     def groupValueReadRes(self, gad, priority, data, size):

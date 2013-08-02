@@ -33,7 +33,7 @@ Sun position management
 Implements
 ==========
 
- - B{SunPositionBlock}
+ - B{SunPositionFB}
 
 Documentation
 =============
@@ -62,7 +62,7 @@ notify = Notifier()
 logger = Logger()
 
 
-class SunPositionBlock(FunctionalBlock):
+class SunPositionFB(FunctionalBlock):
 
     # Datapoints definition
     DP_01 = dict(name="right_ascension", access="output", dptId="14.007", default=0.)
@@ -98,13 +98,13 @@ class SunPositionBlock(FunctionalBlock):
     @notify.datapoint(dp="time_zone")
     @notify.datapoint(dp="saving_time")
     @schedule.every(seconds=5)
-    def updateSunPosition(self, event=None):
+    def updatePosition(self, event=None):
         """ This method will be trigger every xxx, and also when some datapoints change.
 
         Note the 'event=None' param. This is mandatory, as the scheduler trigger this method without param, but the
         notifier passes an event (dict)
         """
-        logger.trace("WeatherSunPositionBlock.updatePosition()")
+        logger.debug("WeatherSunPositionFB.updatePosition(): event=%s" % repr(event))
 
         # Read inputs/params
         self._sun.latitude = self.dp["latitude"].value

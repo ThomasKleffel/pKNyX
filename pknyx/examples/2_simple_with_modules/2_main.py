@@ -54,7 +54,7 @@ from pknyx.api import Logger
 from pknyx.api import Stack, ETS
 from pknyx.api import Scheduler
 
-from sunPositionBlock import SunPositionBlock
+from sunPositionFB import SunPositionFB
 
 # ETS group address map
 GAD_MAP = {"1": dict(name="weather_station", desc="Weather station"),
@@ -80,7 +80,7 @@ logger = Logger()
 def main():
 
     # Register functional blocks
-    ets.register(SunPositionBlock, name="sun_position", desc="sun 1")
+    ets.register(SunPositionFB, name="sun_position", desc="sun 1")
 
     # Weave weather station datapoints to group addresses
     # @todo: allow use of gad name, from gad map

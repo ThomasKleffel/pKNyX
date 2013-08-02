@@ -33,9 +33,9 @@ Example 1
 Implements
 ==========
 
- - B{DummyBlock}
- - B{WeatherTemperatureBlock}
- - B{WeatherWindBlock}
+ - B{DummyFB}
+ - B{WeatherTemperatureFB}
+ - B{WeatherWindFB}
  - B{main}
 
 Documentation
@@ -52,9 +52,6 @@ Usage
 """
 
 __revision__ = "$Id$"
-
-import math
-import time
 
 from pknyx.api import Logger
 from pknyx.api import FunctionalBlock, Stack, ETS
@@ -81,17 +78,17 @@ notify = Notifier()
 logger = Logger()
 
 
-class DummyBlock(FunctionalBlock):
+class DummyFB(FunctionalBlock):
     """ This block is just here to generate an error
     """
 
     @schedule.every(minutes=5)
     def generateException(self):
-        logger.trace("DummyBlock.generateException()")
+        logger.trace("DummyFB.generateException()")
         raise Exception("Error test")
 
 
-class WeatherTemperatureBlock(FunctionalBlock):
+class WeatherTemperatureFB(FunctionalBlock):
     """ External emperature/humidity handling block
     """
 
@@ -108,7 +105,7 @@ class WeatherTemperatureBlock(FunctionalBlock):
     def updateTemperatureHumidity(self):
         """ This method is called every xxx to refresh the temperature/himidity
         """
-        logger.trace("WeatherTemperatureBlock.updateTemperatureHumidity()")
+        logger.trace("WeatherTemperatureFB.updateTemperatureHumidity()")
 
         # Retreive temperature/humidity
         temperature = 20.
@@ -117,7 +114,7 @@ class WeatherTemperatureBlock(FunctionalBlock):
         self.dp["humidity"].value = humidity
 
 
-class WeatherWindBlock(FunctionalBlock):
+class WeatherWindFB(FunctionalBlock):
     """ Wind handling block
     """
 
@@ -138,7 +135,7 @@ class WeatherWindBlock(FunctionalBlock):
     def updateWindSpeed(self):
         """This method is called every xxx to refresh the wind speed
         """
-        logger.trace("WeatherWindBlock.updateWindSpeed()")
+        logger.trace("WeatherWindFB.updateWindSpeed()")
 
         # Retreive speed
         speed = 20.
@@ -158,7 +155,7 @@ class WeatherWindBlock(FunctionalBlock):
 
         Here, we set the wind_alarm datapoint value accordingly to other datapoints values.
         """
-        logger.debug("WeatherWindBlock.checkWindSpeed(): event=%s" % repr(event))
+        logger.debug("WeatherWindFB.checkWindSpeed(): event=%s" % repr(event))
 
         # Read inputs/params
         windSpeed = self.dp["wind_speed"].value
@@ -180,9 +177,9 @@ class WeatherWindBlock(FunctionalBlock):
 def main():
 
     # Register functional blocks
-    ets.register(DummyBlock, name="dummy", desc="dummy")
-    ets.register(WeatherTemperatureBlock, name="weather_temperature", desc="temp 1")
-    ets.register(WeatherWindBlock, name="weather_wind", desc="wind 1")
+    ets.register(DummyFB, name="dummy", desc="dummy")
+    ets.register(WeatherTemperatureFB, name="weather_temperature", desc="temp 1")
+    ets.register(WeatherWindFB, name="weather_wind", desc="wind 1")
 
     # Weave weather station datapoints to group addresses
     # @todo: allow use of gad name, from gad map

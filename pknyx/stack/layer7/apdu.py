@@ -104,7 +104,7 @@ class APDU(object):
         if len(aPDU) > 2:
             data = aPDU[2:]
         else:
-            data = aPDU[1] & 0x3f
+            data = bytearray(chr(aPDU[1] & 0x3f))
 
         return data
 

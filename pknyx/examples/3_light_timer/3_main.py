@@ -51,7 +51,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: 1_main.py 213 2013-08-01 13:24:41Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.api import Logger
 from pknyx.api import FunctionalBlock, Stack, ETS

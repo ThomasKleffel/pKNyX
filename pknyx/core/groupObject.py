@@ -164,6 +164,8 @@ class GroupObject(object):
         self._group = group
 
         # If the flag init is set, send a read request on that accesspoint, which is bound to the default GAD
+        # Does not work, as stck is not yet running!!!!!!
+        # Must be done *after* starting it...
         #if self._flags.communicate:
             #if self._flags.init:
                 #self._group.groupValueRead(self._priority)

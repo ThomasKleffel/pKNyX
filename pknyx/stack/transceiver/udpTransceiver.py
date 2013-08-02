@@ -225,6 +225,7 @@ class UDPTransceiver(Transceiver):
                     header = KNXnetIPHeader(inFrame)
                 except KNXnetIPHeaderValueError:
                     Logger().exception("UDPTransceiver._receiverLoop()", debug=True)
+                    continue
                 Logger().debug("UDPTransceiver._receiverLoop(): KNXnetIP header=%s" % repr(header))
 
                 frame = inFrame[KNXnetIPHeader.HEADER_SIZE:]

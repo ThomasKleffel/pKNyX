@@ -219,7 +219,7 @@ class UDPTransceiver(Transceiver):
         while self._running:
             try:
                 inFrame, (fromAddr, fromPort) = self._receiverSock.receive()
-                Logger().debug("UDPTransceiver._receiverLoop(): inFrame=%s" % repr(inFrame))
+                Logger().debug("UDPTransceiver._receiverLoop(): inFrame=%s (%s, %d)" % (repr(inFrame), fromAddr, fromPort))
                 inFrame = bytearray(inFrame)
                 try:
                     header = KNXnetIPHeader(inFrame)

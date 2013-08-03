@@ -141,12 +141,13 @@ class CEMILData(CEMI):
         if mc not in CEMILData.MESSAGE_CODES:
             raise("invalid Message Code (%d)" % mc)
         if mc == CEMILData.MC_LDATA_REQ:
-            self.systemBroadcast = CEMILData.SB_SYSTEM_BROADCAST
+            self.systemBroadcast = CEMILData.SB_BROADCAST
             self.confirm = CEMILData.C_NO_ERROR
+            self.repeat = CEMILData.R_NO_REPEAT
         elif mc == CEMILData.MC_LDATA_CON:
-            self.systemBroadcast = CEMILData.SB_SYSTEM_BROADCAST
+            self.systemBroadcast = CEMILData.SB_BROADCAST
         elif mc == CEMILData.MC_LDATA_IND:
-            self.systemBroadcast = CEMILData.SB_SYSTEM_BROADCAST
+            self.systemBroadcast = CEMILData.SB_BROADCAST
         self._frame.mc = mc
 
     @property
@@ -185,8 +186,8 @@ class CEMILData(CEMI):
 
     @systemBroadcast.setter
     def systemBroadcast(self, sb):
-        if sb:
-            raise CEMIValueError("only System Broadcast supported")
+        #if sb != SB_SYSTEM_BROADCAST:
+            #raise CEMIValueError("only System Broadcast supported")
         ctrl1 = self._frame.ctrl1 & 0xef
         ctrl1 |= (sb & 0x01) << 4
         self._frame.ctrl1 = ctrl1

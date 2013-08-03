@@ -134,7 +134,7 @@ class N_GroupDataService(L_DataListener):
             raise N_GDSValueError("invalid Group Address")
 
         cEMI = CEMILData()
-        cEMI.messageCode = CEMILData.MC_LDATA_REQ
+        cEMI.messageCode = CEMILData.MC_LDATA_IND  # ???!!!??? Does not work with MC_LDATA_REQ!!!
         #cEMI.sourceAddress = src  # Added by Link Data Layer
         cEMI.destinationAddress = gad
         cEMI.priority = priority

@@ -194,7 +194,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
     def run(self):
         """ inQueue handler main loop
         """
-        Logger().info("Start")
+        Logger().trace("L_DataService.run()")
 
         self._running = True
         while self._running:
@@ -229,7 +229,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
     def stop(self):
         """ stop thread
         """
-        Logger().info("Stop L_DataService")
+        Logger().trace("L_DataService.stop()")
 
         self._running = False
 
@@ -254,7 +254,7 @@ if __name__ == '__main__':
     Logger().setLevel('error')
 
 
-    class L_GDSTestCase(unittest.TestCase):
+    class L_DataServiceCase(unittest.TestCase):
 
         def setUp(self):
             pass

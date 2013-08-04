@@ -28,18 +28,18 @@ or see:
 Module purpose
 ==============
 
-Example 3 - light timer
+Example 3 - timer
 
 Implements
 ==========
 
- - B{LightTimerFB}
+ - B{TimerFB}
  - B{main}
 
 Documentation
 =============
 
-A simple showing example how to use the framework.
+This example implements a timer which switches off something when switch on has been detected, after a delay.
 
 Usage
 =====
@@ -72,10 +72,10 @@ notify = Notifier()
 logger = Logger()
 
 
-class LightTimerFB(FunctionalBlock):
-    """ Timer for light functional block
+class TimerFB(FunctionalBlock):
+    """ Timer functional block
 
-    This functional block automatically switches off a light after a delay.
+    This functional block automatically switches off something after a delay.
     """
 
     # Datapoints definition
@@ -87,58 +87,62 @@ class LightTimerFB(FunctionalBlock):
     GO_02 = dict(dp="state", flags="CWUI", priority="low")
     GO_03 = dict(dp="delay", flags="CWU", priority="low")
 
-    DESC = "Timer for light block"
+    DESC = "Timer"
 
     def _init(self):
-        """ Additionnal init of our functional block
+        """ Additionnal init of the functional block
         """
         self._timer = 0
 
     @schedule.every(seconds=1)
     def updateTimer(self):
+        """ Method called every second.
         """
-        """
-        logger.trace("LightTimerFB.updateTimer()")
+        logger.trace("TimerFB.updateTimer()")
 
         if self._timer:
             self._timer -= 1
             if not self._timer:
-                logger.info("%s: switch off light" % self._name)
+                logger.info("%s: timer expired; switch off" % self._name)
                 self.dp["cmd"].value = "Off"
 
     @notify.datapoint(dp="state", condition="change")
     def stateChanged(self, event):
+        """ Method called when the 'state' datapoint changes
         """
-        """
-        logger.debug("LightTimerFB.stateChanged(): event=%s" % repr(event))
+        logger.debug("TimerFB.stateChanged(): event=%s" % repr(event))
 
         if event['newValue'] == "On":
             delay = self.dp["delay"].value
             Logger().info("%s: start timer for %ds" % (self._name, delay))
             self._timer = delay
+        elif event['newValue'] == "Off":
+            if self._timer:
+                Logger().info("%s: switched off detected; cancel timer" % self._name)
+                self._timer = 0
 
     @notify.datapoint(dp="delay", condition="change")
     def delayChanged(self, event):
+        """ Method called when the 'delay' datapoint changes
         """
-        """
-        logger.debug("LightTimerFB.delayChanged(): event=%s" % repr(event))
+        logger.debug("TimerFB.delayChanged(): event=%s" % repr(event))
 
         # If the timer is running, we reset it to the new delay
         if self._timer:
             delay = self.dp["delay"].value
-            Logger().info("%s: restart timer for %ds" % (self._name, delay))
+            Logger().info("%s: delay changed; restart timer" % self._name)
             self._timer = delay
 
 
 def main():
 
     # Register functional blocks
-    ets.register(LightTimerFB, name="light_timer", desc="")
+    ets.register(TimerFB, name="timer", desc="")
 
     # Weave datapoints
-    ets.weave(fb="light_timer", dp="cmd", gad="1/1/1")
-    ets.weave(fb="light_timer", dp="state", gad="1/1/2")
-    ets.weave(fb="light_timer", dp="delay", gad="1/1/3")
+    ets.weave(fb="timer", dp="cmd", gad="6/0/1")
+    ets.weave(fb="timer", dp="state", gad="6/1/1")
+    ets.weave(fb="timer", dp="delay", gad="6/2/1")
 
     print
     ets.printGroat("gad")

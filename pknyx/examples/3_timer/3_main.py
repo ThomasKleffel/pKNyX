@@ -41,6 +41,16 @@ Documentation
 
 This example implements a timer which switches off something when switch on has been detected, after a delay.
 
+3 datapoints are create:
+ - 'cmd' is the command
+ - 'state' is the sate
+ - 'delay' is the timer value
+
+The timer monitors the 'state' datapoint; when it changes from 'Off' to 'On', it starts the timer.
+When the timer delay expires, it sends 'Off' on 'cmd' datapoint associated bus group address.
+If the 'state' datapoint changes back to 'Off' before the timer expires, the timer is desactivated.
+If the 'delay' datapoint changes when the timer is active, the timer is restarted with the new value.
+
 Usage
 =====
 
@@ -66,8 +76,6 @@ logger = Logger()
 
 class TimerFB(FunctionalBlock):
     """ Timer functional block
-
-    This functional block automatically switches off something after a delay.
     """
 
     # Datapoints definition
@@ -82,7 +90,7 @@ class TimerFB(FunctionalBlock):
     DESC = "Timer"
 
     def _init(self):
-        """ Additionnal init of the functional block
+        """ Additionnal init of the timer
         """
         self._timer = 0
 

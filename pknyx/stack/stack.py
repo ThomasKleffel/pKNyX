@@ -115,7 +115,9 @@ class Stack(object):
 
         self._lds.start()
         self._tc.start()
-        Logger().info("Stack started")
+
+        time.sleep(0.25)
+        Logger().info("Stack running")
 
     def stop(self):
         """
@@ -124,6 +126,8 @@ class Stack(object):
 
         self._lds.stop()
         self._tc.stop()
+
+        time.sleep(0.25)
         Logger().info("Stack stopped")
 
     def mainLoop(self):

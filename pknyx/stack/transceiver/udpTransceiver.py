@@ -167,7 +167,7 @@ class UDPTransceiver(Transceiver):
     def _transmitterLoop(self):
         """
         """
-        Logger().info("Start")
+        Logger().trace("UDPTransceiver._transmitterLoop()")
 
         while self._running:
             try:
@@ -208,7 +208,7 @@ class UDPTransceiver(Transceiver):
     def _receiverLoop(self):
         """
         """
-        Logger().info("Start")
+        Logger().trace("UDPTransceiver._receiverLoop()")
 
         try:
             self._receiverSock.joinGroup(self._mcastAddr)
@@ -269,7 +269,6 @@ class UDPTransceiver(Transceiver):
         self._running = True
         self._transmitter.start()
         self._receiver.start()
-        Logger().info("UDP Transceiver started")
 
     def stop(self):
         """

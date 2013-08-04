@@ -201,16 +201,6 @@ class Datapoint(object):
         self._dptXlator.checkData(data)
         self._data = data
 
-    @data.setter
-    def data(self, data):
-        oldValue = self.value
-        self._setData(data)
-
-        # Notify owner (=FunctionalBlock)
-        # In turn, the owner will have to notify all its methods registered by @xxx.notify.datapoint()
-        self._owner.notify(self.name, oldValue, self.value)
-        # @todo: use an event as param
-
     @property
     def dptXlator(self):
         return self._dptXlator
@@ -231,20 +221,18 @@ class Datapoint(object):
 
     def _setValue(self, value):
         self._dptXlator.checkValue(value)
-        self._setData(self._dptXlator.valueToData(value))
+        data = self._dptXlator.valueToData(value)
+        self._setData(data)
 
     @value.setter
     def value(self, value):
         oldValue = self.value
-        self._setValue(value)
+        self._dptXlator.checkValue(value)
+        data = self._dptXlator.valueToData(value)
+        self._setData(data)
 
-        # Notify associated GroupObject (and other proxies), if any
-        self._signalChanged.emit(oldValue, value)
-
-        # Notify owner (=FunctionalBlock)
-        # In turn, the owner will have to notify all its methods registered by @xxx.notify.datapoint()
-        self._owner.notify(self.name, oldValue, self.value)
-        # @todo: use an event as param
+        # Notify associated GroupObject (if any)
+        self._signalChanged.emit(oldValue, self.value)
 
     @property
     def unit(self):
@@ -256,8 +244,12 @@ class Datapoint(object):
 
     @frame.setter
     def frame(self, frame):
+        oldValue = self.value
         data = self._dptXlator.frameToData(frame)
-        self.data = data  # Note usage of .data, and not ._data!
+        self._setData(data)
+
+        # Notify owner (FunctionalBlock)
+        self._owner.notify(self.name, oldValue, self.value)
 
 
 if __name__ == '__main__':

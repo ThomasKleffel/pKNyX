@@ -213,11 +213,13 @@ class L_DataService(threading.Thread, TransceiverLSAP):
 
                 # Handle cEMI message
                 if cEMI is not None:
-                    if cEMI.messageCode == CEMILData.MC_LDATA_IND:  #in (CEMILData.MC_LDATA_CON, CEMILData.MC_LDATA_IND):
-                        if self._ldl is None:
-                            Logger().warning("L_GroupDataService.run(): not listener defined")
-                        else:
-                            self._ldl.dataInd(cEMI)
+                    srcAddr = cEMI.sourceAddress
+                    if srcAddr != self._individualAddress:  # Avoid loop
+                        if cEMI.messageCode == CEMILData.MC_LDATA_IND:  #in (CEMILData.MC_LDATA_CON, CEMILData.MC_LDATA_IND):
+                            if self._ldl is None:
+                                Logger().warning("L_GroupDataService.run(): not listener defined")
+                            else:
+                                self._ldl.dataInd(cEMI)
 
             except:
                 Logger().exception("L_DataService.run()")  #, debug=True)

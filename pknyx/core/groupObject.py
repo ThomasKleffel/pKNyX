@@ -46,6 +46,8 @@ Usage
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
 @license: GPL
+
+@todo: inherits some GroupListener?
 """
 
 __revision__ = "$Id$"

@@ -183,25 +183,6 @@ class DPTXlatorFactoryObject(object):
     #TYPE_DateTime = DPTMainTypeMapper("19.xxx", DPTXlatorDateTime, "DateTime (main type 19)")
     #TYPE_HeatingMode = DPTMainTypeMapper("20.xxx", DPTXlatorHeatingMode, "Heating mode (main type 20)")
 
-    #linknx implements (@03/2013):
-    #1.001: switching (on/off) (EIS1) - done
-    #3.007: dimming (control of dimmer using up/down/stop) (EIS2) - done
-    #3.008: blinds (control of blinds using close/open/stop) - done
-    #5.xxx: 8bit unsigned integer (from 0 to 255) (EIS6) - done
-    #5.001: scaling (from 0 to 100%) - done
-    #5.003: angle (from 0 to 360°) - done
-    #6.xxx: 8bit signed integer (EIS14) - done
-    #7.xxx: 16bit unsigned integer (EIS10) - done
-    #8.xxx: 16bit signed integer - done
-    #9.xxx: 16 bit floating point number (EIS5) - done
-    #10.001: time (EIS3) - done
-    #11.001: date (EIS4) - done
-    #12.xxx: 32bit unsigned integer (EIS11) - done
-    #13.xxx: 32bit signed integer - done
-    #14.xxx: 32 bit IEEE 754 floating point number - done
-    #16.000: string (max 14 ASCII char) (EIS15) - done
-    #20.102: heating mode (comfort/standby/night/frost)
-
     def __new__(cls, *args, **kwargs):
         """ Init the class with all available main Types
 

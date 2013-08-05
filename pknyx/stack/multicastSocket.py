@@ -61,7 +61,7 @@ class McastSockValueError(PKNyXValueError):
 class MulticastSocket(socket.socket):
     """ Multicast socket
     """
-    def __init__(self, port, address=""):
+    def __init__(self, port, address="", timeout=1):
         """
 
         If address is given, the socket will acts as sender to this address, otherwise the socket will acts as receiver.
@@ -79,7 +79,7 @@ class MulticastSocket(socket.socket):
             Logger().exception("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT", debug=True)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 255)
 
-        self.settimeout(1)
+        self.settimeout(timeout)
 
         self.bind(("", port))
 

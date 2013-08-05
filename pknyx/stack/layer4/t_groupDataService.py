@@ -50,6 +50,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.stack.layer4.tpci import TPCI
 from pknyx.stack.layer3.n_groupDataListener import N_GroupDataListener
 
 
@@ -67,14 +68,6 @@ class T_GroupDataService(N_GroupDataListener):
     @ivar _tgdl: transport group data listener
     @type _tgdl: L{T_GroupDataListener<pknyx.core.layer4.t_groupDataListener>}
     """
-    UNNUMBERED_DATA = 0x00
-    NUMBERED_DATA   = 0x40
-    #CONNECT_REQ     = 0x80
-    #CONNECT_CON     = 0x82
-    #DISCONNECT_REQ  = 0x81
-    #DATA_ACK        = 0xc2
-    #DATA_NACK       = 0xc3
-
     def __init__(self, ngds):
         """
 
@@ -105,7 +98,7 @@ class T_GroupDataService(N_GroupDataListener):
 
         #@todo: create a TPDU object, and move this method there
         #"""
-        #if packetType in (T_GroupDataService.UNNUMBERED_DATA, T_GroupDataService.NUMBERED_DATA):
+        #if packetType in (TPCI.UNNUMBERED_DATA, TPCI.NUMBERED_DATA):
             #tPDU[TFrame.TPCI_BYTE] = (tPDU[TFrame.TPCI_BYTE] & 0x03) | packetType | (seqNo << 2)
         #else:
             #tPDU[TFrame.TPCI_BYTE] = packetType | (seqNo << 2)
@@ -119,7 +112,7 @@ class T_GroupDataService(N_GroupDataListener):
         #@todo: create a TPDU object, and move this method there
         #"""
         #packetType = tPDU[TFrame.TPCI_BYTE] & 0xc0
-        #if packetType not in (T_GroupDataService.UNNUMBERED_DATA, T_GroupDataService.NUMBERED_DATA):
+        #if packetType not in (TPCI.UNNUMBERED_DATA, T_GroupDataService.NUMBERED_DATA):
             #packetType = tPDU[TFrame.TPCI_BYTE] & 0xc3
         #return packetType
 
@@ -131,9 +124,9 @@ class T_GroupDataService(N_GroupDataListener):
             Logger().warning("T_GroupDataService.groupDataInd(): not listener defined")
             return
 
-        #if self._getPacketType(tPDU) == T_GroupDataService.UNNUMBERED_DATA:
+        #if self._getPacketType(tPDU) == TPCI.UNNUMBERED_DATA:
         tPCI = tPDU[0] & 0xc0
-        if tPCI == T_GroupDataService.UNNUMBERED_DATA:
+        if tPCI == TPCI.UNNUMBERED_DATA:
             tSDU = tPDU
             tSDU[0] &= 0x3f
             self._tgdl.groupDataInd(src, gad, priority, tSDU)
@@ -152,9 +145,9 @@ class T_GroupDataService(N_GroupDataListener):
         Logger().debug("T_GroupDataService.groupDataReq(): gad=%s, priority=%s, tSDU=%s" % \
                        (gad, priority, repr(tSDU)))
 
-        #self._setTPCI(tSDU, T_GroupDataService.UNNUMBERED_DATA, 0)
+        #self._setTPCI(tSDU, TPCI.UNNUMBERED_DATA, 0)
         tPDU = tSDU
-        tPDU[0] |= T_GroupDataService.UNNUMBERED_DATA
+        tPDU[0] |= TPCI.UNNUMBERED_DATA
         return self._ngds.groupDataReq(gad, priority, tPDU)
 
 

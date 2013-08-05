@@ -48,7 +48,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: apci.py 201 2013-07-31 14:31:32Z fma $"
+__revision__ = "$Id$"
 
 
 class TPCI(object):

@@ -92,6 +92,14 @@ class MulticastSocket(socket.socket):
         return self._address
 
     @property
+    def timeout(self):
+        return self.timeout
+
+    @timeout.setter
+    def timeout(self, timeout):
+        self.settimeout(timeout)
+
+    @property
     def localPort(self):
         raise NotImplementedError
 

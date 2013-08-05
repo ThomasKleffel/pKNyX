@@ -245,7 +245,7 @@ class Datapoint(object):
     @frame.setter
     def frame(self, frame):
         oldValue = self.value
-        data = self._dptXlator.frameToData(frame)
+        data = self._dptXlator.frameToData(frame)  # @todo: check frame size with _dptXlator.typeSize...
         self._setData(data)
 
         # Notify owner (FunctionalBlock)

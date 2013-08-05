@@ -28,71 +28,272 @@ or see:
 Module purpose
 ==============
 
-Multicast tool.
+Multicast tool to send read/write request on group address.
 
 Implements
 ==========
 
- - B{}
+ - B{Multicast}
+ - B{MulticastValueError}
 
 Documentation
 =============
 
-This script is used to send/receive multicast requests.
+This script is used to send/receive multicast requests. It mimics what the stack does.
+
+@todo: make the same using the stack.
 
 Usage
 =====
+
+Usage: multicast.py -w [options] -> send a write request to group address
+       multicast.py -r [options] -> send a read request to group address
+
+Options:
+  -h, --help            show this help message and exit
+  -l LEVEL, --debug-level=LEVEL
+                        debug level
+  -g GAD, --group-address=GAD
+                        group address
+  -d DPTID, --dptId=DPTID
+                        DPTID to use to encode data
+  -s SRCADDR, --srcAddr=SRCADDR
+                        source address to use
+
+  Write:
+    -v VALUE, --value=VALUE
+                        value to send
+
+  Read:
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
 @license: GPL
 """
 
-__revision__ = "$Id: template.py 155 2013-07-10 12:34:24Z fma $"
+__revision__ = "$Id$"
 
 import sys
+import time
 import optparse
+import threading
 
-#from pknyx.common.exception import PKNyXValueError
+from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.core.dptXlator.dptId import DPTID
+from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
+from pknyx.stack.priority import Priority
+from pknyx.stack.groupAddress import GroupAddress
+from pknyx.stack.individualAddress import IndividualAddress
+from pknyx.stack.knxnetip.knxNetIPHeader import KNXnetIPHeader
+from pknyx.stack.cemi.cemiLData import CEMILData
+from pknyx.stack.multicastSocket import MulticastSocket
+from pknyx.stack.layer7.apdu import APDU
+from pknyx.stack.layer7.apci import APCI
+from pknyx.stack.layer4.tpci import TPCI
 
 
-class XxxValueError(PKNyXValueError):
+class MulticastValueError(PKNyXValueError):
     """
     """
 
 
-class Xxx(object):
-    """ Xxx class
+class Multicast(object):
+    """ Multicast class
 
     @ivar _xxx:
     @type _xxx:
     """
-    def __init__(self):
+    def __init__(self, src="0.0.0", mcastAddr="224.0.23.12", mcastPort=3671):
         """
 
         @param xxx:
         @type xxx:
 
-        raise XxxValueError:
+        raise MulticastValueError:
         """
-        super(Xxx, self).__init__()
+        super(Multicast, self).__init__()
+
+        if not isinstance(src, IndividualAddress):
+            src = IndividualAddress(src)
+        self._src = src
+        self._mcastAddr = mcastAddr
+        self._mcastPort = mcastPort
+
+        self._receiverSock = MulticastSocket(mcastPort)
+        self._receiverSock.joinGroup(mcastAddr)
+
+    def write(self, gad, value, dptId="1.001", priority=Priority("low"), hopCount=6):
+        """ Send a write request
+        """
+        if not isinstance(gad, GroupAddress):
+            gad = GroupAddress(gad)
+
+        sock = MulticastSocket(self._mcastPort, self._mcastAddr)
+
+        dptXlator = DPTXlatorFactory().create(dptId)
+        type_ = type(dptXlator.dpt.limits[0])  # @todo: implement this in dptXlators
+        value = type_(value)
+        frame = dptXlator.dataToFrame(dptXlator.valueToData(value))
+
+        # Application layer (layer 7)
+        aPDU = APDU.makeGroupValue(APCI.GROUPVALUE_WRITE, frame, dptXlator.typeSize)
+
+        # Transport layer (layer 4)
+        tPDU = aPDU
+        tPDU[0] |= TPCI.UNNUMBERED_DATA
+
+        # Network layer (layer 3)
+        nPDU = bytearray(len(tPDU) + 1)
+        nPDU[0] = len(tPDU) - 1
+        nPDU[1:] = tPDU
+
+        # Link layer (layer 2)
+        cEMI = CEMILData()
+        cEMI.messageCode = CEMILData.MC_LDATA_IND
+        cEMI.sourceAddress = self._src
+        cEMI.destinationAddress = gad
+        cEMI.priority = priority
+        cEMI.hopCount = hopCount
+        cEMI.npdu = nPDU
+
+        cEMIFrame = cEMI.frame
+        cEMIRawFrame = cEMIFrame.raw
+        header = KNXnetIPHeader(service=KNXnetIPHeader.ROUTING_IND, serviceLength=len(cEMIRawFrame))
+        frame = header.frame + cEMIRawFrame
+
+        sock.transmit(frame)
+
+    def read(self, gad, dptId="1.001", timeout=3, priority=Priority("low"), hopCount=6):
+        """ Send a read request and wait for answer
+        """
+        if not isinstance(gad, GroupAddress):
+            gad = GroupAddress(gad)
+
+        self._receiverSock.timeout = timeout
+
+        sock = MulticastSocket(self._mcastPort, self._mcastAddr)
+
+        # Application layer (layer 7)
+        aPDU = APDU.makeGroupValue(APCI.GROUPVALUE_READ)
+
+        # Transport layer (layer 4)
+        tPDU = aPDU
+        tPDU[0] |= TPCI.UNNUMBERED_DATA
+
+        # Network layer (layer 3)
+        nPDU = bytearray(len(tPDU) + 1)
+        nPDU[0] = len(tPDU) - 1
+        nPDU[1:] = tPDU
+
+        # Link layer (layer2)
+        cEMI = CEMILData()
+        cEMI.messageCode = CEMILData.MC_LDATA_IND
+        cEMI.sourceAddress = self._src
+        cEMI.destinationAddress = gad
+        cEMI.priority = priority
+        cEMI.hopCount = hopCount
+        cEMI.npdu = nPDU
+
+        cEMIFrame = cEMI.frame
+        cEMIRawFrame = cEMIFrame.raw
+        header = KNXnetIPHeader(service=KNXnetIPHeader.ROUTING_IND, serviceLength=len(cEMIRawFrame))
+        frame = header.frame + cEMIRawFrame
+
+        sock.transmit(frame)
+
+        # Link layer (layer2)
+        receivedData = None
+        receivedStatus = None
+        while True:
+            try:
+                inFrame, (fromAddr, fromPort) = self._receiverSock.receive()
+                Logger().debug("Multicast.read(): inFrame=%s (%s, %d)" % (repr(inFrame), fromAddr, fromPort))
+                inFrame = bytearray(inFrame)
+
+                header = KNXnetIPHeader(inFrame)
+                Logger().debug("Multicast.read(): KNXnetIP header=%s" % repr(header))
+
+                frame = inFrame[KNXnetIPHeader.HEADER_SIZE:]
+                Logger().debug("Multicast.read(): frame=%s" % repr(frame))
+                cEMI = CEMILData(frame)
+                Logger().debug("Multicast.read(): cEMI=%s" % cEMI)
+
+                destAddr = cEMI.destinationAddress
+                if isinstance(cEMI.destinationAddress, GroupAddress):
+                    receivedData = cEMI
+                    receivedStatus = 0
+                elif isinstance(destAddr, IndividualAddress):
+                    Logger().warning("Multicast.read(): unsupported destination address type (%s)" % repr(destAddr))
+                else:
+                    Logger().warning("Multicast.read(): unknown destination address type (%s)" % repr(destAddr))
+
+            except:
+                Logger().exception("Multicast.read()")
+                raise
+
+            # Network layer (layer 3)
+            if cEMI is not None:
+                if cEMI.messageCode == CEMILData.MC_LDATA_IND:
+                    hopCount = cEMI.hopCount
+                    mc = cEMI.messageCode
+                    src = cEMI.sourceAddress
+                    dest = cEMI.destinationAddress
+                    priority = cEMI.priority
+                    hopCount = cEMI.hopCount
+
+                    if dest == gad and src != self._src:  # Avoid loop
+
+                        # Transport layer (layer 4)
+                        tPDU = cEMI.npdu[1:]
+                        if isinstance(dest, GroupAddress) and not dest.isNull:
+                            tPCI = tPDU[0] & 0xc0
+                            if tPCI == TPCI.UNNUMBERED_DATA:
+
+                                # Application layer (layer 7)
+                                aPDU = tPDU
+                                aPDU[0] &= 0x3f
+                                length = len(aPDU) - 2
+                                if length >= 0:
+                                    aPCI = aPDU[0] << 8 | aPDU[1]
+                                    if (aPCI & APCI._4) == APCI.GROUPVALUE_WRITE:
+                                        Logger().debug("Multicast.read(): GROUPVALUE_WRITE ignored")
+                                        continue
+
+                                    elif (aPCI & APCI._4) == APCI.GROUPVALUE_READ:
+                                        Logger().debug("Multicast.read(): GROUPVALUE_READ ignored")
+                                        continue
+
+                                    elif (aPCI & APCI._4) == APCI.GROUPVALUE_RES:
+                                        data = APDU.getGroupValue(aPDU)
+
+                                        dptXlator = DPTXlatorFactory().create(dptId)
+                                        value = dptXlator.dataToValue(dptXlator.frameToData(data))
+                                        return value
 
 
 def main():
-    usage  = "%prog -r [options] -> read object value\n"
-    usage += "       %prog -w [options] -> write objet value"
+    usage = "%prog -w [options] -> send a write request to group address\n"
+    usage += "       %prog -r [options] -> send a read request to group address"
 
     # Common options
     parser = optparse.OptionParser(usage)
-    parser.add_option("-t", "--host", action="store", type="string", dest="host", default="localhost",
-                      help="hostname of the machine running the linknx daemon ('localhost')")
-    parser.add_option("-p", "--port", action="store", type="int", dest="port", default=1028,
-                      help="port linknx listens on (1028)")
-    #parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,
-                      #help="let the script output useful information, for debugging purpose")
-    parser.add_option("-o", "--object-id", action="store", type="string", dest="objectId", metavar="ID",
-                      help="object id to control")
+    parser.add_option("-l", "--debug-level", action="store", dest="debugLevel", default="info", metavar="LEVEL",
+                      help="debug level")
+    parser.add_option("-g", "--group-address", action="store", type="string", dest="gad", metavar="GAD",
+                      help="group address")
+    parser.add_option("-d", "--dptId", action="store", type="string", dest="dptId", default="1.xxx",
+                      help="DPTID to use to encode data")
+    parser.add_option("-s", "--srcAddr", action="store", type="string", dest="srcAddr", default="0.0.0",
+                      help="source address to use")
+
+    # Write GA options
+    groupWrite = optparse.OptionGroup(parser, "Write")
+    groupWrite.add_option("-w", "--write", action="store_true", dest="write", default=False,
+                          help=optparse.SUPPRESS_HELP)
+    groupWrite.add_option("-v", "--value", action="store", type="string", dest="value",
+                          help="value to send")
+    parser.add_option_group(groupWrite)
 
     # Read GA options
     groupRead = optparse.OptionGroup(parser, "Read")
@@ -100,39 +301,29 @@ def main():
                          help=optparse.SUPPRESS_HELP)
     parser.add_option_group(groupRead)
 
-    # Write GA options
-    groupWrite = optparse.OptionGroup(parser, "Write")
-    groupWrite.add_option("-w", "--write", action="store_true", dest="write", default=False,
-                          help=optparse.SUPPRESS_HELP)
-    groupWrite.add_option("-v", "--value", action="store", type="string", dest="value",
-                          help="value to send on object id")
-    parser.add_option_group(groupWrite)
-
     # Parse
     options, args = parser.parse_args()
 
     # Check commands validity
-    if not (options.read or options.write):
+    if not (options.write or options.read):
         parser.error("no command specified")
-    elif not options.read ^ options.write:
+    elif not options.write ^ options.read:
         parser.error("multiple commands specified")
-    if options.objectId is None:
-        parser.error("no object id specified")
+    if options.gad is None:
+        parser.error("no group address specified")
     if options.write and options.value is None:
-        parser.error("must give a value when writing on object id")
+        parser.error("must give a value when sending a write request")
 
     #print("DEBUG::main(): options=%s, args=%s" % (options, args))
 
-    #try:
-    if options.read:
-        print(read(options.host, options.port, options.objectId))
-    elif options.write:
-        write(options.host, options.port, options.objectId, options.value)
-    #except socket.error as e:
-        #print("ERROR::main(): connection error (%s)" % e.message)
-    #except Exception as e:
-        #print("ERROR::main(): linknx error (%s)" % e.message)
-
+    Logger().setLevel(options.debugLevel)
+    if options.write:
+        multicast = Multicast(options.srcAddr)
+        multicast.write(options.gad, options.value, options.dptId)
+    elif options.read:
+        multicast = Multicast(options.srcAddr)
+        value = multicast.read(options.gad, options.dptId)
+        print value
 
 
 if __name__ == '__main__':

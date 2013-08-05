@@ -92,6 +92,12 @@ from pknyx.stack.layer7.apdu import APDU
 from pknyx.stack.layer7.apci import APCI
 from pknyx.stack.layer4.tpci import TPCI
 
+from pknyx.core.ets import ETS
+from pknyx.core.group import Group
+from pknyx.stack.stack import Stack
+
+
+
 
 class MulticastValueError(PKNyXValueError):
     """
@@ -272,6 +278,56 @@ class Multicast(object):
                                         return value
 
 
+def write(gad, value, dptId="1.001", src="0.0.0",  priority=Priority("low"), hopCount=6):
+    """
+    """
+
+def read(gad, dptId="1.001", src="0.0.0", timeout=3, priority=Priority("low"), hopCount=6):
+    """
+    """
+    class DummyGroupObject(object):
+        """
+        """
+        def __init__(self, dptId="1.001"):
+            """
+            """
+            super(DummyGroupObject, self).__init__()
+
+            self._dptXLator = DPTXlatorFactory().create(dptId)
+
+        #def onWrite(self, src, gad, data):
+            #Logger().debug("DummyGroupObject.onWrite(): src=%s, data=%s" % (src, repr(data)))
+
+            ## Check if datapoint should be updated
+            #if self._flags.write:  # and data != self.datapoint.data:
+                #self.datapoint.frame = data
+
+        #def onRead(self, src, gad):
+            #Logger().debug("DummyGroupObject.onRead(): src=%s" % src)
+
+            ## Check if data should be send over the bus
+            #if self._flags.communicate:
+                #if self._flags.read:
+                    #frame, size = self._datapoint.frame
+                    #self._group.groupValueResponse(self._priority, frame, size)
+
+        def onResponse(self, src, gad, data):
+            Logger().debug("DummyGroupObject.onResponse(): src=%s, data=%s" % (src, repr(data)))
+
+            value = self._dptXLator.dataToValue(self._dptXLator.frameToData(data))
+            Logger().info(value)
+
+
+    stack = Stack(individualAddress=src)
+    dummy = DummyGroupObject(dptId)
+    group = stack.agds.subscribe(gad, dummy)
+
+    stack.start()
+    group.groupValueRead(priority)
+    time.sleep(1)
+    stack.stop()
+
+
 def main():
     usage = "%prog -w [options] -> send a write request to group address\n"
     usage += "       %prog -r [options] -> send a read request to group address"
@@ -321,9 +377,10 @@ def main():
         multicast = Multicast(options.srcAddr)
         multicast.write(options.gad, options.value, options.dptId)
     elif options.read:
-        multicast = Multicast(options.srcAddr)
-        value = multicast.read(options.gad, options.dptId)
-        print value
+        #multicast = Multicast(options.srcAddr)
+        #value = multicast.read(options.gad, options.dptId)
+        #print value
+        read(options.gad, options.dptId)
 
 
 if __name__ == '__main__':

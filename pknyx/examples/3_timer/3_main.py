@@ -101,7 +101,7 @@ class TimerFB(FunctionalBlock):
     def updateTimer(self):
         """ Method called every second.
         """
-        logger.trace("TimerFB.updateTimer()")
+        #logger.trace("TimerFB.updateTimer()")
 
         if self._timer:
             self._timer -= 1

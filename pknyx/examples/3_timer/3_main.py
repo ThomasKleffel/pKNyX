@@ -42,14 +42,17 @@ Documentation
 This example implements a timer which switches off something when switch on has been detected, after a delay.
 
 3 datapoints are create:
- - 'cmd' is the command
- - 'state' is the sate
- - 'delay' is the timer value
+ - 'cmd' is the command (output)
+ - 'state' is the sate (input)
+ - 'delay' is the timer delay value (input)
 
-The timer monitors the 'state' datapoint; when it changes from 'Off' to 'On', it starts the timer.
-When the timer delay expires, it sends 'Off' on 'cmd' datapoint associated bus group address.
+This functional block monitors the 'state' datapoint; when this datapoint changes from 'Off' to 'On', the functional
+block starts the timer.
+When the timer delay expires, the functional blocks sends 'Off' on its 'cmd' datapoint.
 If the 'state' datapoint changes back to 'Off' before the timer expires, the timer is desactivated.
-If the 'delay' datapoint changes when the timer is active, the timer is restarted with the new value.
+If the 'delay' datapoint changes while the timer is active, the timer is restarted with the new value.
+
+Just weave these datapoints to group address and give it a try.
 
 Usage
 =====

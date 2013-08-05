@@ -120,7 +120,7 @@ class Group(A_GroupDataListener):
             except PKNyXValueError:
                 Logger().exception("Group.groupValueReadInd()")
 
-    def groupValueReadCon(self, src, gad, data, priority):
+    def groupValueReadCon(self, src, gad, priority, data):
         Logger().debug("Group.groupValueReadCon(): src=%s, gad=%s, priority=%s, data=%s" % \
                        (src, gad, priority, repr(data)))
         for listener in self._listeners:

@@ -203,7 +203,7 @@ class UDPTransceiver(Transceiver):
 
         self._transmitterSock.close()
 
-        Logger().trace("UDPTransceiver._transmitterLoop(): stopped")
+        Logger().trace("UDPTransceiver._transmitterLoop(): ended")
 
     def _receiverLoop(self):
         """
@@ -259,7 +259,7 @@ class UDPTransceiver(Transceiver):
 
         self._receiverSock.close()
 
-        Logger().trace("UDPTransceiver._receiverLoop(): stopped")
+        Logger().trace("UDPTransceiver._receiverLoop(): ended")
 
     def start(self):
         """
@@ -278,7 +278,7 @@ class UDPTransceiver(Transceiver):
         self._running = False
         self._receiver.join()
         self._transmitter.join()
-        Logger().trace("UDPTransceiver.stop(): stopped")
+        Logger().trace("UDPTransceiver.stop(): ended")
 
 
 if __name__ == '__main__':

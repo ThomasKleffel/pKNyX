@@ -69,16 +69,20 @@ class StackValueError(PKNyXValueError):
 class Stack(object):
     """ Stack class
 
-    @ivar _agds: Application Group Data Service object
+    @ivar _agds: Application layer Group Data Service object
     @type _agds: L{A_GroupDataService}
 
-    @ivar _tgds:
+    @ivar _tgds: Transport layer Group Data Service object
+    @type _tgds: L{T_GroupDataService}
 
-    @ivar _ngds:
+    @ivar _ngds: Network layer Group Data Service object
+    @type _ngds: L{N_GroupDataService}
 
-    @ivar _lds
+    @ivar _lds: Transport layer Data Service object
+    @type _lds: L{L_DataService}
 
-    @ivar_tc:
+    @ivar_tc: transciever
+    @type _tc: L{Transceiver<pknyx.stack.transceiver.transceiver>}
     """
     PRIORITY_DISTRIBUTION = (-1, 3, 2)
 
@@ -108,8 +112,6 @@ class Stack(object):
 
     def start(self):
         """ Start the stack threads
-
-        @todo: name it 'server_forever()'?
         """
         Logger().trace("Stack.start()")
 
@@ -120,7 +122,7 @@ class Stack(object):
         Logger().info("Stack running")
 
     def stop(self):
-        """
+        """ Stop the stack threads
         """
         Logger().trace("Stack.stop()")
 
@@ -131,7 +133,9 @@ class Stack(object):
         Logger().info("Stack stopped")
 
     def mainLoop(self):
-        """ Start the main loop.
+        """ Start the main loop
+
+        Blocking.
         """
         self.start()
         try:

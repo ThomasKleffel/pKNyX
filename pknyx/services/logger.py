@@ -48,6 +48,7 @@ import logging.handlers
 import StringIO
 import traceback
 import os.path
+import time
 
 from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
@@ -73,8 +74,12 @@ class LoggerValueError(PKNyXValueError):
 class Logger_(object):
     """ Logger object.
     """
-    def __init__(self, defaultStreamHandler, defaultFileHandler):
+    def __init__(self, name=None):
         """ Init object.
+
+        @param name: name of the file used by the file handler
+                     Use None to disable file handler output
+        @type name: str
         """
         super(Logger_, self).__init__()
 
@@ -84,30 +89,28 @@ class Logger_(object):
         logging.addLevelName(logging.TRACE, "TRACE")
         logging.addLevelName(logging.EXCEPTION, "EXCEPTION")
 
-        # Formatters
-        #defaultFormatter = DefaultFormatter(config.LOGGER_FORMAT)
-        spaceFormatter = SpaceFormatter(config.LOGGER_FORMAT)
-        #colorFormatter = ColorFormatter(config.LOGGER_FORMAT)
-        spaceColorFormatter = SpaceColorFormatter(config.LOGGER_FORMAT)
-
         # Logger
         self._logger = logging.getLogger(config.APP_NAME)
         self._logger.propagate = False
         self._logger.setLevel(logging.TRACE)
 
         # Handlers
-        if defaultStreamHandler:
-            stdoutStreamHandler = logging.StreamHandler()
-            #stdoutStreamHandler.setFormatter(colorFormatter)
-            stdoutStreamHandler.setFormatter(spaceColorFormatter)
-            self._logger.addHandler(stdoutStreamHandler)
-        if defaultFileHandler:
-            loggerFilename = os.path.join(config.TMP_DIR, config.LOGGER_FILENAME)
-            fileHandler = logging.handlers.RotatingFileHandler(loggerFilename, 'w',
-                                                               config.LOGGER_MAX_BYTES,
-                                                               config.LOGGER_BACKUP_COUNT)
-            fileHandler.setFormatter(spaceFormatter)
+        stdoutStreamHandler = logging.StreamHandler()
+        streamFormatter = SpaceColorFormatter(config.LOGGER_STREAM_FORMAT)
+        stdoutStreamHandler.setFormatter(streamFormatter)
+        self._logger.addHandler(stdoutStreamHandler)
+
+        if name is not None:
+            LOGGER_FILENAME = "%s-%s%slog" % (config.APP_NAME.lower(), name, os.path.extsep)
+            loggerFilename = os.path.join(config.TMP_DIR, LOGGER_FILENAME)
+            fileHandler = logging.handlers.TimedRotatingFileHandler(filename=loggerFilename,
+                                                                    when=config.LOGGER_FILE_WHEN,
+                                                                    backupCount=config.LOGGER_FILE_COUNT)
+            fileFormatter = SpaceFormatter(config.LOGGER_FILE_FORMAT)
+            fileHandler.setFormatter(fileFormatter)
             self._logger.addHandler(fileHandler)
+
+        self.info("Logger_.__init__(): start new logger %s" % repr(name))
 
     def addStreamHandler(self, stream, formatter=DefaultFormatter):
         """ Add a new stream handler.
@@ -228,9 +231,9 @@ class Logger_(object):
 
 
 # Logger factory
-def Logger(defaultStreamHandler=True, defaultFileHandler=True):
+def Logger(name=None):
     global logger
     if logger is None:
-        logger = Logger_(defaultStreamHandler, defaultFileHandler)
+        logger = Logger_(name)
 
     return logger

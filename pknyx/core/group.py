@@ -103,29 +103,27 @@ class Group(A_GroupDataListener):
     def __str__(self):
         return "<Group('%s')>" % self._gad
 
-    def groupValueWriteInd(self, src, gad, priority, data):
-        Logger().debug("Group.groupValueWriteInd(): src=%s, gad=%s, priority=%s, data=%s" % \
-                       (src, gad, priority, repr(data)))
+    def groupValueWriteInd(self, src, priority, data):
+        Logger().debug("Group.groupValueWriteInd(): src=%s, priority=%s, data=%s" % (src, priority, repr(data)))
         for listener in self._listeners:
             try:
-                listener.onWrite(src, self._gad, data)
+                listener.onWrite(src, data)
             except PKNyXValueError:
                 Logger().exception("Group.groupValueWriteInd()")
 
-    def groupValueReadInd(self, src, gad, priority):
-        Logger().debug("Group.groupValueReadInd(): src=%s, gad=%s, priority=%s" % (src, gad, priority))
+    def groupValueReadInd(self, src, priority):
+        Logger().debug("Group.groupValueReadInd(): src=%s, priority=%s" % (src, priority))
         for listener in self._listeners:
             try:
-                listener.onRead(src, self._gad)
+                listener.onRead(src)
             except PKNyXValueError:
                 Logger().exception("Group.groupValueReadInd()")
 
-    def groupValueReadCon(self, src, gad, priority, data):
-        Logger().debug("Group.groupValueReadCon(): src=%s, gad=%s, priority=%s, data=%s" % \
-                       (src, gad, priority, repr(data)))
+    def groupValueReadCon(self, src, priority, data):
+        Logger().debug("Group.groupValueReadCon(): src=%s, priority=%s, data=%s" % (src, priority, repr(data)))
         for listener in self._listeners:
             try:
-                listener.onResponse(src, self._gad, data)
+                listener.onResponse(src, data)
             except PKNyXValueError:
                 Logger().exception("Group.groupValueReadCon()")
 

@@ -61,17 +61,17 @@ class GroupListener(object):
         """
         super(GroupListener, self).__init__()
 
-    def onRead(self, src, data):
+    def onWrite(self, src, data):
         """
         """
         raise NotImplementedError
 
-    def groupValueReadInd(self, src):
+    def onRead(self, src):
         """
         """
         raise NotImplementedError
 
-    def groupValueReadCon(self, src, data):
+    def onResponse(self, src, data):
         """
         """
         raise NotImplementedError

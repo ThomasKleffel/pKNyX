@@ -224,7 +224,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):
             except:
                 Logger().exception("L_DataService.run()")  #, debug=True)
 
-        Logger().info("Stop")
+        Logger().trace("L_DataService.run(): ended")
 
     def stop(self):
         """ stop thread
@@ -240,11 +240,12 @@ class L_DataService(threading.Thread, TransceiverLSAP):
         finally:
             self._outQueue.release()
 
-        #self._inQueue.acquire()
-        #try:
-            #self._inQueue.notifyAll()
-        #finally:
-            #self._inQueue.release()
+        # Release input queue listeners blocked on wait()
+        self._inQueue.acquire()
+        try:
+            self._inQueue.notifyAll()
+        finally:
+            self._inQueue.release()
 
 
 if __name__ == '__main__':

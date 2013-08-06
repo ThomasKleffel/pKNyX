@@ -68,13 +68,13 @@ from pknyx.api import Logger
 from pknyx.api import FunctionalBlock, Stack, ETS
 from pknyx.api import Scheduler, Notifier
 
+logger = Logger("timer")
+
 stack = Stack(individualAddress="1.2.3")
 ets = ETS(stack)
 
 schedule = Scheduler()
 notify = Notifier()
-
-logger = Logger()
 
 
 class TimerFB(FunctionalBlock):

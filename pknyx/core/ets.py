@@ -57,6 +57,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.stack.flags import Flags
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.services.scheduler import Scheduler
 from pknyx.services.notifier import Notifier
@@ -142,7 +143,7 @@ class ETS(object):
         Scheduler().doRegisterJobs(fb)
         Notifier().doRegisterJobs(fb)
 
-    def weave(self, fb, dp, gad):
+    def weave(self, fb, dp, gad, flags=None):
         """ Weave (link, bind...) a datapoint to a group address
 
         @param fb: name of the functional block owning the datapoint
@@ -154,6 +155,9 @@ class ETS(object):
         @param gad : group address to link to
         @type gad : str or L{GroupAddress}
 
+        @param flags: overriding flags
+        @type flags: str or L{Flags}
+
         raise ETSValueError:
         """
         for fb_ in self._functionalBlocks:
@@ -164,6 +168,12 @@ class ETS(object):
 
         # Retreive GroupObject from FunctionalBlock
         groupObject = fb_.go[dp]
+
+        # Override GroupObject flags
+        if flags is not None:
+            if not isinstance(flags, Flags):
+                flags = Flags(flags)
+            groupObject.flags = flags
 
         # Get GroupAddress
         if not isinstance(gad, GroupAddress):

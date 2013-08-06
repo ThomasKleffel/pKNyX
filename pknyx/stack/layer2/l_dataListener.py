@@ -34,12 +34,11 @@ Implements
 ==========
 
  - B{L_DataListener}
- - B{L_DLValueError}
 
 Documentation
 =============
 
-This is the base classe for link layer group data listeners. Objects which want to be notified by
+This is the base class for link layer group data listeners. Objects which want to be notified by
 this layer must implement this interface.
 
 Usage
@@ -52,13 +51,7 @@ Usage
 
 __revision__ = "$Id$"
 
-from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-
-
-class L_DLValueError(PKNyXValueError):
-    """
-    """
 
 
 class L_DataListener(object):

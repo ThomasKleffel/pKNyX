@@ -38,7 +38,7 @@ Implements
 Documentation
 =============
 
-This is the base classe for transport layer group data listeners. Objects which want to be notified by
+This is the base class for transport layer group data listeners. Objects which want to be notified by
 this layer must implement this interface.
 
 Usage
@@ -51,13 +51,7 @@ Usage
 
 __revision__ = "$Id$"
 
-from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-
-
-class T_GDLValueError(PKNyXValueError):
-    """
-    """
 
 
 class T_GroupDataListener(object):

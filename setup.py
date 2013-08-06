@@ -28,10 +28,10 @@ or see:
 Module purpose
 ==============
 
+Packaging
+
 Implements
 ==========
-
- - B{}
 
 Documentation
 =============
@@ -56,7 +56,7 @@ VERSION_PACKAGE = 1
 setup(name="pKNyX",
       version="%s-%d" % (config.VERSION, VERSION_PACKAGE),
       author="Frédéric Mantegazza",
-      author_email="fma@gbiloba.org",
+      author_email="fma@pknyx.org",
       url="http://www.pknyx.org",
       description="Python KNX framework",
       license="GPL",

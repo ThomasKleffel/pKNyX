@@ -101,7 +101,7 @@ class Logger_(object):
         self._logger.addHandler(stdoutStreamHandler)
 
         if name is not None:
-            LOGGER_FILENAME = "%s-%s%slog" % (config.APP_NAME.lower(), name, os.path.extsep)
+            LOGGER_FILENAME = "%s_%s%slog" % (config.APP_NAME.lower(), name, os.path.extsep)
             loggerFilename = os.path.join(config.TMP_DIR, LOGGER_FILENAME)
             fileHandler = logging.handlers.TimedRotatingFileHandler(filename=loggerFilename,
                                                                     when=config.LOGGER_FILE_WHEN,

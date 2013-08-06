@@ -92,14 +92,6 @@ class MulticastSocket(socket.socket):
         return self._address
 
     @property
-    def timeout(self):
-        return self.timeout
-
-    @timeout.setter
-    def timeout(self, timeout):
-        self.settimeout(timeout)
-
-    @property
     def localPort(self):
         raise NotImplementedError
 
@@ -119,8 +111,6 @@ class MulticastSocket(socket.socket):
 
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
 
-        #local = socket.gethostbyname(socket.gethostname)
-        #value = struct.pack("=4sl", socket.inet_aton(address), socket.inet_aton(local))
         value = struct.pack("=4sl", socket.inet_aton(address), socket.INADDR_ANY)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, value)
         self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, value)
@@ -128,8 +118,6 @@ class MulticastSocket(socket.socket):
     def leaveGroup(self, address):
         """
         """
-        #local = socket.gethostbyname(socket.gethostname)
-        #value = struct.pack("=4sl", socket.inet_aton(address), socket.inet_aton(local))
         value = struct.pack("=4sl", socket.inet_aton(address), socket.INADDR_ANY)
         self.setsockopt(socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, value)
 
@@ -149,7 +137,26 @@ class MulticastSocket(socket.socket):
     def receive(self):
         """
         """
-        #if self._address:
-            #Logger().warning("MulticastSocket.joinGroup(): socket used as sender (bound to %s)" % self._address)
-
         return self.recvfrom(1024)
+
+
+if __name__ == '__main__':
+    import unittest
+
+    # Mute logger
+    Logger().setLevel('error')
+
+
+    class MulticastSocketTestCase(unittest.TestCase):
+
+        def setUp(self):
+            pass
+
+        def tearDown(self):
+            pass
+
+        def test_constructor(self):
+            pass
+
+
+    unittest.main()

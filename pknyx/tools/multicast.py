@@ -216,7 +216,7 @@ def write(gad, value, dptId="1.xxx", src="0.0.0",  priority="low", hopCount=6):
 
     stack.start()
     try:
-        group.groupValueWrite(priority, data, dptXlator.typeSize)
+        group.write(priority, data, dptXlator.typeSize)
         time.sleep(1)  # Find a way to wait until the stack sending queue is empty (stack.waitEmpty()?)
 
     finally:
@@ -235,7 +235,7 @@ def read(gad, timeout=1, wait=True, dptId="1.xxx", src="0.0.0", priority="low", 
 
     stack.start()
     try:
-        group.groupValueRead(priority)
+        group.read(priority)
 
         if wait:
             groupObject._responseQueue.acquire()
@@ -271,7 +271,7 @@ def response(gad, value, dptId="1.xxx", src="0.0.0",  priority="low", hopCount=6
 
     stack.start()
     try:
-        group.groupValueResponse(priority, data, dptXlator.typeSize)
+        group.response(priority, data, dptXlator.typeSize)
         time.sleep(1)  # Find a way to wait until the stack sending queue is empty (stack.waitEmpty()?)
 
     finally:

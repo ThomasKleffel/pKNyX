@@ -145,17 +145,17 @@ class Group(A_GroupDataListener):
         """
         self._listeners.add(listener)
 
-    def groupValueWrite(self, priority, data, size):
+    def write(self, priority, data, size):
         """ Write data request on the GAD associated with this group
         """
         self._agds.groupValueWriteReq(self._gad, priority, data, size)
 
-    def groupValueRead(self, priority):
+    def read(self, priority):
         """ Read data request on the GAD associated with this group
         """
         self._agds.groupValueReadReq(self._gad, priority)
 
-    def groupValueResponse(self, priority, data, size):
+    def response(self, priority, data, size):
         """ Response data request on the GAD associated with this group
         """
         self._agds.groupValueReadRes(self._gad, priority, data, size)

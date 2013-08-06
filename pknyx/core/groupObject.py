@@ -130,7 +130,7 @@ class GroupObject(GroupListener):
         if self._flags.communicate:
             if (oldValue != newValue and self._flags.transmit) or self._flags.stateless:
                 frame, size = self._datapoint.frame
-                self._group.groupValueWrite(self._priority, frame, size)
+                self._group.write(self._priority, frame, size)
 
     @property
     def datapoint(self):
@@ -169,7 +169,7 @@ class GroupObject(GroupListener):
         # Must be done *after* starting it...
         #if self._flags.communicate:
             #if self._flags.init:
-                #self._group.groupValueRead(self._priority)
+                #self._group.read(self._priority)
 
     @property
     def name(self):
@@ -189,7 +189,7 @@ class GroupObject(GroupListener):
         if self._flags.communicate:
             if self._flags.read:
                 frame, size = self._datapoint.frame
-                self._group.groupValueResponse(self._priority, frame, size)
+                self._group.response(self._priority, frame, size)
 
     def onResponse(self, src, data):
         Logger().debug("GroupObject.onResponse(): src=%s, data=%s" % (src, repr(data)))

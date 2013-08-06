@@ -49,38 +49,16 @@ VERSION = "%d.%d.%d" % (VERSION_MAJOR, VERSION_MINOR, VERSION_UPDATE)
 # Paths
 HOME_DIR = os.path.expanduser("~")
 if sys.platform == 'win32':
-    USER_CONFIG_DIR = os.path.join(os.path.expandvars("$APPDATA"), APP_NAME.lower())
     DATA_STORAGE_DIR = HOME_DIR  # Find a way to retreive the "My Documents" dir in all languages
     TMP_DIR = os.path.expandvars("$TEMP")
 else:
-    USER_CONFIG_DIR = os.path.join(HOME_DIR, ".config", APP_NAME.lower())  # OpenDesktop standard
     DATA_STORAGE_DIR = HOME_DIR
     TMP_DIR = "/tmp"
-USER_PLUGINS_DIR = os.path.join(USER_CONFIG_DIR, "plugins")
-
-for dir_ in (USER_CONFIG_DIR, USER_PLUGINS_DIR):
-    try:
-        os.makedirs(dir_)
-    except OSError, (errno, errmsg):
-        if errno in (17, 183):  # dir already exists
-            pass
-        else:
-            raise
-
-CONFIG_FILE = "%s%sconf" % (APP_NAME.lower(), os.path.extsep)
-USER_CONFIG_FILE = os.path.join(USER_CONFIG_DIR, CONFIG_FILE)
-if VERSION_MINOR % 2:
-    USER_GUIDE_URL = "http://www.pknyx.org/wiki/UserGuideSvn"
-else:
-    USER_GUIDE_URL = "http://www.pknyx.org/wiki/UserGuide%d.x" % VERSION_MAJOR
 
 # Logger
-LOGGER_LONG_FORMAT = "%(asctime)s::%(threadName)s::%(levelname)s::%(message)s"
-LOGGER_SHORT_FORMAT = "%(threadName)s::%(message)s"
-LOGGER_FORMAT = LOGGER_SHORT_FORMAT
-LOGGER_MAX_COUNT_LINE = 1000
-LOGGER_FILENAME = "%s%slog" % (APP_NAME.lower(), os.path.extsep)
-LOGGER_MAX_BYTES = 100 * 1024
-LOGGER_BACKUP_COUNT = 3
+LOGGER_STREAM_FORMAT = "%(threadName)s::%(message)s"
+LOGGER_FILE_FORMAT = "%(asctime)s::%(threadName)s::%(levelname)s::%(message)s"
+LOGGER_FILE_WHEN = "midnight"
+LOGGER_FILE_COUNT = 0
 
 # @todo: add automatic load of a gad map if present in config dir

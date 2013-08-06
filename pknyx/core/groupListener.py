@@ -48,7 +48,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: group.py 250 2013-08-05 12:01:19Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.services.logger import Logger
 

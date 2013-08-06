@@ -44,7 +44,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: template.py 155 2013-07-10 12:34:24Z fma $"
+__revision__ = "$Id$"
 
 from distutils.core import setup
 

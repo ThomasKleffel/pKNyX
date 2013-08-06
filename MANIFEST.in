@@ -1,0 +1,2 @@
+include CHANGES LICENSE README
+recursive-include docs *.txt

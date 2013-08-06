@@ -46,14 +46,13 @@ Usage
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
 @license: GPL
-
-@todo: inherits some GroupListener?
 """
 
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.core.groupListener import GroupListener
 from pknyx.stack.flags import Flags
 from pknyx.stack.priority import Priority
 
@@ -63,7 +62,7 @@ class GroupObjectValueError(PKNyXValueError):
     """
 
 
-class GroupObject(object):
+class GroupObject(GroupListener):
     """ GroupObject class
 
     @ivar _datapoint: associated datapoint
@@ -176,14 +175,14 @@ class GroupObject(object):
     def name(self):
         return self._datapoint.name
 
-    def onWrite(self, src, gad, data):
+    def onWrite(self, src, data):
         Logger().debug("GroupObject.onWrite(): src=%s, data=%s" % (src, repr(data)))
 
         # Check if datapoint should be updated
         if self._flags.write:  # and data != self.datapoint.data:
             self.datapoint.frame = data
 
-    def onRead(self, src, gad):
+    def onRead(self, src):
         Logger().debug("GroupObject.onRead(): src=%s" % src)
 
         # Check if data should be send over the bus
@@ -192,7 +191,7 @@ class GroupObject(object):
                 frame, size = self._datapoint.frame
                 self._group.groupValueResponse(self._priority, frame, size)
 
-    def onResponse(self, src, gad, data):
+    def onResponse(self, src, data):
         Logger().debug("GroupObject.onResponse(): src=%s, data=%s" % (src, repr(data)))
 
         # Check if datapoint should be updated

@@ -87,7 +87,7 @@ class ActuatorFB(FunctionalBlock):
     DESC = "Actuator"
 
     @notify.datapoint(dp="cmd", condition="change")
-    def stateChanged(self, event):
+    def cmdChanged(self, event):
         """ Method called when the 'cmd' datapoint changes
 
         We just copy the 'cmd' datapoint value to the 'state' datapoint.

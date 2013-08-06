@@ -56,6 +56,9 @@ from pknyx.api import Scheduler
 
 from sunPositionFB import SunPositionFB
 
+NAME = "simple-with-modules"
+IND_ADDR = "1.2.2"
+
 # ETS group address map
 GAD_MAP = {"1": dict(name="weather_station", desc="Weather station"),
            "1/3": dict(name="sun_position", desc="Sun position"),
@@ -69,7 +72,9 @@ GAD_MAP = {"1": dict(name="weather_station", desc="Weather station"),
            "1/3/8": dict(name="saving_time", desc="Saving time flag")
           }
 
-stack = Stack(individualAddress="1.2.3")
+logger = Logger("%s-%s" % (NAME, IND_ADDR))
+
+stack = Stack(individualAddress=IND_ADDR)
 ets = ETS(stack, gadMap=GAD_MAP)
 
 schedule = Scheduler()

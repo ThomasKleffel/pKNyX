@@ -57,6 +57,9 @@ from pknyx.api import Logger
 from pknyx.api import FunctionalBlock, Stack, ETS
 from pknyx.api import Scheduler, Notifier
 
+NAME = "simple"
+IND_ADDR = "1.2.1"
+
 # ETS group address map
 GAD_MAP = {"1": dict(name="weather_station", desc="Weather station"),
            "1/1": dict(name="temperatures", desc="Temperatures"),
@@ -69,7 +72,9 @@ GAD_MAP = {"1": dict(name="weather_station", desc="Weather station"),
            "1/2/4": dict(name="wind_alarm_enable", desc="Wind alarm enable"),
           }
 
-stack = Stack(individualAddress="1.2.3")
+logger = Logger("%s-%s" % (NAME, IND_ADDR))
+
+stack = Stack(individualAddress=IND_ADDR)
 ets = ETS(stack, gadMap=GAD_MAP)
 
 schedule = Scheduler()

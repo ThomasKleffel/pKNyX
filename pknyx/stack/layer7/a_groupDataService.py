@@ -104,15 +104,15 @@ class A_GroupDataService(T_GroupDataListener):
 
             if (apci & APCI._4) == APCI.GROUPVALUE_WRITE:
                 data = APDU.getGroupValue(aPDU)
-                group.groupValueWriteInd(src, gad, priority, data)
+                group.groupValueWriteInd(src, priority, data)
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_READ:
                 if length == 0:
-                    group.groupValueReadInd(src, gad, priority)
+                    group.groupValueReadInd(src, priority)
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_RES:
                 data = APDU.getGroupValue(aPDU)
-                group.groupValueReadCon(src, gad, priority, data)
+                group.groupValueReadCon(src, priority, data)
 
     @property
     def groups(self):

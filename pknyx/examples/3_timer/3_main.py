@@ -68,9 +68,12 @@ from pknyx.api import Logger
 from pknyx.api import FunctionalBlock, Stack, ETS
 from pknyx.api import Scheduler, Notifier
 
-logger = Logger("timer")
+NAME = "timer"
+IND_ADDR = "1.2.3"
 
-stack = Stack(individualAddress="1.2.3")
+logger = Logger("%s-%s" % (NAME, IND_ADDR))
+
+stack = Stack(individualAddress=IND_ADDR)
 ets = ETS(stack)
 
 schedule = Scheduler()

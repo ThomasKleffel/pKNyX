@@ -222,6 +222,7 @@ def write(gad, value, dptId="1.xxx", src="0.0.0",  priority="low", hopCount=6):
     finally:
         stack.stop()
 
+
 def read(gad, timeout=1, wait=True, dptId="1.xxx", src="0.0.0", priority="low", hopCount=6):
     """
     """

@@ -58,7 +58,7 @@ class McastSockValueError(PKNyXValueError):
     """
 
 
-class MulticastSocket(socket.socket):
+class MulticastSocket(socket.socket):  # @todo: split in 2 classes
     """ Multicast socket
     """
     def __init__(self, port, address="", timeout=1):
@@ -109,7 +109,7 @@ class MulticastSocket(socket.socket):
         if not multicast:
             raise McastSockValueError("address is not a multicast destination (%s)" % repr(address))
 
-        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 0)  #  Was 1
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
 
         value = struct.pack("=4sl", socket.inet_aton(address), socket.INADDR_ANY)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, value)

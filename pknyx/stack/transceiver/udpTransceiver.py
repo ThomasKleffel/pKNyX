@@ -124,7 +124,7 @@ class UDPTransceiver(Transceiver):
         @param mcastAddr: multicast address to bind to
         @type mcastAddr: str
 
-        @param mcastPort: multicast address to bind to
+        @param mcastPort: multicast port to bind to
         @type mcastPort: str
 
         raise UDPTransceiverValueError:
@@ -212,6 +212,7 @@ class UDPTransceiver(Transceiver):
 
         try:
             self._receiverSock.joinGroup(self._mcastAddr)
+            self._receiverSock.bind(("", self._mcastPort))
         except:
             self._receiverSock.close()
             raise
@@ -276,9 +277,14 @@ class UDPTransceiver(Transceiver):
         Logger().trace("UDPTransceiver.stop()")
 
         self._running = False
+
+    def join(self):
+        """
+        """
+        Logger().trace("UDPTransceiver.join()")
+
         self._receiver.join()
         self._transmitter.join()
-        Logger().trace("UDPTransceiver.stop(): ended")
 
 
 if __name__ == '__main__':

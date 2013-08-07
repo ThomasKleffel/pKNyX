@@ -211,8 +211,8 @@ class UDPTransceiver(Transceiver):
         Logger().trace("UDPTransceiver._receiverLoop()")
 
         try:
+            self._receiverSock.bind((self._mcastAddr, self._mcastPort))
             self._receiverSock.joinGroup(self._mcastAddr)
-            self._receiverSock.bind(("", self._mcastPort))
         except:
             self._receiverSock.close()
             raise

@@ -77,11 +77,11 @@ class MulticastSocket(socket.socket):
             self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         except AttributeError:
             Logger().exception("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT", debug=True)
-        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 255)
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 32)
 
         self.settimeout(timeout)
 
-        self.bind(("", port))
+        #self.bind(("", port))
 
     @property
     def port(self):
@@ -109,7 +109,7 @@ class MulticastSocket(socket.socket):
         if not multicast:
             raise McastSockValueError("address is not a multicast destination (%s)" % repr(address))
 
-        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 0)  #  Was 1
 
         value = struct.pack("=4sl", socket.inet_aton(address), socket.INADDR_ANY)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, value)

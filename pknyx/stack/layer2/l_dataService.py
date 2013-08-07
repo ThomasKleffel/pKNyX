@@ -66,7 +66,7 @@ class L_DSValueError(PKNyXValueError):
     """
 
 
-class L_DataService(threading.Thread, TransceiverLSAP):
+class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inherits Thread
     """ L_DataService class
 
     @ivar _individualAddress: own Individual Address

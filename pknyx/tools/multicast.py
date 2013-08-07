@@ -335,7 +335,6 @@ def main():
 
     # Parse
     args = parser.parse_args()
-    print vars(args)
 
     Logger().setLevel(args.debugLevel)
 

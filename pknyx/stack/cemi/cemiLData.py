@@ -148,6 +148,8 @@ class CEMILData(CEMI):
             self.systemBroadcast = CEMILData.SB_BROADCAST
         elif mc == CEMILData.MC_LDATA_IND:
             self.systemBroadcast = CEMILData.SB_BROADCAST
+            self.confirm = CEMILData.C_NO_ERROR
+            self.repeat = CEMILData.R_NO_REPEAT
         self._frame.mc = mc
 
     @property

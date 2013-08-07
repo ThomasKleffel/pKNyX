@@ -126,8 +126,9 @@ class Stack(object):
         """
         Logger().trace("Stack.stop()")
 
-        self._lds.stop()
         self._tc.stop()
+        self._lds.stop()
+        self._tc.join()
         self._lds.join()
 
         Logger().info("Stack stopped")

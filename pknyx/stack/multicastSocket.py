@@ -75,8 +75,9 @@ class MulticastSocket(socket.socket):  # @todo: split in 2 classes
         self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        except AttributeError:
-            Logger().exception("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT", debug=True)
+        except:
+            Logger().warning("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT")
+            Logger().exception("MulticastSocket.__init__()", debug=True)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 32)
 
         self.settimeout(timeout)

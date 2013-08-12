@@ -82,7 +82,7 @@ class MulticastSocket(socket.socket):  # @todo: split in 2 classes
 
         self.settimeout(timeout)
 
-        #self.bind(("", port))
+        self.bind(("", port))
 
     @property
     def port(self):

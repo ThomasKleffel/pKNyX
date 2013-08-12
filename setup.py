@@ -51,10 +51,11 @@ from distutils.core import setup
 from pknyx.common import config
 
 VERSION_PACKAGE = 1
-
+VERSION = "%s-%d" % (config.VERSION, VERSION_PACKAGE)
+#VERSION = "rxxx"
 
 setup(name="pKNyX",
-      version="%s-%d" % (config.VERSION, VERSION_PACKAGE),
+      version=VERSION,
       author="Frédéric Mantegazza",
       author_email="fma@pknyx.org",
       url="http://www.pknyx.org",

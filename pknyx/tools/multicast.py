@@ -283,7 +283,7 @@ def response(gad, value, dptId="1.xxx", src="0.0.0",  priority="low", hopCount=6
 def main():
 
     # Common options
-    parser = argparse.ArgumentParser(prog="multicast",
+    parser = argparse.ArgumentParser(prog="multicast.py",
                                      description="This tool is used to send multicast requests on KNX bus.",
                                      epilog="Under developement...")
     parser.add_argument("-l", "--logger",
@@ -326,7 +326,7 @@ def main():
 
     # Response parser
     parserResponse = subparsers.add_parser("response",
-                                        help="send a response")
+                                           help="send a response")
     parserResponse.set_defaults(func=response)
     parserResponse.add_argument("gad", type=str,
                                 help="group address")

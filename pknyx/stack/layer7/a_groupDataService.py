@@ -50,7 +50,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-from pknyx.core.group import Group
+from pknyx.core.group import Group, GroupMonitor
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.layer7.apci import APCI
 from pknyx.stack.layer7.apdu import APDU
@@ -95,37 +95,63 @@ class A_GroupDataService(T_GroupDataListener):
         if length >= 0:
             apci = aPDU[0] << 8 | aPDU[1]
 
-            try:
+            if gad.address in self._groups.keys():
                 group = self._groups[gad.address]
-            except KeyError:
-                Logger().exception("A_GroupDataService.groupDataInd()", debug=True)
+            else:
                 Logger().debug("A_GroupDataService.groupDataInd(): no registered group for that GAD (%s)" % repr(gad))
-                return
+                group = None
+
+            if "0/0/0" in self._groups.keys():
+                groupMonitor = self._groups["0/0/0"]
+            else:
+                groupMonitor = None
 
             if (apci & APCI._4) == APCI.GROUPVALUE_WRITE:
                 data = APDU.getGroupValue(aPDU)
-                group.groupValueWriteInd(src, priority, data)
+                if group is not None:
+                    group.groupValueWriteInd(src, priority, data)
+                if groupMonitor is not None:
+                    groupMonitor.groupValueWriteInd(src, gad, priority, data)
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_READ:
                 if length == 0:
-                    group.groupValueReadInd(src, priority)
+                    if group is not None:
+                        group.groupValueReadInd(src, priority)
+                    if groupMonitor is not None:
+                        groupMonitor.groupValueReadInd(src, gad, priority)
+                else:
+                    Logger().warning("A_GroupDataService.groupDataInd(): invalid aPDU length")
 
             elif (apci & APCI._4) == APCI.GROUPVALUE_RES:
                 data = APDU.getGroupValue(aPDU)
-                group.groupValueReadCon(src, priority, data)
+                if group is not None:
+                    group.groupValueReadCon(src, priority, data)
+                if groupMonitor is not None:
+                    groupMonitor.groupValueReadCon(src, gad, priority, data)
+
+        else:
+            Logger().warning("A_GroupDataService.groupDataInd(): invalid aPDU length")
 
     @property
     def groups(self):
         return self._groups
 
     def subscribe(self, gad, listener):
-        """
+        """ Subscribe listener to specified group address
+
+        If a Group handling this group address already exists, it is used. If not, it is created.
+        The listener is added as a listener to this group.
+
+        If gad is null ("0/0/0"), a special group will be created, and the listener will receive all group telegrams.
 
         @param gad: Group address the listener wants to subscribe to
         @type gad : L{GroupAddress}
 
         @param listener: object to link to the GAD
-        @type listener: L{GroupObject<pknyx.core.groupObject>}
+        @type listener: L{GroupListener<pknyx.core.groupListener>}
+
+        @return: group handling the group address
+        @rtype: L{Group}
         """
         Logger().debug("A_GroupDataService.subscribe(): gad=%s, listener=%s" % (gad, repr(listener)))
         if not isinstance(gad, GroupAddress):
@@ -134,7 +160,10 @@ class A_GroupDataService(T_GroupDataListener):
         try:
             group = self._groups[gad.address]
         except KeyError:
-            group = self._groups[gad.address] = Group(gad, self)
+            if gad.isNull:
+                group = self._groups[gad.address] = GroupMonitor(self)
+            else:
+                group = self._groups[gad.address] = Group(gad, self)
 
         group.addListener(listener)
 

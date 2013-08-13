@@ -34,6 +34,7 @@ Implements
 ==========
 
  - B{GroupListener}
+ - B{GroupMonitorListener}
 
 Documentation
 =============
@@ -72,6 +73,30 @@ class GroupListener(object):
         raise NotImplementedError
 
     def onResponse(self, src, data):
+        """
+        """
+        raise NotImplementedError
+
+
+class GroupMonitorListener(object):
+    """ GroupMonitorListener class
+    """
+    def __init__(self):
+        """ Init the GroupMonitorListener object
+        """
+        super(GroupMonitorListener, self).__init__()
+
+    def onWrite(self, src, gad, priority, data):
+        """
+        """
+        raise NotImplementedError
+
+    def onRead(self, src, gad, priority):
+        """
+        """
+        raise NotImplementedError
+
+    def onResponse(self, src, gad, prioritydata):
         """
         """
         raise NotImplementedError

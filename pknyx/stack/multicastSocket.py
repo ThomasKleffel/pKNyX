@@ -31,7 +31,8 @@ Module purpose
 Implements
 ==========
 
- - B{}
+ - B{MulticastSocket}
+ - B{McastSockValueError}
 
 Documentation
 =============
@@ -40,7 +41,9 @@ Usage
 =====
 
 @author: Frédéric Mantegazza
+@author: Jakub Wroniecki
 @copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2009 Jakub Wroniecki, STANSAT
 @license: GPL
 """
 
@@ -76,8 +79,7 @@ class MulticastSocket(socket.socket):  # @todo: split in 2 classes
         try:
             self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         except:
-            Logger().warning("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT")
-            Logger().exception("MulticastSocket.__init__()", debug=True)
+            Logger().exception("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT", debug=True)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 32)
 
         self.settimeout(timeout)

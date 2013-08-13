@@ -81,10 +81,16 @@ class MulticastSocket(socket.socket):  # @todo: split in 2 classes
         except:
             Logger().exception("MulticastSocket.__init__(): system doesn't support SO_REUSEPORT", debug=True)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 32)
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
 
         self.settimeout(timeout)
 
-        self.bind(("", port))
+        self._bind()
+
+    def _bind(self):
+        """
+        """
+        self._sock.bind((self._address, self._port))
 
     @property
     def port(self):
@@ -111,8 +117,6 @@ class MulticastSocket(socket.socket):  # @todo: split in 2 classes
         multicast = ord(socket.inet_aton(address)[0]) in range(224, 240)
         if not multicast:
             raise McastSockValueError("address is not a multicast destination (%s)" % repr(address))
-
-        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, 1)
 
         value = struct.pack("=4sl", socket.inet_aton(address), socket.INADDR_ANY)
         self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, value)
@@ -142,6 +146,30 @@ class MulticastSocket(socket.socket):  # @todo: split in 2 classes
         """
         return self.recvfrom(1024)
 
+
+class MulticastSocketSender(MulticastSocket):
+    """
+    """
+    def __init__(self, srcAddr, srcPort, destAddr, destPort, ttl=32, loop=1):
+        """
+        """
+        super(MulticastSocketSender, self).__init__(self, srcAddr, srcPort, ttl, loop)
+
+
+
+class MulticastSocketReceiver(MulticastSocket):
+    """
+    """
+    def __init__(self, joinAddr, joinPort, ttl=32, loop=1):
+        """
+        """
+        super(MulticastSocketReceiver, self).__init__(self, joinAddr, joinPort, ttl, loop)
+
+
+    def _bind(self):
+        """
+        """
+        self._sock.bind(("", self._port))
 
 if __name__ == '__main__':
     import unittest

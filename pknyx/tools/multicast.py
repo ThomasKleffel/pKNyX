@@ -121,8 +121,7 @@ import threading
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
-from pknyx.core.group import Group
-from pknyx.core.groupListener import GroupListener
+from pknyx.core.groupListener import GroupListener, GroupMonitorListener
 from pknyx.stack.stack import Stack
 from pknyx.stack.priority import Priority
 
@@ -176,7 +175,7 @@ class SimpleGroupObject(GroupListener):
         """
         super(SimpleGroupObject, self).__init__()
 
-        self._responseQueue = SimpleQueue()
+        self._queue = SimpleQueue()
 
     def onWrite(self, src, data):
         Logger().debug("SimpleGroupObject.onWrite(): src=%s, data=%s" % (src, repr(data)))
@@ -187,16 +186,58 @@ class SimpleGroupObject(GroupListener):
     def onResponse(self, src, data):
         Logger().debug("SimpleGroupObject.onResponse(): src=%s, data=%s" % (src, repr(data)))
 
-        self._responseQueue.acquire()
+        self._queue.acquire()
         try:
-            self._responseQueue.append(data)
-            self._responseQueue.notify()
+            self._queue.insert(0, data)
+            self._queue.notify()
         finally:
-            self._responseQueue.release()
+            self._queue.release()
 
     @property
-    def responseQueue(self):
-        return self._responseQueue
+    def queue(self):
+        return self._queue
+
+
+class SimpleGroupMonitorObject(GroupMonitorListener):
+    """
+    """
+    def __init__(self):
+        """ Init the group listener
+        """
+        super(SimpleGroupMonitorObject, self).__init__()
+
+        self._queue = SimpleQueue()
+
+    def _enqueue(self, type_, src, gad, priority, data):
+        """
+        """
+        self._queue.acquire()
+        try:
+            self._queue.insert(0, (type_, src, gad, priority, data))
+            self._queue.notify()
+        finally:
+            self._queue.release()
+
+    def onWrite(self, src, gad, priority, data):
+        Logger().debug("SimpleGroupMonitorObject.onWrite(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (src, gad, priority, repr(data)))
+
+        self._enqueue("groupValueWriteReq", src, gad, priority, data)
+
+    def onRead(self, src, gad, priority):
+        Logger().debug("SimpleGroupMonitorObject.onRead(): src=%s, gad=%s, priority=%s" % (src, gad, priority))
+
+        self._enqueue("groupValueReadReq", src, gad, priority, None)
+
+    def onResponse(self, src, gad, priority, data):
+        Logger().debug("SimpleGroupMonitorObject.onResponse(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (src, gad, priority, repr(data)))
+
+        self._enqueue("groupValueReadRes", src, gad, priority, data)
+
+    @property
+    def queue(self):
+        return self._queue
 
 
 def write(gad, value, dptId="1.xxx", src="0.0.0",  priority="low", hopCount=6):
@@ -240,12 +281,12 @@ def read(gad, timeout=1, wait=True, dptId="1.xxx", src="0.0.0", priority="low", 
         group.read(priority)
 
         if wait:
-            groupObject._responseQueue.acquire()
+            groupObject.queue.acquire()
             try:
-                groupObject._responseQueue.wait(timeout)  # Find a wait to know if timeout expired
-                data = groupObject.responseQueue.pop()
+                groupObject.queue.wait(timeout)  # Find a wait to know if timeout expired
+                data = groupObject.queue.pop()
             finally:
-                groupObject._responseQueue.release()
+                groupObject.queue.release()
 
             dptXlator = DPTXlatorFactory().create(dptId)
             value = dptXlator.dataToValue(dptXlator.frameToData(data))
@@ -275,6 +316,38 @@ def response(gad, value, dptId="1.xxx", src="0.0.0",  priority="low", hopCount=6
     try:
         group.response(priority, data, dptXlator.typeSize)
         time.sleep(1)  # Find a way to wait until the stack sending queue is empty (stack.waitEmpty()?)
+
+    finally:
+        stack.stop()
+
+
+def monitor(dptId="1.xxx", src="0.0.0", priority="low", hopCount=6):
+    """
+    """
+    Logger().debug("monitor(): dptId=%s, src=%s, priority=%s, hopCount=%s" % (dptId, src, priority, hopCount))
+
+    stack = Stack(individualAddress=src)
+
+    groupMonitorObject = SimpleGroupMonitorObject()
+    group = stack.agds.subscribe("0/0/0", groupMonitorObject)
+
+    stack.start()
+    try:
+        while True:
+            try:
+                groupMonitorObject.queue.acquire()
+                try:
+                    groupMonitorObject.queue.wait(0.1)
+                    try:
+                        type_, src, gad, priority, data = groupMonitorObject.queue.pop()
+                        print "Got %s from %s to %s with priority %s (data=%s)" % (type_, src, gad, priority, repr(data))
+                    except IndexError:
+                        pass
+                finally:
+                    groupMonitorObject.queue.release()
+
+            except KeyboardInterrupt:
+                break
 
     finally:
         stack.stop()
@@ -332,6 +405,11 @@ def main():
                                 help="group address")
     parserResponse.add_argument("value", type=str,
                                 help="value to send")
+
+    # Monitor parser
+    monitorResponse = subparsers.add_parser("monitor",
+                                            help="monitor bus")
+    monitorResponse.set_defaults(func=monitor)
 
     # Parse
     args = parser.parse_args()

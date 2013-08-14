@@ -42,69 +42,10 @@ Documentation
 
 This script is used to send/receive multicast requests. It mimics what the stack does.
 
-@todo: make the same using the stack.
-
 Usage
 =====
 
-usage: multicast [-h] [-l LEVEL] [-d DPTID] [-s SRC]
-                 [--priority {system,normal,urgent,low}] [--hopCount HOPCOUNT]
-                 {write,read,response} ...
-
-This tool is used to send multicast requests on KNX bus.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -l LEVEL, --logger LEVEL
-                        logger level
-  -d DPTID, --dptId DPTID
-                        DPTID to use to encode/decode data
-  -s SRC, --srcAddr SRC
-                        source address to use
-  --priority {system,normal,urgent,low}
-                        bus priority
-  --hopCount HOPCOUNT   hopcount
-
-subcommands:
-  valid subcommands
-
-  {write,read,response}
-                        sub-command help
-    write               send a write request
-    read                send a read request
-    response            send a response
-
-
-usage: multicast write [-h] gad value
-
-positional arguments:
-  gad         group address
-  value       value to send
-
-optional arguments:
-  -h, --help  show this help message and exit
-
-
-usage: multicast read [-h] [-t TIMEOUT] [-n] gad
-
-positional arguments:
-  gad                   group address
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -t TIMEOUT, --timeout TIMEOUT
-                        read timeout
-  -n, --no-wait         wait for response
-
-
-usage: multicast response [-h] gad value
-
-positional arguments:
-  gad         group address
-  value       value to send
-
-optional arguments:
-  -h, --help  show this help message and exit
+multicast.py --help
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza

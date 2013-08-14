@@ -133,7 +133,7 @@ class PriorityQueue(object):
     def remove(self):
         """ Removes and returns the next element from this queue
 
-        @return  The next element from this queue (None if queue is empty)
+        @return: the next element from this queue (None if queue is empty)
         """
         for i in range(len(self._queue) - 1):
             if self._count[i] == 0:

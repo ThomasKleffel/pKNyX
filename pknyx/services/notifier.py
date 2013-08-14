@@ -41,15 +41,9 @@ Documentation
 
 One of the nice feature of B{pKNyX} is to be able to register some L{FunctionalBlock<pknyx.core.functionalBlock>}
 sub-classes methods to have them executed at specific times. For that, B{pKNyX} uses the nice third-party module
-U{APNotifier<http://pythonhosted.org/APNotifier>}.
+U{APScheduler<http://pythonhosted.org/APScheduler>}.
 
-The idea is to use the decorators syntax to register these methods:
-
-class MyBlock(FunctionalBlock):
-
-    @scheduler.every(minutes=5)
-    def update(self):
-        # do anything needed to update
+The idea is to use the decorators syntax to register these methods.
 
 Unfortunally, a decorator can only wraps a function. But what we want is to register an instance method! How can it be
 done, as we didn't instanciated the class yet?
@@ -57,12 +51,12 @@ done, as we didn't instanciated the class yet?
 Luckily, such classes are not directly instanciated by the user, but through the L{ETS<pknyx.core.ets>} register()
 method. So, here is how this registration is done.
 
-Instead of directly using the APNotifier, the Notifier class below provides the decorators we need (every(), in this
-example), and maintains a list of names of the decorated functions, in _pendingFuncs.
+Instead of directly using the APScheduler, the Notifier class below provides the decorators we need, and maintains a
+list of names of the decorated functions, in _pendingFuncs.
 
-Then, when a new instance of the FunctionalBlock sub-class is created, in ets.register(), we call the
+Then, when a new instance of the FunctionalBlock sub-class is created, in ETS.register(), we call the
 Notifier.doRegisterJobs() method which tried to retreive the bounded method matching one of the decorated functions.
-If found, the method is registered in L{APNotifier<apscheduler.scheduler>}.
+If found, the method is registered in APScheduler.
 
 Notifier also adds a listener to be notified when a decorated method call fails to be run, so we can log it.
 
@@ -79,8 +73,8 @@ Usage
 --------------------
 Juste une idée comme ça: tu pourrais aussi utiliser une métaclasse. Cela permet de personnaliser la création d'une classe. La création de la classe a lieu après que son corps ait été interprété; cela veut dire que les décorateurs sont exécutés avant.
 
-    Donc pour les décorateurs, pas grand chose ne change: ils stockent les fonctions décorées dans une liste (funcs).
-    La métaclasse va récupérer les fonctions; comme la classe est maintenant connue (en cours de création, en fait), tu peux les associer à celle-ci (par exemple faire de funcs un attribut de la classe).
+Donc pour les décorateurs, pas grand chose ne change: ils stockent les fonctions décorées dans une liste (funcs).
+La métaclasse va récupérer les fonctions; comme la classe est maintenant connue (en cours de création, en fait), tu peux les associer à celle-ci (par exemple faire de funcs un attribut de la classe).
 
 [edit]... ou bien avec un décorateur de classe (Python 2.6+), ça devrait fonctionner aussi
 ---------------------

@@ -149,7 +149,7 @@ class A_GroupDataService(T_GroupDataListener):
         @type gad : L{GroupAddress}
 
         @param listener: object to link to the GAD
-        @type listener: L{GroupListener<pknyx.core.groupListener>}
+        @type listener: L{GroupListener<pknyx.core.groupListener>} or L{GroupMonitorListener<pknyx.core.groupMonitorListener>}
 
         @return: group handling the group address
         @rtype: L{Group}

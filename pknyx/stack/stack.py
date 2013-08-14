@@ -81,7 +81,7 @@ class Stack(object):
     @ivar _lds: Transport layer Data Service object
     @type _lds: L{L_DataService}
 
-    @ivar_tc: transciever
+    @ivar _tc: transciever
     @type _tc: L{Transceiver<pknyx.stack.transceiver.transceiver>}
     """
     PRIORITY_DISTRIBUTION = (-1, 3, 2)

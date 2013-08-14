@@ -69,9 +69,6 @@ class APDU(object):
         @param apci: L{APCI}
         @type apci: int
 
-        @param data: data
-        @type data: str or bytearray
-
         @param size: size of the data
         @type size: int
         """
@@ -97,9 +94,6 @@ class APDU(object):
     @classmethod
     def getGroupValue(cls, aPDU):
         """ Extract data from given APDU
-
-        @param data: data
-        @type data: str or bytearray
         """
         if len(aPDU) > 2:
             data = aPDU[2:]

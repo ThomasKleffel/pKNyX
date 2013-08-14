@@ -87,7 +87,7 @@ from pknyx.stack.cemi.cemi import CEMIValueError
 class CEMILDataFrame(object):
     """ cEMI L_Data Raw Frame container
 
-    @param _raw: raw frame
+    @ivar _raw: raw frame
     @type _raw: bytearray
     """
     BASIC_LENGTH = 9

@@ -43,13 +43,7 @@ One of the nice feature of B{pKNyX} is to be able to register some L{FunctionalB
 sub-classes methods to have them executed at specific times. For that, B{pKNyX} uses the nice third-party module
 U{APScheduler<http://pythonhosted.org/APScheduler>}.
 
-The idea is to use the decorators syntax to register these methods:
-
-class MyBlock(FunctionalBlock):
-
-    @scheduler.every(minutes=5)
-    def update(self):
-        # do anything needed to update
+The idea is to use the decorators syntax to register these methods
 
 Unfortunally, a decorator can only wraps a function. But what we want is to register an instance method! How can it be
 done, as we didn't instanciated the class yet?
@@ -57,12 +51,12 @@ done, as we didn't instanciated the class yet?
 Luckily, such classes are not directly instanciated by the user, but through the L{ETS<pknyx.core.ets>} register()
 method. So, here is how this registration is done.
 
-Instead of directly using the APScheduler, the Scheduler class below provides the decorators we need (every(), in this
-example), and maintains a list of names of the decorated functions, in _pendingFuncs.
+Instead of directly using the APScheduler, the Scheduler class below provides the decorators we need, and maintains a
+list of names of the decorated functions, in _pendingFuncs.
 
 Then, when a new instance of the FunctionalBlock sub-class is created, in ets.register(), we call the
 Scheduler.doRegisterJobs() method which tried to retreive the bounded method matching one of the decorated functions.
-If found, the method is registered in L{APScheduler<apscheduler.scheduler>}.
+If found, the method is registered in APScheduler.
 
 Scheduler also adds a listener to be notified when a decorated method call fails to be run, so we can log it.
 
@@ -98,7 +92,7 @@ class Scheduler_(object):
     @type _pendingFuncs: list
 
     @ivar _apscheduler: real scheduler
-    @type _apscheduler: L{APScheduler}
+    @type _apscheduler: APScheduler
     """
     TYPE_EVERY = 1
     TYPE_AT = 2
@@ -119,7 +113,7 @@ class Scheduler_(object):
     def _listener(self, event):
         """ APScheduler listener.
 
-        This listener is called by L{APScheduler<apscheduler.scheduler>} when executing jobs.
+        This listener is called by APScheduler when executing jobs.
 
         It can be setup so only errors are triggered.
         """

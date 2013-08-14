@@ -66,32 +66,6 @@ from pknyx.stack.knxnetip.knxNetIPHeader import KNXnetIPHeader, KNXnetIPHeaderVa
 from pknyx.stack.cemi.cemiLData import CEMILData, CEMIValueError
 
 
-#class GadSet(set):
-    #""" A locking set of GroupAddress
-    #"""
-    #def __init__(self):
-        #"""
-        #"""
-        #super(GadSet, self).__init__()
-
-        #self._condition = threading.Condition()
-
-    #def acquire(self):
-        #self._condition.acquire()
-
-    #def release(self):
-        #self._condition.release()
-
-    #def wait(self):
-        #self._condition.wait()
-
-    #def notify(self):
-        #self._condition.notify()
-
-    #def notifyAll(self):
-        #self._condition.notifyAll()
-
-
 class UDPTransceiverValueError(PKNyXValueError):
     """
     """
@@ -111,9 +85,6 @@ class UDPTransceiver(Transceiver):
 
     @ivar _transmitter: multicast transmitter loop
     @type _transmitter: L{Thread<threading>}
-
-    @ivar _gadSet: set of GAD
-    @type _gadSet: L{GadSet}
     """
     def __init__(self, tLSAP, mcastAddr="224.0.23.12", mcastPort=3671):
         """
@@ -134,13 +105,9 @@ class UDPTransceiver(Transceiver):
         self._mcastAddr = mcastAddr
         self._mcastPort = mcastPort
 
-        import socket
-        #self._receiverSock = MulticastSocket(mcastPort)
-        self._receiverSock = MulticastSocketReceive(socket.gethostbyname(socket.gethostname()), mcastAddr, mcastPort)
-        #self._transmitterSock = MulticastSocket(mcastPort, mcastAddr)
-        self._transmitterSock = MulticastSocketTransmit(socket.gethostbyname(socket.gethostname()), mcastPort, mcastAddr,  mcastPort)
-
-        #self._gadSet = GadSet()
+        localAddr = socket.gethostbyname(socket.gethostname())
+        self._receiverSock = MulticastSocketReceive(localAddr, mcastAddr, mcastPort)
+        self._transmitterSock = MulticastSocketTransmit(localAddr, mcastPort, mcastAddr, mcastPort)
 
         # Create transmitter and receiver threads
         self._receiver = threading.Thread(target=self._receiverLoop, name="UDP receiver")
@@ -148,36 +115,30 @@ class UDPTransceiver(Transceiver):
         self._transmitter = threading.Thread(target=self._transmitterLoop, name="UDP transmitter")
         #self._transmitter.setDaemon(True)
 
-    #@property
-    #def tLSAP(self):
-        #return self._tLSAP
+    @property
+    def tLSAP(self):
+        return self._tLSAP
 
-    #@property
-    #def mcastAddr(self):
-        #return self._mcastAddr
+    @property
+    def mcastAddr(self):
+        return self._mcastAddr
 
-    #@property
-    #def mcastPort(self):
-        #return self._mcastPort
+    @property
+    def mcastPort(self):
+        return self._mcastPort
 
-    #@property
-    #def localAddr(self):
-        #return self._localAddr
+    @property
+    def localAddr(self):
+        return self._receiverSock.localAddr
 
-    #@property
-    #def localPort(self):
-        #return self._transmitterSock.localPort
+    @property
+    def localPort(self):
+        return self._receiverSock.localPort
 
     def _receiverLoop(self):
         """
         """
         Logger().trace("UDPTransceiver._receiverLoop()")
-
-        #try:
-            #self._receiverSock.joinGroup(self._mcastAddr)
-        #except:
-            #self._receiverSock.close()
-            #raise
 
         while self._running:
             try:
@@ -202,11 +163,7 @@ class UDPTransceiver(Transceiver):
 
                 destAddr = cEMI.destinationAddress
                 if isinstance(cEMI.destinationAddress, GroupAddress):
-                    #self._gadSet.acquire()  # Try without
-                    #try:
-                        self._tLSAP.putInFrame(cEMI)
-                    #finally:
-                        #self._gadSet.release()
+                    self._tLSAP.putInFrame(cEMI)
 
                 elif isinstance(destAddr, IndividualAddress):
                     Logger().warning("UDPTransceiver._receiverLoop(): unsupported destination address type (%s)" % repr(destAddr))

@@ -33,12 +33,12 @@ Group data service management
 Implements
 ==========
 
- - B{GroupListener}
+ - B{GroupMonitorListener}
 
 Documentation
 =============
 
-This is the base class for L{Group<pknyx.core.group>} listeners.
+This is the base class for L{GroupMonitor<pknyx.core.group>} listeners.
 
 Usage
 =====
@@ -48,30 +48,30 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id$"
+__revision__ = "$Id: groupListener.py 306 2013-08-13 12:58:57Z fma $"
 
 from pknyx.services.logger import Logger
 
 
-class GroupListener(object):
-    """ GroupListener class
+class GroupMonitorListener(object):
+    """ GroupMonitorListener class
     """
     def __init__(self):
-        """ Init the GroupListener object
+        """ Init the GroupMonitorListener object
         """
-        super(GroupListener, self).__init__()
+        super(GroupMonitorListener, self).__init__()
 
-    def onWrite(self, src, data):
+    def onWrite(self, src, gad, priority, data):
         """
         """
         raise NotImplementedError
 
-    def onRead(self, src):
+    def onRead(self, src, gad, priority):
         """
         """
         raise NotImplementedError
 
-    def onResponse(self, src, data):
+    def onResponse(self, src, gad, prioritydata):
         """
         """
         raise NotImplementedError
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     Logger().setLevel('error')
 
 
-    class GroupListenerTestCase(unittest.TestCase):
+    class GroupMonitorListenerTestCase(unittest.TestCase):
 
         def setUp(self):
             pass

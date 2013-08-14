@@ -121,7 +121,8 @@ import threading
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
-from pknyx.core.groupListener import GroupListener, GroupMonitorListener
+from pknyx.core.groupListener import GroupListener
+from pknyx.core.groupMonitorListener import GroupMonitorListener
 from pknyx.stack.stack import Stack
 from pknyx.stack.priority import Priority
 

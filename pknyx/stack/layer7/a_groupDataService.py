@@ -50,7 +50,8 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-from pknyx.core.group import Group, GroupMonitor
+from pknyx.core.group import Group
+from pknyx.core.groupMonitor import GroupMonitor
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.layer7.apci import APCI
 from pknyx.stack.layer7.apdu import APDU

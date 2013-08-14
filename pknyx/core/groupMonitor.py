@@ -33,16 +33,14 @@ Group data service management
 Implements
 ==========
 
- - B{GroupValueError}
- - B{Group}
+ - B{GroupMonitorValueError}
+ - B{GroupMonitor}
 
 Documentation
 =============
 
-A B{Group} is identified by its L{GroupAddress}. It contains all listeners bound to this GAD.
-Whenever group data events occur, they are sent to Group, which then dispatch them to all listeners (Group Object).
-
-Note that group data events may come from a real KNX bus or not.
+A B{GroupMonitor} is a special L{Group<pknyx.core.group>} which handles all group addresses. Unlink normal
+L{Group<pknyx.core.group>}, it can't send anything on the bus.
 
 Usage
 =====
@@ -52,24 +50,22 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id$"
+__revision__ = "$Id: group.py 306 2013-08-13 12:58:57Z fma $"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.stack.layer7.a_groupDataListener import A_GroupDataListener
-from pknyx.stack.groupAddress import GroupAddress
 
 
-class GroupValueError(PKNyXValueError):
+class GroupMonitorValueError(PKNyXValueError):
     """
     """
 
 
-class Group(A_GroupDataListener):
-    """ Group class
+class GroupMonitor(A_GroupDataListener):
+    """ GroupMonitor class
 
-    @ivar _gad: Group address (GAD) identifying this group
-    @type _gad: L{GroupAddress}
+    This special group monitors all group adress. It can't send anything on the bus, only receive.
 
     @ivar _agds: Application Group Data Service object
     @type _agds: L{A_GroupDataService}
@@ -77,60 +73,51 @@ class Group(A_GroupDataListener):
     @ivar _listeners: Listeners bound to the group handled GAD
     @type _listeners: set of L{GroupObject<pknyx.core.groupObject>}
     """
-    def __init__(self, gad, agds):
-        """ Init the Group object
-
-        @param gad: Group address identifying this group
-        @type gad: L{GroupAddress}
+    def __init__(self, agds):
+        """ Init the GroupMonitor object
 
         @param agds: Application Group Data Service object
         @type agds: L{GroupDataService}
 
         raise GroupValueError:
         """
-        super(Group, self).__init__()
-
-        if not isinstance(gad, GroupAddress):
-            gad = GroupAddress(gad)
-        self._gad = gad
+        super(GroupMonitor, self).__init__()
 
         self._agds = agds
 
         self._listeners = set()
 
     def __repr__(self):
-        return "<Group(gad='%s')>" % self._gad
+        return "<GroupMonitor()>" % self._gad
 
     def __str__(self):
-        return "<Group('%s')>" % self._gad
+        return "<GroupMonitor()>" % self._gad
 
-    def groupValueWriteInd(self, src, priority, data):
-        Logger().debug("Group.groupValueWriteInd(): src=%s, priority=%s, data=%s" % (src, priority, repr(data)))
+    def groupValueWriteInd(self, src, gad, priority, data):
+        Logger().debug("GroupMonitor.groupValueWriteInd(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (src, gad, priority, repr(data)))
         for listener in self._listeners:
             try:
-                listener.onWrite(src, data)
+                listener.onWrite(src, gad, priority, data)
             except PKNyXValueError:
-                Logger().exception("Group.groupValueWriteInd()")
+                Logger().exception("GroupMonitor.groupValueWriteInd()")
 
-    def groupValueReadInd(self, src, priority):
-        Logger().debug("Group.groupValueReadInd(): src=%s, priority=%s" % (src, priority))
+    def groupValueReadInd(self, src, gad, priority):
+        Logger().debug("GroupMonitor.groupValueReadInd(): src=%s, gad=%s, priority=%s" % (src, gad, priority))
         for listener in self._listeners:
             try:
-                listener.onRead(src)
+                listener.onRead(src, gad, priority)
             except PKNyXValueError:
-                Logger().exception("Group.groupValueReadInd()")
+                Logger().exception("GroupMonitor.groupValueReadInd()")
 
-    def groupValueReadCon(self, src, priority, data):
-        Logger().debug("Group.groupValueReadCon(): src=%s, priority=%s, data=%s" % (src, priority, repr(data)))
+    def groupValueReadCon(self, src, gad, priority, data):
+        Logger().debug("GroupMonitor.groupValueReadCon(): src=%s, gad=%s, priority=%s, data=%s" % \
+                       (src, gad, priority, repr(data)))
         for listener in self._listeners:
             try:
-                listener.onResponse(src, data)
+                listener.onResponse(src, gad, priority, data)
             except PKNyXValueError:
-                Logger().exception("Group.groupValueReadCon()")
-
-    @property
-    def gad(self):
-        return self._gad
+                Logger().exception("GroupMonitor.groupValueReadCon()")
 
     @property
     def listeners(self):
@@ -142,26 +129,11 @@ class Group(A_GroupDataListener):
         The given listener is added to the listeners bound with the GAD handled by this group.
 
         @param listener: Listener
-        @type listener: L{GroupListener<pknyx.core.groupListener>}
+        @type listener: L{GroupMonitorListener<pknyx.core.groupMonitorListener>}
 
         @todo: check listener type
         """
         self._listeners.add(listener)
-
-    def write(self, priority, data, size):
-        """ Write data request on the GAD associated with this group
-        """
-        self._agds.groupValueWriteReq(self._gad, priority, data, size)
-
-    def read(self, priority):
-        """ Read data request on the GAD associated with this group
-        """
-        self._agds.groupValueReadReq(self._gad, priority)
-
-    def response(self, priority, data, size):
-        """ Response data request on the GAD associated with this group
-        """
-        self._agds.groupValueReadRes(self._gad, priority, data, size)
 
 
 if __name__ == '__main__':
@@ -171,7 +143,7 @@ if __name__ == '__main__':
     Logger().setLevel('error')
 
 
-    class GroupTestCase(unittest.TestCase):
+    class GroupMonitorTestCase(unittest.TestCase):
 
         def setUp(self):
             self.group = Group("1/1/1", None)

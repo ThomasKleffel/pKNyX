@@ -222,18 +222,18 @@ class SimpleGroupMonitorObject(GroupMonitorListener):
         Logger().debug("SimpleGroupMonitorObject.onWrite(): src=%s, gad=%s, priority=%s, data=%s" % \
                        (src, gad, priority, repr(data)))
 
-        self._enqueue("groupValueWriteReq", src, gad, priority, data)
+        self._enqueue("GROUPVALUE_WRITE", src, gad, priority, data)
 
     def onRead(self, src, gad, priority):
         Logger().debug("SimpleGroupMonitorObject.onRead(): src=%s, gad=%s, priority=%s" % (src, gad, priority))
 
-        self._enqueue("groupValueReadReq", src, gad, priority, None)
+        self._enqueue("GROUPVALUE_READ", src, gad, priority, None)
 
     def onResponse(self, src, gad, priority, data):
         Logger().debug("SimpleGroupMonitorObject.onResponse(): src=%s, gad=%s, priority=%s, data=%s" % \
                        (src, gad, priority, repr(data)))
 
-        self._enqueue("groupValueReadRes", src, gad, priority, data)
+        self._enqueue("GROUPVALUE_RESP", src, gad, priority, data)
 
     @property
     def queue(self):
@@ -321,10 +321,10 @@ def response(gad, value, dptId="1.xxx", src="0.0.0",  priority="low", hopCount=6
         stack.stop()
 
 
-def monitor(dptId="1.xxx", src="0.0.0", priority="low", hopCount=6):
+def monitor(src="0.0.0"):
     """
     """
-    Logger().debug("monitor(): dptId=%s, src=%s, priority=%s, hopCount=%s" % (dptId, src, priority, hopCount))
+    Logger().trace("monitor(): src=%s" % src)
 
     stack = Stack(individualAddress=src)
 
@@ -340,7 +340,7 @@ def monitor(dptId="1.xxx", src="0.0.0", priority="low", hopCount=6):
                     groupMonitorObject.queue.wait(0.1)
                     try:
                         type_, src, gad, priority, data = groupMonitorObject.queue.pop()
-                        print "Got %s from %s to %s with priority %s (data=%s)" % (type_, src, gad, priority, repr(data))
+                        print "Got %-16s from %-8s to %-8s with priority %-6s data=%s" % (type_, src, gad, priority, repr(data))
                     except IndexError:
                         pass
                 finally:
@@ -363,22 +363,25 @@ def main():
                         choices=["trace", "debug", "info", "warning", "error", "exception", "critical"],
                         action="store", dest="debugLevel", default="warning", metavar="LEVEL",
                         help="logger level")
-    parser.add_argument("-d", "--dptId", action="store", type=str, dest="dptId", default="1.xxx",
-                        help="DPTID to use to encode/decode data")
     parser.add_argument("-s", "--srcAddr", action="store", type=str, dest="src", default="0.0.0",
                         help="source address to use")
-    parser.add_argument("--priority", choices=["system", "normal", "urgent", "low"],
-                        type=str, dest="priority", default="low",
-                        help="bus priority")
-    parser.add_argument("--hopCount", type=int, dest="hopCount", default=6, metavar="HOPCOUNT",
-                        help="hopcount")
 
-    # Create sub-parsers for write and read commands
+    readWriteRespParser = argparse.ArgumentParser(add_help=False)
+    readWriteRespParser.add_argument("-d", "--dptId", action="store", type=str, dest="dptId", default="1.xxx",
+                                     help="DPTID to use to encode/decode data")
+    readWriteRespParser.add_argument("--priority", choices=["system", "normal", "urgent", "low"],
+                                     type=str, dest="priority", default="low",
+                                     help="bus priority")
+    readWriteRespParser.add_argument("--hopCount", type=int, dest="hopCount", default=6, metavar="HOPCOUNT",
+                                     help="hopcount")
+
+    # Create sub-parsers
     subparsers = parser.add_subparsers(title="subcommands", description="valid subcommands",
                                        help="sub-command help")
 
     # Write parser
     parserWrite = subparsers.add_parser("write",
+                                        parents=[readWriteRespParser],
                                         help="send a write request")
     parserWrite.set_defaults(func=write)
     parserWrite.add_argument("gad", type=str,
@@ -388,6 +391,7 @@ def main():
 
     # Read parser
     parserRead = subparsers.add_parser("read",
+                                       parents=[readWriteRespParser],
                                        help="send a read request")
     parserRead.set_defaults(func=read)
     parserRead.add_argument("-t", "--timeout", type=int, default=1, metavar="TIMEOUT",
@@ -399,6 +403,7 @@ def main():
 
     # Response parser
     parserResponse = subparsers.add_parser("response",
+                                           parents=[readWriteRespParser],
                                            help="send a response")
     parserResponse.set_defaults(func=response)
     parserResponse.add_argument("gad", type=str,

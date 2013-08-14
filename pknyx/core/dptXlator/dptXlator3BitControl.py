@@ -113,7 +113,7 @@ class DPTXlator3BitControl(DPTXlatorBase):
     def frameToData(self, frame):
 
         # Note the usage of self.data, and not data!
-        data = struct.unpack(">B", frame)[0]
+        data = struct.unpack(">B", str(frame))[0]
         return data
 
     #def nbIntervalsToStepCode(self, nbIntervals):

@@ -113,7 +113,7 @@ class DPTXlatorString(DPTXlatorBase):
         return bytearray(struct.pack(">14B", *self.dataToValue(data)))
 
     def frameToData(self, frame):
-        value = struct.unpack(">14B", frame)
+        value = struct.unpack(">14B", str(frame))
         data = self.valueToData(value)
         return data
 

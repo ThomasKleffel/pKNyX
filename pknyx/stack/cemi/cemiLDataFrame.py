@@ -188,7 +188,7 @@ class CEMILDataFrame(object):
     @property
     def sa(self):
         b = self._raw[4+self.addIL:6+self.addIL]
-        return struct.unpack(">H", b)[0]
+        return struct.unpack(">H", str(b))[0]
 
     @sa.setter
     def sa(self, sa):
@@ -217,7 +217,7 @@ class CEMILDataFrame(object):
     @property
     def da(self):
         b = self._raw[6+self.addIL:8+self.addIL]
-        return struct.unpack(">H", b)[0]
+        return struct.unpack(">H", str(b))[0]
 
     @da.setter
     def da(self, da):

@@ -109,7 +109,7 @@ class DPTXlatorTime(DPTXlatorBase):
         return bytearray(struct.pack(">3B", *data))
 
     def frameToData(self, frame):
-        data = struct.unpack(">3B", frame)
+        data = struct.unpack(">3B", str(frame))
         data = data[0] << 16 | data[1] << 8 | data[2]
         return data
 

@@ -60,36 +60,36 @@ from pknyx.stack.result import Result
 from pknyx.stack.knxAddress import KnxAddress
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.stack.individualAddress import IndividualAddress
-from pknyx.stack.multicastSocket import MulticastSocket
+from pknyx.stack.multicastSocket import MulticastSocketReceive, MulticastSocketTransmit
 from pknyx.stack.transceiver.transceiver import Transceiver
 from pknyx.stack.knxnetip.knxNetIPHeader import KNXnetIPHeader, KNXnetIPHeaderValueError
 from pknyx.stack.cemi.cemiLData import CEMILData, CEMIValueError
 
 
-class GadSet(set):
-    """ A locking set of GroupAddress
-    """
-    def __init__(self):
-        """
-        """
-        super(GadSet, self).__init__()
+#class GadSet(set):
+    #""" A locking set of GroupAddress
+    #"""
+    #def __init__(self):
+        #"""
+        #"""
+        #super(GadSet, self).__init__()
 
-        self._condition = threading.Condition()
+        #self._condition = threading.Condition()
 
-    def acquire(self):
-        self._condition.acquire()
+    #def acquire(self):
+        #self._condition.acquire()
 
-    def release(self):
-        self._condition.release()
+    #def release(self):
+        #self._condition.release()
 
-    def wait(self):
-        self._condition.wait()
+    #def wait(self):
+        #self._condition.wait()
 
-    def notify(self):
-        self._condition.notify()
+    #def notify(self):
+        #self._condition.notify()
 
-    def notifyAll(self):
-        self._condition.notifyAll()
+    #def notifyAll(self):
+        #self._condition.notifyAll()
 
 
 class UDPTransceiverValueError(PKNyXValueError):
@@ -106,11 +106,11 @@ class UDPTransceiver(Transceiver):
     @ivar _mcastPort:
     @type _mcastPort:
 
-    @ivar _transmitter: multicast transmitter
-    @type _transmitter: L{Transmitter}
+    @ivar _receiver: multicast receiver loop
+    @type _receiver: L{Thread<threading>}
 
-    @ivar _receiver: multicast receiver
-    @type _receiver: L{Receiver}
+    @ivar _transmitter: multicast transmitter loop
+    @type _transmitter: L{Thread<threading>}
 
     @ivar _gadSet: set of GAD
     @type _gadSet: L{GadSet}
@@ -134,87 +134,50 @@ class UDPTransceiver(Transceiver):
         self._mcastAddr = mcastAddr
         self._mcastPort = mcastPort
 
-        self._transmitterSock = MulticastSocket(mcastPort, mcastAddr)
-        self._receiverSock = MulticastSocket(mcastPort)
-        self._gadSet = GadSet()
+        import socket
+        #self._receiverSock = MulticastSocket(mcastPort)
+        self._receiverSock = MulticastSocketReceive(socket.gethostbyname(socket.gethostname()), mcastAddr, mcastPort)
+        #self._transmitterSock = MulticastSocket(mcastPort, mcastAddr)
+        self._transmitterSock = MulticastSocketTransmit(socket.gethostbyname(socket.gethostname()), mcastPort, mcastAddr,  mcastPort)
+
+        #self._gadSet = GadSet()
 
         # Create transmitter and receiver threads
-        self._transmitter = threading.Thread(target=self._transmitterLoop, name="UDP transmitter")
-        #self._transmitter.setDaemon(True)
         self._receiver = threading.Thread(target=self._receiverLoop, name="UDP receiver")
         #self._receiver.setDaemon(True)
+        self._transmitter = threading.Thread(target=self._transmitterLoop, name="UDP transmitter")
+        #self._transmitter.setDaemon(True)
 
-    @property
-    def tLSAP(self):
-        return self._tLSAP
+    #@property
+    #def tLSAP(self):
+        #return self._tLSAP
 
-    @property
-    def mcastAddr(self):
-        return self._mcastAddr
+    #@property
+    #def mcastAddr(self):
+        #return self._mcastAddr
 
-    @property
-    def mcastPort(self):
-        return self._mcastPort
+    #@property
+    #def mcastPort(self):
+        #return self._mcastPort
 
-    @property
-    def localAddr(self):
-        return self._localAddr
+    #@property
+    #def localAddr(self):
+        #return self._localAddr
 
-    @property
-    def localPort(self):
-        return self._transmitterSock.localPort
-
-    def _transmitterLoop(self):
-        """
-        """
-        Logger().trace("UDPTransceiver._transmitterLoop()")
-
-        while self._running:
-            try:
-                transmission = self.tLSAP.getOutFrame()
-                Logger().debug("UDPTransceiver._transmitterLoop(): transmission=%s" % repr(transmission))
-
-                if transmission is not None:
-
-                    cEMIFrame = transmission.payload
-                    cEMIRawFrame = cEMIFrame.raw
-                    header = KNXnetIPHeader(service=KNXnetIPHeader.ROUTING_IND, serviceLength=len(cEMIRawFrame))
-                    frame = header.frame + cEMIRawFrame
-                    Logger().debug("UDPTransceiver._transmitterLoop(): frame= %s" % repr(frame))
-
-                    try:
-                        self._transmitterSock.transmit(frame)
-                        transmission.result = Result.OK
-                    except IOError:
-                        Logger().exception("UDPTransceiver._transmitterLoop()")
-                        transmission.result = Result.ERROR
-
-                    if transmission.waitConfirm:
-                        transmission.acquire()
-                        try:
-                            transmission.waitConfirm = False
-                            transmission.notify()
-                        finally:
-                            transmission.release()
-                        Logger().debug("UDPTransceiver._transmitterLoop(): transmission=%s" % repr(transmission))
-
-            except:
-                Logger().exception("UDPTransceiver._transmitterLoop()")  #, debug=True)
-
-        self._transmitterSock.close()
-
-        Logger().trace("UDPTransceiver._transmitterLoop(): ended")
+    #@property
+    #def localPort(self):
+        #return self._transmitterSock.localPort
 
     def _receiverLoop(self):
         """
         """
         Logger().trace("UDPTransceiver._receiverLoop()")
 
-        try:
-            self._receiverSock.joinGroup(self._mcastAddr)
-        except:
-            self._receiverSock.close()
-            raise
+        #try:
+            #self._receiverSock.joinGroup(self._mcastAddr)
+        #except:
+            #self._receiverSock.close()
+            #raise
 
         while self._running:
             try:
@@ -239,11 +202,11 @@ class UDPTransceiver(Transceiver):
 
                 destAddr = cEMI.destinationAddress
                 if isinstance(cEMI.destinationAddress, GroupAddress):
-                    self._gadSet.acquire()
-                    try:
+                    #self._gadSet.acquire()  # Try without
+                    #try:
                         self._tLSAP.putInFrame(cEMI)
-                    finally:
-                        self._gadSet.release()
+                    #finally:
+                        #self._gadSet.release()
 
                 elif isinstance(destAddr, IndividualAddress):
                     Logger().warning("UDPTransceiver._receiverLoop(): unsupported destination address type (%s)" % repr(destAddr))
@@ -261,14 +224,55 @@ class UDPTransceiver(Transceiver):
 
         Logger().trace("UDPTransceiver._receiverLoop(): ended")
 
+    def _transmitterLoop(self):
+        """
+        """
+        Logger().trace("UDPTransceiver._transmitterLoop()")
+
+        while self._running:
+            try:
+                transmission = self._tLSAP.getOutFrame()
+                Logger().debug("UDPTransceiver._transmitterLoop(): transmission=%s" % repr(transmission))
+
+                if transmission is not None:
+
+                    cEMIFrame = transmission.payload
+                    cEMIRawFrame = cEMIFrame.raw
+                    header = KNXnetIPHeader(service=KNXnetIPHeader.ROUTING_IND, serviceLength=len(cEMIRawFrame))
+                    frame = header.frame + cEMIRawFrame
+                    Logger().debug("UDPTransceiver._transmitterLoop(): frame= %s" % repr(frame))
+
+                    try:
+                        self._transmitterSock.transmit(frame)
+                        transmission.result = Result.OK
+                    except:
+                        Logger().exception("UDPTransceiver._transmitterLoop()")
+                        transmission.result = Result.ERROR
+
+                    if transmission.waitConfirm:
+                        transmission.acquire()
+                        try:
+                            transmission.waitConfirm = False
+                            transmission.notify()
+                        finally:
+                            transmission.release()
+                        Logger().debug("UDPTransceiver._transmitterLoop(): transmission=%s" % repr(transmission))
+
+            except:
+                Logger().exception("UDPTransceiver._transmitterLoop()")  #, debug=True)
+
+        self._transmitterSock.close()
+
+        Logger().trace("UDPTransceiver._transmitterLoop(): ended")
+
     def start(self):
         """
         """
         Logger().trace("UDPTransceiver.start()")
 
         self._running = True
-        self._transmitter.start()
         self._receiver.start()
+        self._transmitter.start()
 
     def stop(self):
         """
@@ -282,8 +286,8 @@ class UDPTransceiver(Transceiver):
         """
         Logger().trace("UDPTransceiver.join()")
 
-        self._receiver.join()
         self._transmitter.join()
+        self._receiver.join()
 
 
 if __name__ == '__main__':

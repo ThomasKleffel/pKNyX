@@ -147,29 +147,96 @@ class MulticastSocket(socket.socket):  # @todo: split in 2 classes
         return self.recvfrom(1024)
 
 
-class MulticastSocketSender(MulticastSocket):
+class MulticastSocketBase(socket.socket):
+    """ Multicast socket
     """
-    """
-    def __init__(self, srcAddr, srcPort, destAddr, destPort, ttl=32, loop=1):
+    def __init__(self, localAddr, localPort, ttl=32, loop=1):
         """
         """
-        super(MulticastSocketSender, self).__init__(self, srcAddr, srcPort, ttl, loop)
+        super(MulticastSocketBase, self).__init__(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 
+        self._localAddr = localAddr
+        self._localPort = localPort
+        self._ttl= ttl
+        self._loop = loop
 
+        self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        except:
+            Logger().exception("MulticastSocketBase.__init__(): system doesn't support SO_REUSEPORT", debug=True)
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, ttl)
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_LOOP, loop)
 
-class MulticastSocketReceiver(MulticastSocket):
-    """
-    """
-    def __init__(self, joinAddr, joinPort, ttl=32, loop=1):
-        """
-        """
-        super(MulticastSocketReceiver, self).__init__(self, joinAddr, joinPort, ttl, loop)
-
+        self._bind()
 
     def _bind(self):
         """
         """
-        self._sock.bind(("", self._port))
+        raise NotImplementedError
+
+    @property
+    def localAddress(self):
+        return self._localAddr
+
+    @property
+    def localPort(self):
+        return self._localPort
+
+
+class MulticastSocketReceive(MulticastSocketBase):
+    """
+    """
+    def __init__(self, localAddr, mcastAddr, mcastPort, timeout=1, ttl=32, loop=1):
+        """
+        """
+        super(MulticastSocketReceive, self).__init__(localAddr, mcastPort, ttl, loop)
+
+        multicast = ord(socket.inet_aton(mcastAddr)[0]) in range(224, 240)
+        if not multicast:
+            raise McastSockValueError("address is not a multicast destination (%s)" % repr(mcastAddr))
+
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(self._localAddr))
+        #value = struct.pack("=4sl", socket.inet_aton(mcastAddr), socket.INADDR_ANY)
+        self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(mcastAddr) + socket.inet_aton(self._localAddr))
+
+        self.settimeout(timeout)
+
+    def _bind(self):
+        """
+        """
+        self._sock.bind(("", self._localPort))
+
+    def receive(self):
+        """
+        """
+        return self.recvfrom(1024)
+
+
+class MulticastSocketTransmit(MulticastSocketBase):
+    """
+    """
+    def __init__(self, localAddr, localPort, mcastAddr, mcastPort, ttl=32, loop=1):
+        """
+        """
+        super(MulticastSocketTransmit, self).__init__(localAddr, localPort, ttl, loop)
+
+        self._mcastAddr = mcastAddr
+        self._mcastPort = mcastPort
+
+    def _bind(self):
+        """
+        """
+        self._sock.bind((self._localAddr, self._localPort))
+
+    def transmit(self, data):
+        """
+        """
+        length = 0
+        while length < len(data):
+            l = self.sendto(data, (self._mcastAddr, self._mcastPort))
+            length += l
+
 
 if __name__ == '__main__':
     import unittest

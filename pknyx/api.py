@@ -28,14 +28,10 @@ or see:
 Module purpose
 ==============
 
-API import
+API imports.
 
 Implements
 ==========
-
- - B{Device}
- - B{Stack}
- - B{ETS}
 
 Documentation
 =============
@@ -55,4 +51,5 @@ from pknyx.services.scheduler import Scheduler
 from pknyx.services.notifier import Notifier
 from pknyx.core.functionalBlock import FunctionalBlock
 from pknyx.core.ets import ETS
+from pknyx.core.device import Device
 from pknyx.stack.stack import Stack

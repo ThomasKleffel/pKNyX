@@ -118,7 +118,7 @@ class SunPositionFB(FunctionalBlock):
         rightAscension, declination = self._sun.equatorialCoordinates(tm_year, tm_mon, tm_day, tm_hour, tm_min, tm_sec)
         elevation, azimuth = self._sun.azimuthalCoordinates(tm_year, tm_mon, tm_day, tm_hour, tm_min, tm_sec)
 
-        #Logger().info("right_ascension=%f, declination=%f, elevation=%f, azimuth=%f" % \
+        #logger.info("right_ascension=%f, declination=%f, elevation=%f, azimuth=%f" % \
                       #(rightAscension, declination, elevation, azimuth))
 
         # Write outputs

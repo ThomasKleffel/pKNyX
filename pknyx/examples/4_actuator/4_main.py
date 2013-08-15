@@ -98,7 +98,7 @@ class ActuatorFB(FunctionalBlock):
         logger.debug("ActuatorFB.cmdChanged(): event=%s" % repr(event))
 
         value = event['newValue']
-        Logger().info("%s: switch output %s" % (self.name, value))
+        logger.info("%s: switch output %s" % (self.name, value))
         self.dp["state"].value = value
 
 

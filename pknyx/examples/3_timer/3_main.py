@@ -120,11 +120,11 @@ class TimerFB(FunctionalBlock):
 
         if event['newValue'] == "On":
             delay = self.dp["delay"].value
-            Logger().info("%s: start timer for %ds" % (self._name, delay))
+            logger.info("%s: start timer for %ds" % (self._name, delay))
             self._timer = delay
         elif event['newValue'] == "Off":
             if self._timer:
-                Logger().info("%s: switched off detected; cancel timer" % self._name)
+                logger.info("%s: switched off detected; cancel timer" % self._name)
                 self._timer = 0
 
     @notify.datapoint(dp="delay", condition="change")
@@ -136,7 +136,7 @@ class TimerFB(FunctionalBlock):
         # If the timer is running, we reset it to the new delay
         if self._timer:
             delay = self.dp["delay"].value
-            Logger().info("%s: delay changed; restart timer" % self._name)
+            logger.info("%s: delay changed; restart timer" % self._name)
             self._timer = delay
 
 

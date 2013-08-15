@@ -110,7 +110,7 @@ class Logger_(object):
             fileHandler.setFormatter(fileFormatter)
             self._logger.addHandler(fileHandler)
 
-        self.info("Logger_.__init__(): start new logger %s" % repr(name))
+        self.info("Logger.__init__(): start new logger %s" % repr(name))
 
     def addStreamHandler(self, stream, formatter=DefaultFormatter):
         """ Add a new stream handler.

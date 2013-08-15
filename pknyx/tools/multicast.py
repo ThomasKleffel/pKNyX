@@ -29,13 +29,14 @@ or see:
 Module purpose
 ==============
 
-Multicast tool to send read/write request on group address.
+Multicast tool to send requests on group address. Can also act as a bus monitor.
 
 Implements
 ==========
 
  - B{SimpleQueue}
  - B{SimpleGroupObject}
+ - B{SimpleGroupMonitorObject}
 
 Documentation
 =============

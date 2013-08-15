@@ -355,9 +355,9 @@ def main():
                                 help="value to send")
 
     # Monitor parser
-    monitorResponse = subparsers.add_parser("monitor",
-                                            help="monitor bus")
-    monitorResponse.set_defaults(func=monitor)
+    parserMonitor = subparsers.add_parser("monitor",
+                                          help="monitor bus")
+    parserMonitor.set_defaults(func=monitor)
 
     # Parse
     args = parser.parse_args()

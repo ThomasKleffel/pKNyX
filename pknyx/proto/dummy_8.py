@@ -66,18 +66,17 @@ Usage
 
 __revision__ = "$Id: 3_main.py 274 2013-08-06 12:57:56Z fma $"
 
-#from pknyx.api import Logger
-from pknyx.api import FunctionalBlock  #, Stack, ETS
-#from pknyx.api import Scheduler, Notifier
-from pknyx.api.device import Device
+
+import pknyx.api
+from pknyx.api import Logger
+from pknyx.api import FunctionalBlock
+from pknyx.api import Device
+from pknyx.api import Scheduler, Notifier
 
 NAME = "timer"
 IND_ADDR = "1.2.3"
 
 logger = Logger("%s-%s" % (NAME, IND_ADDR))
-
-stack = Stack(individualAddress=IND_ADDR)
-ets = ETS(stack)
 
 schedule = Scheduler()
 notify = Notifier()
@@ -96,77 +95,80 @@ class TimerFB(FunctionalBlock):
     GO_02 = dict(dp="state", flags="CWUI", priority="low")
     GO_03 = dict(dp="delay", flags="CWU", priority="low")
 
-    DESC = "Timer"
+    DESC = "Timer FB"
 
     def _init(self):
-        """ Additionnal init of the timer
+        """ Additionnal init of the timer functional block
         """
         self._timer = 0
+
+    def _shutdown(self):
+        """ Additional shutdown of the timer functional block
+        """
 
     @schedule.every(seconds=1)
     def updateTimer(self):
         """ Method called every second.
         """
-        #logger.trace("TimerFB.updateTimer()")
+        #Logger().trace("TimerFB.updateTimer()")
 
         if self._timer:
             self._timer -= 1
             if not self._timer:
-                logger.info("%s: timer expired; switch off" % self._name)
+                Logger().info("%s: timer expired; switch off" % self._name)
                 self.dp["cmd"].value = "Off"
 
     @notify.datapoint(dp="state", condition="change")
     def stateChanged(self, event):
         """ Method called when the 'state' datapoint changes
         """
-        logger.debug("TimerFB.stateChanged(): event=%s" % repr(event))
+        Logger().debug("TimerFB.stateChanged(): event=%s" % repr(event))
 
         if event['newValue'] == "On":
             delay = self.dp["delay"].value
-            logger.info("%s: start timer for %ds" % (self._name, delay))
+            Logger().info("%s: start timer for %ds" % (self._name, delay))
             self._timer = delay
         elif event['newValue'] == "Off":
             if self._timer:
-                logger.info("%s: switched off detected; cancel timer" % self._name)
+                Logger().info("%s: switched off detected; cancel timer" % self._name)
                 self._timer = 0
 
     @notify.datapoint(dp="delay", condition="change")
     def delayChanged(self, event):
         """ Method called when the 'delay' datapoint changes
         """
-        logger.debug("TimerFB.delayChanged(): event=%s" % repr(event))
+        Logger().debug("TimerFB.delayChanged(): event=%s" % repr(event))
 
         # If the timer is running, we reset it to the new delay
         if self._timer:
             delay = self.dp["delay"].value
-            logger.info("%s: delay changed; restart timer" % self._name)
+            Logger().info("%s: delay changed; restart timer" % self._name)
             self._timer = delay
 
 
-def main():
+class Timer(Device):
+    """
+    """
+    FB_01 = dict(cls=TimerFB, name="timer", desc="Timer block")
 
-    # Register functional blocks
-    ets.register(TimerFB, name="timer", desc="")
+    LNK_01 = dict(fb="timer", dp="cmd", gad="6/0/1")
+    LNK_02 = dict(fb="timer", dp="state", gad="6/1/1")
+    LNK_03 = dict(fb="timer", dp="delay", gad="6/2/1")
 
-    # Weave datapoints
-    ets.weave(fb="timer", dp="cmd", gad="6/0/1")
-    ets.weave(fb="timer", dp="state", gad="6/1/1")
-    ets.weave(fb="timer", dp="delay", gad="6/2/1")
+    DESC = "Timer device"
 
-    print
-    ets.printGroat("gad")
-    print
-    ets.printGroat("go")
-    print
-    schedule.printJobs()
-    print
+    #def _init(self):
+        #""" Additional init of the timer device
+        #"""
 
-    # Run the stack main loop (blocking call)
-    stack.mainLoop()
+    #def _shutdown(self):
+        #""" Additional shutdown of the timer device
+        #"""
 
 
 if __name__ == "__main__":
     try:
-        main()
+        timer = Timer(name="Timer", indAddr="1.2.3")
+        #timer.main()
     except:
-        logger.exception("3_main")
+        Logger().exception("3_main")

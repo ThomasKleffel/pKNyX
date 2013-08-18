@@ -59,7 +59,7 @@ if sys.platform == 'win32':
 
 
 class DefaultFormatter(logging.Formatter):
-    """ Formateur par défaut pour les subscribers.
+    """ Default formatter
     """
 
 
@@ -143,8 +143,7 @@ class WindowsColorFormatter(DefaultFormatter):
     def _setTextAttribute(self, color):
         """ Sets the character attributes (colors).
 
-        Color is a combination of foreground and background color,
-        foreground and background intensity.
+        Color is a combination of foreground and background color, foreground and background intensity.
         """
         setConsoleTextAttribute(stderrHandle, color)
 
@@ -176,17 +175,21 @@ class WindowsColorFormatter(DefaultFormatter):
 
 
 class SpaceFormatter(DefaultFormatter):
-    """ Formatage avec sauts de lignes.
+    """ Format with newlines
     """
-    _lastLogTime = time.time()
+    def __init__(self, *args, **kwargs):
+        super(SpaceFormatter, self).__init__(*args, **kwargs)
+
+        self._lastLogTime = time.time()
 
     def _addSpace(self, msg):
-        """ Ajoute des lignes vides.
+        """ Add newlines
 
-        Le nombre de lignes vide est fonction du temps écoulé depuis
-        le dernier enregistrement émis.
+        Compute number of newlines according to delay from last log.
+
+        @todo: does not work if multiple handlers use this formatter
         """
-        if time.time() - SpaceFormatter._lastLogTime > 3600:
+        if time.time() - self._lastLogTime > 3600:
             space = "\n\n\n"
         elif time.time() - self._lastLogTime > 60:
             space = "\n\n"
@@ -194,7 +197,7 @@ class SpaceFormatter(DefaultFormatter):
             space = "\n"
         else:
             space = ""
-        SpaceFormatter._lastLogTime = time.time()
+        self._lastLogTime = time.time()
 
         return space + msg
 
@@ -204,7 +207,7 @@ class SpaceFormatter(DefaultFormatter):
 
 
 class LinuxSpaceColorFormatter(SpaceFormatter, LinuxColorFormatter):
-    """ Formatter linux avec couleurs et sauts de lignes.
+    """ Linux formatter with colors and newlines
     """
     def format(self, record):
         msg = SpaceFormatter.format(self, record)
@@ -212,7 +215,7 @@ class LinuxSpaceColorFormatter(SpaceFormatter, LinuxColorFormatter):
 
 
 class WindowsSpaceColorFormatter(SpaceFormatter, WindowsColorFormatter):
-    """ Formatter windows avec couleurs et sauts de lignes.
+    """ Windows formatter with colors and newlines
     """
     def format(self, record):
         msg = SpaceFormatter.format(self, record)

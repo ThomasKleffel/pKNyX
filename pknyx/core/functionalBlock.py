@@ -87,7 +87,7 @@ class FunctionalBlock(object):
     def __new__(cls, *args, **kwargs):
         """ Init the class with all available types for this DPT
         """
-        self = object.__new__(cls, *args, **kwargs)
+        self = super(FunctionalBlock, cls).__new__(cls)
 
         # class objects named B{DP_xxx} are treated as Datapoint and added to the B{_datapoints} dict
         self._datapoints = {}

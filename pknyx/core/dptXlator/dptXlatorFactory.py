@@ -189,7 +189,7 @@ class DPTXlatorFactoryObject(object):
         All class objects name B{TYPE_xxx}, will be treated as MainTypeMapper objects and added to the
         B{_handledDPT} dict.
         """
-        self = object.__new__(cls, *args, **kwargs)
+        self = super(DPTXlatorFactoryObject, cls).__new__(cls)
         cls._handledMainDPTMappers = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("TYPE_"):

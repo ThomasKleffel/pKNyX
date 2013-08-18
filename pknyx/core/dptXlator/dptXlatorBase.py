@@ -91,7 +91,7 @@ class DPTXlatorBase(object):
         All class objects defined in sub-classes name B{DPT_xxx}, will be treated as DPT objects and added to the
         B{_handledDPT} dict.
         """
-        self = object.__new__(cls, *args, **kwargs)
+        self = super(DPTXlatorBase, cls).__new__(cls)
         cls._handledDPT = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("DPT_"):

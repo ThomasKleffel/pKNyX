@@ -34,7 +34,7 @@ Implements
 ==========
 
 - B{LoggerValueError}
-- B{Logger}
+- B{LoggerObject}
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -71,7 +71,7 @@ class LoggerValueError(PKNyXValueError):
     """
 
 
-class Logger_(object):
+class LoggerObject(object):
     """ Logger object.
     """
     def __init__(self, name=None):
@@ -81,7 +81,7 @@ class Logger_(object):
                      Use None to disable file handler output
         @type name: str
         """
-        super(Logger_, self).__init__()
+        super(LoggerObject, self).__init__()
 
         logging.TRACE = LEVELS['trace']
         logging.EXCEPTION = LEVELS['exception']
@@ -110,7 +110,7 @@ class Logger_(object):
             fileHandler.setFormatter(fileFormatter)
             self._logger.addHandler(fileHandler)
 
-        self.info("Logger.__init__(): start new logger %s" % repr(name))
+        self.debug("Logger.__init__(): start new logger %s" % repr(name))
 
     def addStreamHandler(self, stream, formatter=DefaultFormatter):
         """ Add a new stream handler.
@@ -234,6 +234,6 @@ class Logger_(object):
 def Logger(name=None):
     global logger
     if logger is None:
-        logger = Logger_(name)
+        logger = LoggerObject(name)
 
     return logger

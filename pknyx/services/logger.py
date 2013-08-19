@@ -92,7 +92,6 @@ class LoggerObject(object):
         # Logger
         self._logger = logging.getLogger(config.APP_NAME)
         self._logger.propagate = False
-        self._logger.setLevel(logging.TRACE)
 
         # Handlers
         stdoutStreamHandler = logging.StreamHandler()
@@ -109,6 +108,9 @@ class LoggerObject(object):
             fileFormatter = SpaceFormatter(config.LOGGER_FILE_FORMAT)
             fileHandler.setFormatter(fileFormatter)
             self._logger.addHandler(fileHandler)
+
+        # Set initial level
+        self.setLevel(config.LOGGER_LEVEL)
 
         self.debug("Logger.__init__(): start new logger %s" % repr(name))
 

@@ -74,7 +74,7 @@ class LoggerValueError(PKNyXValueError):
 class LoggerObject(object):
     """ Logger object.
     """
-    def __init__(self, name=None):
+    def __init__(self, name=None, level=config.LOGGER_LEVEL):
         """ Init object.
 
         @param name: name of the file used by the file handler
@@ -92,6 +92,7 @@ class LoggerObject(object):
         # Logger
         self._logger = logging.getLogger(config.APP_NAME)
         self._logger.propagate = False
+        self.setLevel(level)
 
         # Handlers
         stdoutStreamHandler = logging.StreamHandler()
@@ -108,11 +109,10 @@ class LoggerObject(object):
             fileFormatter = SpaceFormatter(config.LOGGER_FILE_FORMAT)
             fileHandler.setFormatter(fileFormatter)
             self._logger.addHandler(fileHandler)
-
-        # Set initial level
-        self.setLevel(config.LOGGER_LEVEL)
-
-        self.debug("Logger.__init__(): start new logger %s" % repr(name))
+            self.debug("Logger.__init__(): start new logger '%s' with level '%s'" % (name, level))
+            self.debug("Logger.__init__(): logger file='%s'" % loggerFilename)
+        else:
+            self.debug("Logger.__init__(): start new logger with level '%s'" % level)
 
     def addStreamHandler(self, stream, formatter=DefaultFormatter):
         """ Add a new stream handler.
@@ -233,9 +233,9 @@ class LoggerObject(object):
 
 
 # Logger factory
-def Logger(name=None):
+def Logger(*args, **kwargs):
     global logger
     if logger is None:
-        logger = LoggerObject(name)
+        logger = LoggerObject(*args, **kwargs)
 
     return logger

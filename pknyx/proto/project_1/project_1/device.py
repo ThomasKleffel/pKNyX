@@ -30,13 +30,13 @@ Module purpose
 
 Project 1 - timer
 
-This implementation use the project template.
+This implementation use the device template.
 
 Implements
 ==========
 
  - B{TimerFB}
- - B{main}
+ - B{Timer}
 
 Documentation
 =============
@@ -73,11 +73,6 @@ from pknyx.api import FunctionalBlock
 from pknyx.api import Device
 from pknyx.api import Scheduler, Notifier
 
-NAME = "timer"
-IND_ADDR = "1.2.3"
-
-logger = Logger("%s-%s" % (NAME, IND_ADDR))
-
 schedule = Scheduler()
 notify = Notifier()
 
@@ -92,7 +87,7 @@ class TimerFB(FunctionalBlock):
     DP_03 = dict(name="delay", access="input", dptId="7.005", default=10)
 
     GO_01 = dict(dp="cmd", flags="CWT", priority="low")
-    GO_02 = dict(dp="state", flags="CWUI", priority="low")
+    GO_02 = dict(dp="state", flags="CRWUI", priority="low")
     GO_03 = dict(dp="delay", flags="CWU", priority="low")
 
     DESC = "Timer FB"
@@ -161,14 +156,5 @@ class Timer(Device):
         #""" Additional init of the timer device
         #"""
 
-    #def _shutdown(self):
-        #""" Additional shutdown of the timer device
-        #"""
 
-
-if __name__ == "__main__":
-    try:
-        timer = Timer(name="Timer", indAddr="1.2.3")
-        #timer.main()
-    except:
-        Logger().exception("3_main")
+device = Timer()

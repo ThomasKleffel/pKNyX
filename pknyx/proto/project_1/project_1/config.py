@@ -8,25 +8,27 @@ License
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
   - (C) 2013 Frédéric Mantegazza
 
-Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
-the European Commission - subsequent versions of the EUPL (the "Licence");
-You may not use this work except in compliance with the Licence.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
-You may obtain a copy of the Licence at:
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
- - U{http://ec.europa.eu/idabc/eupl}
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+or see:
 
-Unless required by applicable law or agreed to in writing, software distributed
-under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, either express or implied.
-
-See the Licence for the specific language governing permissions and limitations
-under the Licence.
+ - U{http://www.gnu.org/licenses/gpl.html}
 
 Module purpose
 ==============
 
-Configuration
+Device configuration
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -35,32 +37,16 @@ Configuration
 
 __revision__ = "$Id$"
 
-import sys
-import os.path
+from pknyx.common import config
 
-
-# Name and version
-APP_NAME = "pKNyX"
-VERSION_MAJOR = 0
-VERSION_MINOR = 9  # Odd means dev. release
-VERSION_UPDATE = 2
-VERSION_PACKAGE = 1
-VERSION = "%d.%d.%d" % (VERSION_MAJOR, VERSION_MINOR, VERSION_UPDATE)
-#VERSION = "rxxx"
+# Device params
+DEVICE_NAME = "device_1"
+DEVICE_IND_ADDR = "1.1.1"
+DEVICE_VERSION = "0.1"
 
 # Paths
-HOME_DIR = os.path.expanduser("~")
-if sys.platform == 'win32':
-    DATA_STORAGE_DIR = HOME_DIR  # Find a way to retreive the "My Documents" dir in all languages
-    TMP_DIR = os.path.expandvars("$TEMP")
-else:
-    DATA_STORAGE_DIR = HOME_DIR
-    TMP_DIR = "/tmp"
 
-# Logger
-LOGGER_STREAM_FORMAT = "%(threadName)s::%(message)s"
-LOGGER_FILE_FORMAT = "%(asctime)s::%(threadName)s::%(levelname)s::%(message)s"
-LOGGER_FILE_WHEN = "midnight"
-LOGGER_FILE_COUNT = 0
+# Override global logger config
+config.LOGGER_LEVEL = "info"
 
 # @todo: add automatic load of a gad map if present in config dir

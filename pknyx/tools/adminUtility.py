@@ -39,8 +39,13 @@ Implements
 Documentation
 =============
 
+The main goal of this utility is to start/stop a device, and to create a fresh device from a template.
+Ths usage of this utility is not mandatory, but handles some annoying logger init suffs.
+
 Usage
 =====
+
+Should be used from an executable script. See scripts/pknyx-admin.py.
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -72,7 +77,6 @@ class AdminUtility(object):
         """
         super(AdminUtility, self).__init__()
 
-
     def _checkRunDevice(self, args):
         """
         """
@@ -103,11 +107,12 @@ class AdminUtility(object):
             config.LOGGER_LEVEL = args.loggerLevel
         Logger("%s-%s" % (deviceConfigModule.DEVICE_NAME, deviceConfigModule.DEVICE_IND_ADDR), config.LOGGER_LEVEL)
 
-        Logger().debug("main(): args=%s" % repr(args))
+        Logger().debug("AdminUtility._checkRunDevice(): args=%s" % repr(args))
 
-        Logger().info("main(): config path is '%s'" % PKNYX_DEVICE_PATH)
-        Logger().info("main(): device name is '%s'" % deviceConfigModule.DEVICE_NAME)
-        Logger().info("main(): device individual address is '%s'" % deviceConfigModule.DEVICE_IND_ADDR)
+        Logger().info("AdminUtility._checkRunDevice(): logger level is '%s'" % config.LOGGER_LEVEL)
+        Logger().info("AdminUtility._checkRunDevice(): config path is '%s'" % PKNYX_DEVICE_PATH)
+        Logger().info("AdminUtility._checkRunDevice(): device name is '%s'" % deviceConfigModule.DEVICE_NAME)
+        Logger().info("AdminUtility._checkRunDevice(): device individual address is '%s'" % deviceConfigModule.DEVICE_IND_ADDR)
 
         deviceIndAddr = deviceConfigModule.DEVICE_IND_ADDR
         if not isinstance(deviceIndAddr, IndividualAddress):
@@ -115,7 +120,7 @@ class AdminUtility(object):
         if deviceIndAddr.isNull:
             Logger().warning("device individual address is null")
 
-        # Import device
+        # Import user device
         try:
             fp, pathname, description = imp.find_module("device", [PKNYX_DEVICE_PATH])
         except ImportError:
@@ -130,25 +135,27 @@ class AdminUtility(object):
 
         return device
 
-
     def _createDevice(self, args):
         """
         """
-        print args.name  # must be a simple name, not a complex path
-
+        print "create '%s' from template..." % args.name  # must be a simple name, not a path
+        print "done"
 
     def _checkDevice(self, args):
         """
         """
         device = self._checkRunDevice(args)
 
+        print "no error found"
 
     def _runDevice(self, args):
         """
         """
         device = self._checkRunDevice(args)
-        device.run()
 
+        Logger().info("AdminUtility._runDevice(): detach is '%s'" % args.detach)
+
+        device.run()
 
     def execute(self):
 
@@ -174,7 +181,7 @@ class AdminUtility(object):
 
         # Create device parser
         createDeviceParser = subparsers.add_parser("createdevice",
-                                                   help="Create device from template")
+                                                   help="create device from template")
         createDeviceParser.add_argument("name", type=str,
                                         help="name of the device")
         createDeviceParser.set_defaults(func=self._createDevice)
@@ -182,13 +189,15 @@ class AdminUtility(object):
         # Check device parser
         checkDeviceParser = subparsers.add_parser("checkdevice",
                                                   parents=[checkRunDeviceParser],
-                                                  help="Check device")
+                                                  help="check device (does not launch the stack main loop)")
         checkDeviceParser.set_defaults(func=self._checkDevice)
 
         # Run device parser
         runDeviceParser = subparsers.add_parser("rundevice",
                                                 parents=[checkRunDeviceParser],
-                                                help="Run device")
+                                                help="run device")
+        runDeviceParser.add_argument("-d", "--detach", action="store_true", default=False,
+                                     help="detach the process (run in background)")
         runDeviceParser.set_defaults(func=self._runDevice)
 
         # Parse args
@@ -216,5 +225,3 @@ if __name__ == '__main__':
 
 
     unittest.main()
-
-

@@ -82,7 +82,7 @@ class AdminUtility(object):
         if PKNYX_DEVICE_PATH == "$PKNYX_DEVICE_PATH":
             raise AdminUtilityValueError("$PKNYX_DEVICE_PATH not set")
 
-        # Load device specific 'config' module which must exists in PKNYX_DEVICE_PATH dir
+        # Load specific device 'config' module which must exists in PKNYX_DEVICE_PATH dir
         try:
             fp, pathname, description = imp.find_module("config", [PKNYX_DEVICE_PATH])
         except ImportError:

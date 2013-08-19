@@ -67,14 +67,10 @@ Usage
 __revision__ = "$Id$"
 
 
-import pknyx.api
-from pknyx.api import Logger
 from pknyx.api import FunctionalBlock
 from pknyx.api import Device
-from pknyx.api import Scheduler, Notifier
-
-schedule = Scheduler()
-notify = Notifier()
+from pknyx.api import logger
+from pknyx.api import schedule, notify
 
 
 class TimerFB(FunctionalBlock):
@@ -105,39 +101,39 @@ class TimerFB(FunctionalBlock):
     def updateTimer(self):
         """ Method called every second.
         """
-        #Logger().trace("TimerFB.updateTimer()")
+        #logger.trace("TimerFB.updateTimer()")
 
         if self._timer:
             self._timer -= 1
             if not self._timer:
-                Logger().info("%s: timer expired; switch off" % self._name)
+                logger.info("%s: timer expired; switch off" % self._name)
                 self.dp["cmd"].value = "Off"
 
     @notify.datapoint(dp="state", condition="change")
     def stateChanged(self, event):
         """ Method called when the 'state' datapoint changes
         """
-        Logger().debug("TimerFB.stateChanged(): event=%s" % repr(event))
+        logger.debug("TimerFB.stateChanged(): event=%s" % repr(event))
 
         if event['newValue'] == "On":
             delay = self.dp["delay"].value
-            Logger().info("%s: start timer for %ds" % (self._name, delay))
+            logger.info("%s: start timer for %ds" % (self._name, delay))
             self._timer = delay
         elif event['newValue'] == "Off":
             if self._timer:
-                Logger().info("%s: switched off detected; cancel timer" % self._name)
+                logger.info("%s: switched off detected; cancel timer" % self._name)
                 self._timer = 0
 
     @notify.datapoint(dp="delay", condition="change")
     def delayChanged(self, event):
         """ Method called when the 'delay' datapoint changes
         """
-        Logger().debug("TimerFB.delayChanged(): event=%s" % repr(event))
+        logger.debug("TimerFB.delayChanged(): event=%s" % repr(event))
 
         # If the timer is running, we reset it to the new delay
         if self._timer:
             delay = self.dp["delay"].value
-            Logger().info("%s: delay changed; restart timer" % self._name)
+            logger.info("%s: delay changed; restart timer" % self._name)
             self._timer = delay
 
 
@@ -157,4 +153,5 @@ class Timer(Device):
         #"""
 
 
-device = Timer()
+# Register our device class
+DEVICE = Timer

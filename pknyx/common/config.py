@@ -28,7 +28,7 @@ or see:
 Module purpose
 ==============
 
-Configuration
+Global configuration
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -64,5 +64,6 @@ LOGGER_STREAM_FORMAT = "%(threadName)s::%(message)s"
 LOGGER_FILE_FORMAT = "%(asctime)s::%(threadName)s::%(levelname)s::%(message)s"
 LOGGER_FILE_WHEN = "midnight"
 LOGGER_FILE_COUNT = 0
+LOGGER_LEVEL = "trace"
 
 # @todo: add automatic load of a gad map if present in config dir

@@ -109,10 +109,7 @@ class LoggerObject(object):
             fileFormatter = SpaceFormatter(config.LOGGER_FILE_FORMAT)
             fileHandler.setFormatter(fileFormatter)
             self._logger.addHandler(fileHandler)
-            self.debug("Logger.__init__(): start new logger '%s' with level '%s'" % (name, level))
-            self.debug("Logger.__init__(): logger file='%s'" % loggerFilename)
-        else:
-            self.debug("Logger.__init__(): start new logger with level '%s'" % level)
+            self.debug("LoggerObject.__init__(): loggerFilename='%s'" % loggerFilename)
 
     def addStreamHandler(self, stream, formatter=DefaultFormatter):
         """ Add a new stream handler.

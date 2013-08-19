@@ -51,7 +51,7 @@ from distutils.core import setup
 from pknyx.common import config
 
 
-setup(name="pKNyX",
+setup(name=config.APP_NAME,
       version="%s-%d" % (config.VERSION, config.VERSION_PACKAGE),
       author="Frédéric Mantegazza",
       author_email="fma@pknyx.org",
@@ -62,7 +62,8 @@ setup(name="pKNyX",
       #maintainer="Frederic Mantegazza",
       #maintainer_email="fma@pknyx.org",
       #download_url="http://www.pknyx.org/wiki/Download",
-      scripts=["pknyx/tools/multicast.py"],
+      scripts=["pknyx/tools/pknyx-group.py",
+               "pknyx/tools/pknyx-admin.py"],
       #package_dir={'pknyx': "pknyx"},
       packages=["pknyx",
                 "pknyx.common",

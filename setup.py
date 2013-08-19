@@ -53,18 +53,21 @@ from pknyx.common import config
 
 setup(name=config.APP_NAME,
       version="%s-%d" % (config.VERSION, config.VERSION_PACKAGE),
+
+      description="Python KNX framework",
+      long_description=open('README').read(),
+      url="http://www.pknyx.org",
+
       author="Frédéric Mantegazza",
       author_email="fma@pknyx.org",
-      url="http://www.pknyx.org",
-      description="Python KNX framework",
+
       license="GPL",
-      long_description=open('README').read(),
-      #maintainer="Frederic Mantegazza",
-      #maintainer_email="fma@pknyx.org",
-      #download_url="http://www.pknyx.org/wiki/Download",
-      scripts=["pknyx/scripts/pknyx-group.py",
-               "pknyx/scripts/pknyx-admin.py"],
-      #package_dir={'pknyx': "pknyx"},
+
+      maintainer="Frederic Mantegazza",
+      maintainer_email="fma@pknyx.org",
+
+      download_url="http://www.pknyx.org/wiki/Download",
+
       packages=["pknyx",
                 "pknyx.common",
                 "pknyx.core",
@@ -84,9 +87,11 @@ setup(name=config.APP_NAME,
                 "pknyx.stack.layer4",
                 "pknyx.stack.layer7",
                 "pknyx.stack.transceiver",
-                "pknyx.tools",
-                #"pknyx.tools.template"
+                #"pknyx.template"
                 ],
+      scripts=["pknyx/scripts/pknyx-group.py",
+               "pknyx/scripts/pknyx-admin.py"],
+
     install_requires=["APScheduler",
                       "argparse"],
 )

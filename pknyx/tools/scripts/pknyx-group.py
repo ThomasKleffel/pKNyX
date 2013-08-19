@@ -34,6 +34,7 @@ Multicast tool to send requests on group address. Can also act as a bus monitor.
 Implements
 ==========
 
+ - B{GroupUtility} (todo)
  - B{SimpleQueue}
  - B{SimpleGroupObject}
  - B{SimpleGroupMonitorObject}
@@ -46,7 +47,7 @@ This script is used to send/receive multicast requests. It mimics what the stack
 Usage
 =====
 
-multicast.py --help
+pknyx-group.py --help
 
 @author: Frédéric Mantegazza
 @copyright: (C) 2013 Frédéric Mantegazza
@@ -264,10 +265,10 @@ def response(gad, value, dptId="1.xxx", src="0.0.0",  priority="low", hopCount=6
         stack.stop()
 
 
-def monitor(src="0.0.0"):
+def monitor(src="0.0.1"):
     """
     """
-    Logger().trace("monitor(): src=%s" % src)
+    Logger().debug("monitor(): src=%s" % src)
 
     stack = Stack(individualAddress=src)
 
@@ -304,9 +305,9 @@ def main():
                                      epilog="Under developement...")
     parser.add_argument("-l", "--logger",
                         choices=["trace", "debug", "info", "warning", "error", "exception", "critical"],
-                        action="store", dest="debugLevel", default="warning", metavar="LEVEL",
+                        action="store", dest="loggerLevel", default="warning", metavar="LEVEL",
                         help="logger level")
-    parser.add_argument("-s", "--srcAddr", action="store", type=str, dest="src", default="0.0.0",
+    parser.add_argument("-s", "--srcAddr", action="store", type=str, dest="src",
                         help="source address to use")
 
     readWriteRespParser = argparse.ArgumentParser(add_help=False)
@@ -362,11 +363,13 @@ def main():
     # Parse
     args = parser.parse_args()
 
-    Logger().setLevel(args.debugLevel)
+    Logger(level=args.loggerLevel)
 
     options = dict(vars(args))
-    options.pop("debugLevel")
     options.pop("func")
+    options.pop("loggerLevel")
+    if args.src is None:
+        options.pop("src")
     args.func(**options)
 
 

@@ -85,7 +85,7 @@ class SchedulerValueError(PKNyXValueError):
     """
 
 
-class Scheduler_(object):
+class SchedulerObject(object):
     """ Scheduler class
 
     @ivar _pendingFuncs:
@@ -103,7 +103,7 @@ class Scheduler_(object):
 
         raise SchedulerValueError:
         """
-        super(Scheduler_, self).__init__()
+        super(SchedulerObject, self).__init__()
 
         self._pendingFuncs = []
 
@@ -137,7 +137,7 @@ class Scheduler_(object):
         @type kwargs: dict
         """
         Logger().debug("Scheduler.addEveryJob(): func=%s" % repr(func))
-        self._pendingFuncs.append((Scheduler_.TYPE_EVERY, func, kwargs))
+        self._pendingFuncs.append((SchedulerObject.TYPE_EVERY, func, kwargs))
 
     def every(self, **kwargs):
         """ Decorator for addEveryJob()
@@ -160,7 +160,7 @@ class Scheduler_(object):
         @type func: callable
         """
         Logger().debug("Scheduler.addAtJob(): func=%s" % repr(func))
-        self._pendingFuncs.append((Scheduler_.TYPE_AT, func, kwargs))
+        self._pendingFuncs.append((SchedulerObject.TYPE_AT, func, kwargs))
 
     def at(self, **kwargs):
         """ Decorator for addAtJob()
@@ -183,7 +183,7 @@ class Scheduler_(object):
         @type func: callable
         """
         Logger().debug("Scheduler.addCronJob(): func=%s" % repr(func))
-        self._pendingFuncs.append((Scheduler_.TYPE_CRON, func, kwargs))
+        self._pendingFuncs.append((SchedulerObject.TYPE_CRON, func, kwargs))
 
     def cron(self, **kwargs):
         """ Decorator for addCronJob()
@@ -213,11 +213,11 @@ class Scheduler_(object):
             if method is not None:
                 Logger().debug("Scheduler.doRegisterJobs(): add method %s() of %s" % (method.im_func.func_name, method.im_self))
                 if method.im_func is func:
-                    if type_ == Scheduler_.TYPE_EVERY:
+                    if type_ == SchedulerObject.TYPE_EVERY:
                         self._apscheduler.add_interval_job(method, **kwargs)
-                    elif type_ == Scheduler_.TYPE_AT:
+                    elif type_ == SchedulerObject.TYPE_AT:
                         self._apscheduler.add_date_job(method, **kwargs)
-                    elif type_ == Scheduler_.TYPE_CRON:
+                    elif type_ == SchedulerObject.TYPE_CRON:
                         self._apscheduler.add_cron_job(method, **kwargs)
 
     def printJobs(self):
@@ -234,7 +234,9 @@ class Scheduler_(object):
         """
         Logger().trace("Scheduler.start()")
 
-        self._apscheduler.start()
+        if not self._apscheduler.running:
+            self._apscheduler.start()
+
         Logger().info("Scheduler started")
 
     def stop(self):
@@ -244,14 +246,16 @@ class Scheduler_(object):
         """
         Logger().trace("Scheduler.stop()")
 
-        self._apscheduler.shutdown()
+        if self._apscheduler.running:
+            self._apscheduler.shutdown()
+
         Logger().info("Scheduler stopped")
 
 
-def Scheduler(autoStart=True):
+def Scheduler(autoStart=False):
     """ Scheduler factory
 
-    This factory always return the same instance of the Scheduler_ object, acting as a Singleton.
+    This factory always return the same instance of the SchedulerObject object, acting as a Singleton.
 
     @param autoStart: if True, automatically starts the scheduler
     @type autoStart: bool
@@ -261,9 +265,9 @@ def Scheduler(autoStart=True):
     global scheduler
 
     if scheduler is None:
-        scheduler = Scheduler_()
+        scheduler = SchedulerObject()
 
-    if autoStart and not scheduler._apscheduler.running:
+    if autoStart:
         scheduler.start()
 
     return scheduler

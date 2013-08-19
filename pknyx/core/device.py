@@ -54,6 +54,7 @@ __revision__ = "$Id$"
 from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.services.scheduler import Scheduler
 from pknyx.core.ets import ETS
 from pknyx.stack.stack import Stack
 
@@ -93,7 +94,6 @@ class Device(object):
     def _register(self):
         """
         """
-        #raise NotImplementedError
         Logger().trace("Device._register()")
 
         for key, value in self.__class__.__dict__.iteritems():
@@ -111,7 +111,6 @@ class Device(object):
     def _weave(self):
         """
         """
-        #raise NotImplementedError
         Logger().trace("Device._weave()")
 
         for key, value in self.__class__.__dict__.iteritems():
@@ -124,4 +123,5 @@ class Device(object):
         """
         Logger().trace("Device.run()")
 
+        Scheduler().start()
         self._stack.mainLoop()

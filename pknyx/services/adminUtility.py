@@ -54,7 +54,10 @@ Should be used from an executable script. See scripts/pknyx-admin.py.
 
 __revision__ = "$Id$"
 
+import shutil
 import imp
+import stat
+import string
 import os.path
 import argparse
 
@@ -131,7 +134,8 @@ class AdminUtility(object):
             if fp:
                 fp.close()
 
-        device = deviceModule.device
+        # Instantiate device
+        device = deviceModule.DEVICE()
 
         return device
 
@@ -139,6 +143,34 @@ class AdminUtility(object):
         """
         """
         print "create '%s' from template..." % args.name  # must be a simple name, not a path
+
+        srcDir = os.path.join(os.path.dirname(__file__), "template")
+        destDir = os.path.join(args.name, args.name)
+
+        # Create dirs
+        os.mkdir(args.name)
+        os.mkdir(destDir)
+
+        # Copy regular files
+        for filename in ("__init__.py", "device.py"):
+            shutil.copy(os.path.join(srcDir, filename), os.path.join(destDir, filename))
+
+        # Load templates
+        fIn = file(os.path.join(srcDir, "admin.py"))
+        fOut = open(os.path.join(args.name, "admin.py"), 'w')
+        template = string.Template(fIn.read())
+        fOut.write(template.safe_substitute(dict(device=args.name)))
+        fIn.close()
+        fOut.close()
+        os.chmod(os.path.join(args.name, "admin.py"), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+
+        fIn = file(os.path.join(srcDir, "config.py"))
+        fOut = open(os.path.join(destDir, "config.py"), 'w')
+        template = string.Template(fIn.read())
+        fOut.write(template.safe_substitute(dict(device=args.name)))
+        fIn.close()
+        fOut.close()
+
         print "done"
 
     def _checkDevice(self, args):

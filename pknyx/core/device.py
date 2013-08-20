@@ -103,8 +103,7 @@ class Device(object):
 
                 # Remove 'cls' key from FB_xxx dict
                 # Use a copy to let original untouched
-                value_ = {}
-                value_.update(value)
+                value_ = dict(value)
                 value_.pop('cls')
                 self._ets.register(cls, **value_)
 

@@ -9,7 +9,7 @@ import sys
 def main():
     os.environ.setdefault("PKNYX_DEVICE_PATH", os.path.join(os.path.dirname(__file__), "$device"))
 
-    from pknyx.services.adminUtility import AdminUtility
+    from pknyx.tools.adminUtility import AdminUtility
 
     AdminUtility().execute()
 

@@ -46,10 +46,20 @@ Usage
 
 __revision__ = "$Id$"
 
+from pknyx.core.device import Device
+from pknyx.core.functionalBlock import FunctionalBlock
+
 from pknyx.services.logger import Logger
 from pknyx.services.scheduler import Scheduler
 from pknyx.services.notifier import Notifier
-from pknyx.core.functionalBlock import FunctionalBlock
-from pknyx.core.ets import ETS
-from pknyx.core.device import Device
-from pknyx.stack.stack import Stack
+
+
+# Instanciate some global objects
+logger = Logger()
+schedule = Scheduler()
+notify = Notifier()
+
+# Del unused imported classes
+del Logger
+del Scheduler
+del Notifier

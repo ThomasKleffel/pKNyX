@@ -49,7 +49,7 @@ pknyx-admin.py --help
 
 __revision__ = "$Id$"
 
-from pknyx.services.adminUtility import AdminUtility
+from pknyx.tools.adminUtility import AdminUtility
 
 
 def main():

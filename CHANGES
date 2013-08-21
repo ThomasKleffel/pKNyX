@@ -6,7 +6,7 @@ x bug fix
 
 0000-00-00 Version SVN
     + added Device class
-    + added pknyx-admin.py tool to manage devices
+    + added pknyx-admin.py tool to manage/create device from template
     - refactoring
     x changed __new__() parent call
     x SpaceFormatter newlines computation

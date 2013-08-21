@@ -64,6 +64,8 @@ import argparse
 from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.tools.templateGenerator import TemplateGenerator
+from pknyx.tools.templates.d import
 from pknyx.stack.individualAddress import IndividualAddress
 
 
@@ -144,16 +146,27 @@ class AdminUtility(object):
         """
         print "create '%s' from template..." % args.name  # must be a simple name, not a path
 
-        srcDir = os.path.join(os.path.dirname(__file__), "template")
         destDir = os.path.join(args.name, args.name)
 
         # Create dirs
-        os.mkdir(args.name)
-        os.mkdir(destDir)
+        TemplateGenerator.createDir(args.name)
+        TemplateGenerator.createDir(destDir)
 
-        # Copy regular files
-        for filename in ("__init__.py", "device.py"):
-            shutil.copy(os.path.join(srcDir, filename), os.path.join(destDir, filename))
+        # Create files from templates
+        template = string.Template(ADMIN)
+        fOut = self.createFile("admin.py", script=True)
+        fOut.write(template.safe_substitute(dict(device=args.name)))
+        fOut.close()
+
+        template = string.Template(CONFIG)
+        fOut = self.createFile(os.path.join(destDir, "config.py"))
+        fOut.write(template.safe_substitute(dict(device=args.name)))
+        fOut.close()
+
+        template = string.Template(DEVICE)
+        fOut = self.createFile(os.path.join(destDir, "device.py"))
+        fOut.write(template.safe_substitute(dict(device=args.name)))
+        fOut.close()
 
         # Load templates
         fIn = file(os.path.join(srcDir, "admin.py"))

@@ -49,6 +49,10 @@ Usage
 __revision__ = "$Id:$"
 
 
+INIT = \
+""""""
+
+
 ADMIN = \
 """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -59,7 +63,7 @@ import sys
 
 
 def main():
-    os.environ.setdefault("PKNYX_DEVICE_PATH", os.path.join(os.path.dirname(__file__), "$deviceName"))
+    os.environ.setdefault("PKNYX_DEVICE_PATH", os.path.join(os.path.dirname(__file__), "${deviceName}"))
 
     from pknyx.tools.adminUtility import AdminUtility
 
@@ -74,27 +78,20 @@ if __name__ == "__main__":
 DEVICE = \
 """# -*- coding: utf-8 -*-
 
-from pknyx.api import Device, FunctionalBlock
-from pknyx.api import logger, schedule, notify
+from pknyx.api import Device
+
+from fb.fb import FB
 
 
-class FB(FunctionalBlock):
-    DP_01 = dict(name="dp_01", access="output", dptId="1.001", default="Off")
+class ${deviceClass}(Device):
+    FB_01 = dict(cls=${deviceClass}FB, name="${deviceName}_fb", desc="${deviceName} fb")
 
-    GO_01 = dict(dp="dp_01", flags="CWT", priority="low")
+    LNK_01 = dict(fb="${deviceName}_fb", dp="dp_01", gad="1/1/1")
 
-    DESC = "FB"
-
-
-class $deviceClass(Device):
-    FB_01 = dict(cls=FB, name="fb_01", desc="fb 01")
-
-    LNK_01 = dict(fb="fb_01", dp="dp_01", gad="1/1/1")
-
-    DESC = "$deviceClass"
+    DESC = "${deviceClass}"
 
 
-DEVICE = $deviceClass
+DEVICE = ${deviceClass}
 """
 
 
@@ -103,13 +100,26 @@ CONFIG = \
 
 from pknyx.common import config
 
-DEVICE_NAME = "$deviceName"
+DEVICE_NAME = "${deviceName}"
 DEVICE_IND_ADDR = "1.1.1"
 DEVICE_VERSION = "0.1"
 
-# Override default logger level ("trace")
+# Override default logger level
 config.LOGGER_LEVEL = "info"
 """
 
-INIT = \
-""""""
+
+FB = \
+"""# -*- coding: utf-8 -*-
+
+from pknyx.api import FunctionalBlock
+from pknyx.api import logger, schedule, notify
+
+
+class ${deviceClass}FB(FunctionalBlock):
+    DP_01 = dict(name="dp_01", access="output", dptId="1.001", default="Off")
+
+    GO_01 = dict(dp="dp_01", flags="CWT", priority="low")
+
+    DESC = "${deviceClass} FB"
+"""

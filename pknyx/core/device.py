@@ -90,6 +90,11 @@ class Device(object):
         """
         pass
 
+    def _shutdown(self):
+        """ Additionnal user shutdown
+        """
+        pass
+
     def _register(self):
         """
         """
@@ -123,3 +128,5 @@ class Device(object):
 
         Scheduler().start()
         self._stack.mainLoop()
+
+        self._shutdown()

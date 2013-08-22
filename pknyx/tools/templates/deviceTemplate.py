@@ -80,7 +80,7 @@ DEVICE = \
 
 from pknyx.api import Device
 
-from fb.fb import FB
+from fb.${deviceName}FB import ${deviceClass}FB
 
 
 class ${deviceClass}(Device):

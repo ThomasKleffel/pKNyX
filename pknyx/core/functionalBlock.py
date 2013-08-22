@@ -70,7 +70,7 @@ class FunctionalBlock(object):
     The Datapoints of a FunctionalBlock must be defined in sub-classes, as class dict, and named B{DP_xxx}. They will be
     automatically instanciated as real L{Datapoint} objects, and added to the B{_datapoints} dict.
 
-    #Same for GroupObject.
+    Same for GroupObject.
 
     @ivar _name: name of the device
     @type _name:str
@@ -112,8 +112,7 @@ class FunctionalBlock(object):
 
                 # Remove 'dp' key from GO_xxx dict
                 # Use a copy to let original untouched
-                value_ = {}
-                value_.update(value)
+                value_ = dict(value)
                 value_.pop('dp')
                 self._groupObjects[name] = GroupObject(datapoint, **value_)
 

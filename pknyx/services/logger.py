@@ -81,6 +81,9 @@ class Logger(object):
         @param name: name of the file used by the file handler
                      Use None to disable file handler output
         @type name: str
+
+        @param level: initial logger level
+        @type level: str
         """
         super(Logger, self).__init__()
 

@@ -55,7 +55,8 @@ Should be used from an executable script. See scripts/pknyx-admin.py.
 __revision__ = "$Id$"
 
 import shutil
-import imp
+#import imp
+import sys
 import stat
 import string
 import os.path
@@ -65,7 +66,7 @@ from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.tools.templateGenerator import TemplateGenerator
-from pknyx.tools.templates.deviceTemplate import ADMIN, INIT, CONFIG, DEVICE
+from pknyx.tools.templates.deviceTemplate import ADMIN, INIT, CONFIG, DEVICE, FB
 from pknyx.stack.individualAddress import IndividualAddress
 
 
@@ -85,18 +86,14 @@ class AdminUtility(object):
     def _createDevice(self, args):
         """
         """
+        Logger().setLevel("info")
         Logger().info("Generate '%s' structure from template..." % args.name)  # must be a simple name, not a path
 
-        dir1 = args.name
-        dir2 = os.path.join(args.name, args.name)
+        topDir = args.name
+        deviceDir = os.path.join(topDir, args.name)
+        fbDir = os.path.join(deviceDir, "fb")
+        pluginsDir = os.path.join(deviceDir, "plugins")
 
-        # Create dirs
-        TemplateGenerator.createDir(dir1)
-        Logger().info("'%s' dir created" % dir1)
-        TemplateGenerator.createDir(dir2)
-        Logger().info("'%s' dir created" % dir2)
-
-        # Create files from templates
         if args.className is None:
             deviceClass = args.name.capitalize()
         else:
@@ -104,24 +101,55 @@ class AdminUtility(object):
         deviceName = args.name
         replace = dict(deviceName=deviceName, deviceClass=deviceClass)
 
+        # Top dir
+        TemplateGenerator.createDir(topDir)
+        Logger().info("'%s' dir created" % topDir)
+
         adminGen = TemplateGenerator(ADMIN)
-        dest = os.path.join(dir1, "admin.py")
+        dest = os.path.join(topDir, "admin.py")
         adminGen.generateToFile(dest, replaceDict=replace, script=True)
         Logger().info("'%s' file generated" % dest)
 
-        configGen = TemplateGenerator(INIT)
-        dest = os.path.join(dir2, "__init__.py")
-        configGen.generateToFile(dest, {}, script=False)
+        # Device dir
+        TemplateGenerator.createDir(deviceDir)
+        Logger().info("'%s' dir created" % deviceDir)
+
+        initGen = TemplateGenerator(INIT)
+        dest = os.path.join(deviceDir, "__init__.py")
+        initGen.generateToFile(dest, {}, script=False)
         Logger().info("'%s' file generated" % dest)
 
         configGen = TemplateGenerator(CONFIG)
-        dest = os.path.join(dir2, "config.py")
+        dest = os.path.join(deviceDir, "config.py")
         configGen.generateToFile(dest, replaceDict=replace, script=False)
         Logger().info("'%s' file generated" % dest)
 
-        deviceGn = TemplateGenerator(DEVICE)
-        dest = os.path.join(dir2, "device.py")
-        deviceGn.generateToFile(dest, replaceDict=replace, script=False)
+        deviceGen = TemplateGenerator(DEVICE)
+        dest = os.path.join(deviceDir, "device.py")
+        deviceGen.generateToFile(dest, replaceDict=replace, script=False)
+        Logger().info("'%s' file generated" % dest)
+
+        # 'fb' dir
+        TemplateGenerator.createDir(fbDir)
+        Logger().info("'%s' dir created" % fbDir)
+
+        initGen = TemplateGenerator(INIT)
+        dest = os.path.join(fbDir, "__init__.py")
+        initGen.generateToFile(dest, {}, script=False)
+        Logger().info("'%s' file generated" % dest)
+
+        fbGen = TemplateGenerator(FB)
+        dest = os.path.join(fbDir, "%sFB.py" % deviceName)
+        fbGen.generateToFile(dest, replaceDict=replace, script=False)
+        Logger().info("'%s' file generated" % dest)
+
+        # 'plugins' dir
+        TemplateGenerator.createDir(pluginsDir)
+        Logger().info("'%s' dir created" % pluginsDir)
+
+        initGen = TemplateGenerator(INIT)
+        dest = os.path.join(pluginsDir, "__init__.py")
+        initGen.generateToFile(dest, {}, script=False)
         Logger().info("'%s' file generated" % dest)
 
         Logger().info("'%s' structure done" % deviceName)
@@ -135,16 +163,19 @@ class AdminUtility(object):
         if PKNYX_DEVICE_PATH == "$PKNYX_DEVICE_PATH":
             raise AdminUtilityValueError("$PKNYX_DEVICE_PATH not set")
 
+        sys.path.insert(0, PKNYX_DEVICE_PATH)
+
         # Load specific device 'config' module which must exists in PKNYX_DEVICE_PATH dir
-        try:
-            fp, pathname, description = imp.find_module("config", [PKNYX_DEVICE_PATH])
-        except ImportError:
-            raise AdminUtilityValueError("can't find any 'config' module in $PKNYX_DEVICE_PATH path (%s)" % PKNYX_DEVICE_PATH)
-        try:
-            deviceConfigModule = imp.load_module("config", fp, pathname, description)
-        finally:
-            if fp:
-                fp.close()
+        import config as deviceConfigModule
+        #try:
+            #fp, pathname, description = imp.find_module("config", [PKNYX_DEVICE_PATH])
+        #except ImportError:
+            #raise AdminUtilityValueError("can't find any 'config' module in $PKNYX_DEVICE_PATH path (%s)" % PKNYX_DEVICE_PATH)
+        #try:
+            #deviceConfigModule = imp.load_module("config", fp, pathname, description)
+        #finally:
+            #if fp:
+                #fp.close()
 
         # Retreive device config
         if args.deviceIndAddr is not None:
@@ -170,15 +201,16 @@ class AdminUtility(object):
             Logger().warning("device individual address is null")
 
         # Import user device
-        try:
-            fp, pathname, description = imp.find_module("device", [PKNYX_DEVICE_PATH])
-        except ImportError:
-            raise AdminUtilityValueError("can't find any 'device' module in $PKNYX_DEVICE_PATH path (%s)" % PKNYX_DEVICE_PATH)
-        try:
-            deviceModule = imp.load_module("device", fp, pathname, description)
-        finally:
-            if fp:
-                fp.close()
+        import device as deviceModule
+        #try:
+            #fp, pathname, description = imp.find_module("device", [PKNYX_DEVICE_PATH])
+        #except ImportError:
+            #raise AdminUtilityValueError("can't find any 'device' module in $PKNYX_DEVICE_PATH path (%s)" % PKNYX_DEVICE_PATH)
+        #try:
+            #deviceModule = imp.load_module("device", fp, pathname, description)
+        #finally:
+            #if fp:
+                #fp.close()
 
         # Instantiate device
         device = deviceModule.DEVICE()
@@ -197,7 +229,7 @@ class AdminUtility(object):
         """
         device = self._checkRunDevice(args)
 
-        Logger().info("detach is '%s'" % args.detach)
+        Logger().info("Detaching is '%s'" % args.detach)
 
         device.run()
 
@@ -207,6 +239,10 @@ class AdminUtility(object):
         mainParser = argparse.ArgumentParser(prog="pknyx-admin.py",
                                              description="This tool is used to manage pKNyX devices.",
                                              epilog="Under developement...")
+
+        # Create sub-parsers
+        subparsers = mainParser.add_subparsers(title="subcommands", description="valid subcommands",
+                                               help="sub-command help")
 
         # Create device parser
         createDeviceParser = subparsers.add_parser("createdevice",
@@ -227,10 +263,6 @@ class AdminUtility(object):
                                           help="override individual address")
         checkRunDeviceParser.add_argument("-p", "--path", action="store", type=str, dest="configPath", default=os.path.expandvars("$PKNYX_DEVICE_PATH"),
                                           help="set/override $PKNYX_DEVICE_PATH path")
-
-        # Create sub-parsers
-        subparsers = mainParser.add_subparsers(title="subcommands", description="valid subcommands",
-                                               help="sub-command help")
 
         # Check device parser
         checkDeviceParser = subparsers.add_parser("checkdevice",

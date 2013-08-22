@@ -5,10 +5,13 @@ CHANGES
 x bug fix
 
 0000-00-00 Version SVN
+
+2013-08-22 Version 0.9.2 (dev)
     + added Device class
     + added pknyx-admin.py tool to manage/create device from template
     + global services now use Singleton metaclass
     - refactoring
+    - updated examples according to new structure
     x changed __new__() parent call
     x SpaceFormatter newlines computation
 

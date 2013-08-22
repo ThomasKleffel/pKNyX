@@ -45,8 +45,6 @@ class WeatherWindFB(FunctionalBlock):
         Here, we set the wind_alarm datapoint value accordingly to other datapoints values.
         """
 
-        logger.info("WeatherWindFB.checkWindSpeed(): event=%s" % repr(event))
-
         # Read inputs/params
         windSpeed = self.dp["wind_speed"].value
         windAlarm = self.dp["wind_alarm"].value

@@ -234,6 +234,9 @@ class Datapoint(object):
         # Notify associated GroupObject (if any)
         self._signalChanged.emit(oldValue, self.value)
 
+        # Notify owner (FunctionalBlock)
+        self._owner.notify(self.name, oldValue, self.value)  # TBD
+
     @property
     def unit(self):
         return self._dptXlator.unit

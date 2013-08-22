@@ -69,14 +69,12 @@ class TemplateGeneratorValueError(PKNyXValueError):
 class TemplateGenerator(object):
     """ TemplateGenerator class definition
     """
-    def __init__(self, template, fileName, script=True):
+    def __init__(self, template):
         """ TemplateGenerator object init
         """
         super(TemplateGenerator, self).__init__()
 
-        self._template = template
-        self._fileName = fileName
-        self._script = script
+        self._template = string.Template(template)
 
     @classmethod
     def createDir(cls, dirName):
@@ -104,48 +102,23 @@ class TemplateGenerator(object):
         """
         f = open(fileName, 'w')
         if script:
-            mode = stat(fileName).st_mode
-            os.chmod(fileName, mode | EXEC_MODE)
+            mode = os.stat(fileName).st_mode
+            os.chmod(fileName, mode | MODE_EXEC)
 
-    def generateToFile(self, replaceDict, fileName, script=False):
+        return f
+
+    def generateToFile(self, fileName, replaceDict, script=False):
+        """ Generate template to file
+
+        @param fileName: name of the file to create (can be a complete path)
+        @type fileName: str
         """
-        """
-        f = self._createFile(self, fileName, script)
-        output = self.generate(self, replaceDict)
+        f = self._createFile(fileName, script)
+        output = self.generate(replaceDict)
         f.write(output)
         f.close()
 
     def generate(self, replaceDict):
         """
         """
-        output = self._template.safe_substitute(replaceDict)
-
-        return output
-
-
-    def test(self):
-        print "create '%s' from template..." % args.name  # must be a simple name, not a path
-
-        destDir = os.path.join(args.name, args.name)
-
-        # Create dirs
-        self.createDir(args.name)
-        self.createDir(destDir)
-
-        # Create files from templates
-        template = string.Template(ADMIN)
-        fOut = self.createFile("admin.py", script=True)
-        fOut.write(template.safe_substitute(dict(device=args.name)))
-        fOut.close()
-
-        template = string.Template(CONFIG)
-        fOut = self.createFile(os.path.join(destDir, "config.py"))
-        fOut.write(template.safe_substitute(dict(device=args.name)))
-        fOut.close()
-
-        template = string.Template(DEVICE)
-        fOut = self.createFile(os.path.join(destDir, "device.py"))
-        fOut.write(template.safe_substitute(dict(device=args.name)))
-        fOut.close()
-
-        print "done"
+        return self._template.safe_substitute(replaceDict)

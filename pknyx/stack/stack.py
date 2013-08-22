@@ -119,7 +119,7 @@ class Stack(object):
         self._tc.start()
 
         time.sleep(0.25)
-        Logger().info("Stack running")
+        Logger().debug("Stack.start(): running")
 
     def stop(self):
         """ Stop the stack threads
@@ -131,7 +131,7 @@ class Stack(object):
         self._tc.join()
         self._lds.join()
 
-        Logger().info("Stack stopped")
+        Logger().debug("Stack.stop(): stopped")
 
     def mainLoop(self):
         """ Start the main loop

@@ -46,7 +46,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id:$"
+__revision__ = "$Id$"
 
 
 INIT = \

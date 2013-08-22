@@ -47,7 +47,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id:$"
+__revision__ = "$Id$"
 
 import string
 import shutil

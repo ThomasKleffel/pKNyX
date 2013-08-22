@@ -60,7 +60,7 @@ Usage
 
 __revision__ = "$Id$"
 
-from pknyx.api import Logger
+from pknyx.api import logger
 from pknyx.api import FunctionalBlock, Stack, ETS
 from pknyx.api import Scheduler, Notifier
 

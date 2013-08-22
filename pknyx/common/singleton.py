@@ -48,7 +48,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: signal.py 155 2013-07-10 12:34:24Z fma $"
+__revision__ = "$Id$"
 
 
 

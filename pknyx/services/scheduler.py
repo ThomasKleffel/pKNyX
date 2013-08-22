@@ -75,6 +75,7 @@ import traceback
 import apscheduler.scheduler
 
 from pknyx.common.exception import PKNyXValueError
+from pknyx.common.singleton import Singleton
 from pknyx.services.logger import Logger, LEVELS
 
 scheduler = None
@@ -85,7 +86,7 @@ class SchedulerValueError(PKNyXValueError):
     """
 
 
-class SchedulerObject(object):
+class Scheduler(object):
     """ Scheduler class
 
     @ivar _pendingFuncs:
@@ -94,21 +95,29 @@ class SchedulerObject(object):
     @ivar _apscheduler: real scheduler
     @type _apscheduler: APScheduler
     """
+    __metaclass__ = Singleton
+
     TYPE_EVERY = 1
     TYPE_AT = 2
     TYPE_CRON = 3
 
-    def __init__(self):
+    def __init__(self, autoStart=False):
         """ Init the Scheduler object
+
+        @param autoStart: if True, automatically starts the scheduler
+        @type autoStart: bool
 
         raise SchedulerValueError:
         """
-        super(SchedulerObject, self).__init__()
+        super(Scheduler, self).__init__()
 
         self._pendingFuncs = []
 
         self._apscheduler = apscheduler.scheduler.Scheduler()
         self._apscheduler.add_listener(self._listener, mask=(apscheduler.scheduler.EVENT_JOB_ERROR|apscheduler.scheduler.EVENT_JOB_MISSED))
+
+        if autoStart:
+            scheduler.start()
 
     def _listener(self, event):
         """ APScheduler listener.
@@ -137,7 +146,7 @@ class SchedulerObject(object):
         @type kwargs: dict
         """
         Logger().debug("Scheduler.addEveryJob(): func=%s" % repr(func))
-        self._pendingFuncs.append((SchedulerObject.TYPE_EVERY, func, kwargs))
+        self._pendingFuncs.append((Scheduler.TYPE_EVERY, func, kwargs))
 
     def every(self, **kwargs):
         """ Decorator for addEveryJob()
@@ -160,7 +169,7 @@ class SchedulerObject(object):
         @type func: callable
         """
         Logger().debug("Scheduler.addAtJob(): func=%s" % repr(func))
-        self._pendingFuncs.append((SchedulerObject.TYPE_AT, func, kwargs))
+        self._pendingFuncs.append((Scheduler.TYPE_AT, func, kwargs))
 
     def at(self, **kwargs):
         """ Decorator for addAtJob()
@@ -183,7 +192,7 @@ class SchedulerObject(object):
         @type func: callable
         """
         Logger().debug("Scheduler.addCronJob(): func=%s" % repr(func))
-        self._pendingFuncs.append((SchedulerObject.TYPE_CRON, func, kwargs))
+        self._pendingFuncs.append((Scheduler.TYPE_CRON, func, kwargs))
 
     def cron(self, **kwargs):
         """ Decorator for addCronJob()
@@ -213,11 +222,11 @@ class SchedulerObject(object):
             if method is not None:
                 Logger().debug("Scheduler.doRegisterJobs(): add method %s() of %s" % (method.im_func.func_name, method.im_self))
                 if method.im_func is func:
-                    if type_ == SchedulerObject.TYPE_EVERY:
+                    if type_ == Scheduler.TYPE_EVERY:
                         self._apscheduler.add_interval_job(method, **kwargs)
-                    elif type_ == SchedulerObject.TYPE_AT:
+                    elif type_ == Scheduler.TYPE_AT:
                         self._apscheduler.add_date_job(method, **kwargs)
-                    elif type_ == SchedulerObject.TYPE_CRON:
+                    elif type_ == Scheduler.TYPE_CRON:
                         self._apscheduler.add_cron_job(method, **kwargs)
 
     def printJobs(self):
@@ -250,27 +259,6 @@ class SchedulerObject(object):
             self._apscheduler.shutdown()
 
         Logger().debug("Scheduler.stop(): stopped")
-
-
-def Scheduler(autoStart=False):
-    """ Scheduler factory
-
-    This factory always return the same instance of the SchedulerObject object, acting as a Singleton.
-
-    @param autoStart: if True, automatically starts the scheduler
-    @type autoStart: bool
-
-    @todo: use a Borg instead?
-    """
-    global scheduler
-
-    if scheduler is None:
-        scheduler = SchedulerObject()
-
-    if autoStart:
-        scheduler.start()
-
-    return scheduler
 
 
 if __name__ == '__main__':

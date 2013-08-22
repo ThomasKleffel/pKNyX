@@ -87,6 +87,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.utils import reprStr
+from pknyx.common.singleton import Singleton
 from pknyx.services.logger import Logger
 
 scheduler = None
@@ -97,7 +98,7 @@ class NotifierValueError(PKNyXValueError):
     """
 
 
-class Notifier_(object):
+class Notifier(object):
     """ Notifier class
 
     @ivar _pendingFuncs:
@@ -106,12 +107,14 @@ class Notifier_(object):
     @ivar _datapointJobs:
     @type _registeredJobs: dict
     """
+    __metaclass__ = Singleton
+
     def __init__(self):
         """ Init the Notifier object
 
         raise NotifierValueError:
         """
-        super(Notifier_, self).__init__()
+        super(Notifier, self).__init__()
 
         self._pendingFuncs = []
         self._datapointJobs = {}
@@ -232,16 +235,6 @@ class Notifier_(object):
     def printJobs(self):
         """ Print registered jobs
         """
-
-
-def Notifier():
-    """ Notifier factory
-    """
-    global scheduler
-    if scheduler is None:
-        scheduler = Notifier_()
-
-    return scheduler
 
 
 if __name__ == '__main__':

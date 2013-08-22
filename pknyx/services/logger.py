@@ -51,8 +51,8 @@ import os.path
 import time
 
 from pknyx.common import config
-from pknyx.common.singleton import Singleton
 from pknyx.common.exception import PKNyXValueError
+from pknyx.common.singleton import Singleton
 from pknyx.services.loggerFormatter import DefaultFormatter, ColorFormatter, \
                                            SpaceFormatter, SpaceColorFormatter
 

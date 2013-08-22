@@ -65,7 +65,7 @@ class WeatherSunFB(FunctionalBlock):
         self.dp["azimuth"].value = azimuth
 
     @schedule.every(minutes=5)
-    def updatePosition(self):
+    def updateTime(self):
         """ This method will be triggered every 5 minutes
         """
         self._update()

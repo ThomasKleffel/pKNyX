@@ -34,6 +34,7 @@ Implements
 ==========
 
  - B{TemplateGenerator}
+ - B{TemplateGeneratorValueError}
 
 Documentation
 =============
@@ -122,3 +123,25 @@ class TemplateGenerator(object):
         """
         """
         return self._template.safe_substitute(replaceDict)
+
+
+if __name__ == '__main__':
+    import unittest
+
+    # Mute logger
+    Logger().setLevel('error')
+
+
+    class TemplateGeneratorTestCase(unittest.TestCase):
+
+        def setUp(self):
+            pass
+
+        def tearDown(self):
+            pass
+
+        def test_constructor(self):
+            pass
+
+
+    unittest.main()

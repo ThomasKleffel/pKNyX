@@ -56,8 +56,6 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.services.loggerFormatter import DefaultFormatter, ColorFormatter, \
                                            SpaceFormatter, SpaceColorFormatter
 
-logger = None
-
 LEVELS = {'trace': logging.DEBUG - 5,
           'debug': logging.DEBUG,
           'info': logging.INFO,
@@ -236,12 +234,3 @@ class Logger(object):
         """ Shutdown the logging service.
         """
         logging.shutdown()
-
-
-## Logger factory
-#def Logger(*args, **kwargs):
-    #global logger
-    #if logger is None:
-        #logger = LoggerObject(*args, **kwargs)
-
-    #return logger

@@ -228,13 +228,17 @@ def read(gad, timeout=1, wait=True, dptId="1.xxx", src="0.0.0", priority="low", 
             groupObject.queue.acquire()
             try:
                 groupObject.queue.wait(timeout)  # Find a wait to know if timeout expired
-                data = groupObject.queue.pop()
+                try:
+                    data = groupObject.queue.pop()
+                except IndexError:
+                    Logger().warning("No answer from %s" % gad)
+                    sys.exit(1)
             finally:
                 groupObject.queue.release()
 
             dptXlator = DPTXlatorFactory().create(dptId)
             value = dptXlator.dataToValue(dptXlator.frameToData(data))
-            print "value =", value
+            Logger().info(repr(value))
 
     finally:
         stack.stop()
@@ -284,7 +288,7 @@ def monitor(src="0.0.1"):
                     groupMonitorObject.queue.wait(0.1)
                     try:
                         type_, src, gad, priority, data = groupMonitorObject.queue.pop()
-                        print "Got %-16s from %-8s to %-8s with priority %-6s data=%s" % (type_, src, gad, priority, repr(data))
+                        Logger().info("Got %-16s from %-8s to %-8s with priority %-6s data=%s" % (type_, src, gad, priority, repr(data)))
                     except IndexError:
                         pass
                 finally:
@@ -305,7 +309,7 @@ def main():
                                      epilog="Under developement...")
     parser.add_argument("-l", "--logger",
                         choices=["trace", "debug", "info", "warning", "error", "exception", "critical"],
-                        action="store", dest="loggerLevel", default="warning", metavar="LEVEL",
+                        action="store", dest="loggerLevel", default="info", metavar="LEVEL",
                         help="logger level")
     parser.add_argument("-s", "--srcAddr", action="store", type=str, dest="src",
                         help="source address to use")

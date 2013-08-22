@@ -51,6 +51,7 @@ import os.path
 import time
 
 from pknyx.common import config
+from pknyx.common.singleton import Singleton
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.loggerFormatter import DefaultFormatter, ColorFormatter, \
                                            SpaceFormatter, SpaceColorFormatter
@@ -71,9 +72,11 @@ class LoggerValueError(PKNyXValueError):
     """
 
 
-class LoggerObject(object):
+class Logger(object):
     """ Logger object.
     """
+    __metaclass__ = Singleton
+
     def __init__(self, name=None, level=config.LOGGER_LEVEL):
         """ Init object.
 
@@ -81,7 +84,7 @@ class LoggerObject(object):
                      Use None to disable file handler output
         @type name: str
         """
-        super(LoggerObject, self).__init__()
+        super(Logger, self).__init__()
 
         logging.TRACE = LEVELS['trace']
         logging.EXCEPTION = LEVELS['exception']
@@ -92,13 +95,12 @@ class LoggerObject(object):
         # Logger
         self._logger = logging.getLogger(config.APP_NAME)
         self._logger.propagate = False
-        self.setLevel(level)
 
         # Handlers
-        stdoutStreamHandler = logging.StreamHandler()
+        self._stdoutStreamHandler = logging.StreamHandler()
         streamFormatter = SpaceColorFormatter(config.LOGGER_STREAM_FORMAT)
-        stdoutStreamHandler.setFormatter(streamFormatter)
-        self._logger.addHandler(stdoutStreamHandler)
+        self._stdoutStreamHandler.setFormatter(streamFormatter)
+        self._logger.addHandler(self._stdoutStreamHandler)
 
         if name is not None:
             LOGGER_FILENAME = "%s_%s%slog" % (config.APP_NAME.lower(), name, os.path.extsep)
@@ -109,7 +111,9 @@ class LoggerObject(object):
             fileFormatter = SpaceFormatter(config.LOGGER_FILE_FORMAT)
             fileHandler.setFormatter(fileFormatter)
             self._logger.addHandler(fileHandler)
-            self.debug("LoggerObject.__init__(): loggerFilename='%s'" % loggerFilename)
+            self.debug("Logger.__init__(): loggerFilename='%s'" % loggerFilename)
+
+        self.setLevel(level)
 
     def addStreamHandler(self, stream, formatter=DefaultFormatter):
         """ Add a new stream handler.
@@ -135,6 +139,11 @@ class LoggerObject(object):
         if level not in LEVELS.keys():
             raise LoggerValueError("Logger level must be in %s" % LEVELS.keys())
         self._logger.setLevel(LEVELS[level])
+
+        if self._logger.level >= logging.INFO:
+            streamFormatter = SpaceColorFormatter("")
+            self._stdoutStreamHandler.setFormatter(streamFormatter)
+
 
     def trace(self, message, *args, **kwargs):
         """ Logs a message with level TRACE.
@@ -229,10 +238,10 @@ class LoggerObject(object):
         logging.shutdown()
 
 
-# Logger factory
-def Logger(*args, **kwargs):
-    global logger
-    if logger is None:
-        logger = LoggerObject(*args, **kwargs)
+## Logger factory
+#def Logger(*args, **kwargs):
+    #global logger
+    #if logger is None:
+        #logger = LoggerObject(*args, **kwargs)
 
-    return logger
+    #return logger

@@ -67,10 +67,8 @@ Usage
 __revision__ = "$Id$"
 
 
-from pknyx.api import FunctionalBlock
-from pknyx.api import Device
-from pknyx.api import logger
-from pknyx.api import schedule, notify
+from pknyx.api import Device, FunctionalBlock
+from pknyx.api import logger, schedule, notify
 
 
 class TimerFB(FunctionalBlock):
@@ -93,10 +91,6 @@ class TimerFB(FunctionalBlock):
         """
         self._timer = 0
 
-    def _shutdown(self):
-        """ Additional shutdown of the timer functional block
-        """
-
     @schedule.every(seconds=1)
     def updateTimer(self):
         """ Method called every second.
@@ -105,6 +99,7 @@ class TimerFB(FunctionalBlock):
 
         if self._timer:
             self._timer -= 1
+            logger.debug("TimerFB.updateTimer(): timer=%d" % self._timer)
             if not self._timer:
                 logger.info("%s: timer expired; switch off" % self._name)
                 self.dp["cmd"].value = "Off"
@@ -150,6 +145,10 @@ class Timer(Device):
 
     #def _init(self):
         #""" Additional init of the timer device
+        #"""
+
+    #def _shutdown(self):
+        #""" Additional shutdown of the timer device
         #"""
 
 

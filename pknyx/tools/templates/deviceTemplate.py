@@ -119,7 +119,7 @@ from pknyx.api import logger, schedule, notify
 class ${deviceClass}FB(FunctionalBlock):
     DP_01 = dict(name="dp_01", access="output", dptId="1.001", default="Off")
 
-    GO_01 = dict(dp="dp_01", flags="CWT", priority="low")
+    GO_01 = dict(dp="dp_01", flags="CRWTU", priority="low")
 
     DESC = "${deviceClass} FB"
 """

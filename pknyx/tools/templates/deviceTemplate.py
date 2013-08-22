@@ -50,8 +50,7 @@ __revision__ = "$Id:$"
 
 
 ADMIN = \
-"""
-#!/usr/bin/env python
+"""#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os
@@ -73,8 +72,7 @@ if __name__ == "__main__":
 
 
 DEVICE = \
-"""
-# -*- coding: utf-8 -*-
+"""# -*- coding: utf-8 -*-
 
 from pknyx.api import Device, FunctionalBlock
 from pknyx.api import logger, schedule, notify
@@ -88,12 +86,12 @@ class FB(FunctionalBlock):
     DESC = "FB"
 
 
-class My$deviceClass(Device):
-    FB_01 = dict(cls=MyFB, name="fb_01", desc="fb 01")
+class $deviceClass(Device):
+    FB_01 = dict(cls=FB, name="fb_01", desc="fb 01")
 
     LNK_01 = dict(fb="fb_01", dp="dp_01", gad="1/1/1")
 
-    DESC = "My $deviceName"
+    DESC = "$deviceClass"
 
 
 DEVICE = $deviceClass
@@ -101,8 +99,7 @@ DEVICE = $deviceClass
 
 
 CONFIG = \
-"""
-# -*- coding: utf-8 -*-
+"""# -*- coding: utf-8 -*-
 
 from pknyx.common import config
 
@@ -113,3 +110,6 @@ DEVICE_VERSION = "0.1"
 # Override default logger level ("trace")
 config.LOGGER_LEVEL = "info"
 """
+
+INIT = \
+""""""

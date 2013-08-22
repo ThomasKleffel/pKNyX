@@ -65,7 +65,7 @@ from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.tools.templateGenerator import TemplateGenerator
-from pknyx.tools.templates.d import
+from pknyx.tools.templates.deviceTemplate import ADMIN, INIT, CONFIG, DEVICE
 from pknyx.stack.individualAddress import IndividualAddress
 
 
@@ -81,6 +81,50 @@ class AdminUtility(object):
         """
         """
         super(AdminUtility, self).__init__()
+
+    def _createDevice(self, args):
+        """
+        """
+        Logger().info("Generate '%s' structure from template..." % args.name)  # must be a simple name, not a path
+
+        dir1 = args.name
+        dir2 = os.path.join(args.name, args.name)
+
+        # Create dirs
+        TemplateGenerator.createDir(dir1)
+        Logger().info("'%s' dir created" % dir1)
+        TemplateGenerator.createDir(dir2)
+        Logger().info("'%s' dir created" % dir2)
+
+        # Create files from templates
+        if args.className is None:
+            deviceClass = args.name.capitalize()
+        else:
+            deviceClass = args.className
+        deviceName = args.name
+        replace = dict(deviceName=deviceName, deviceClass=deviceClass)
+
+        adminGen = TemplateGenerator(ADMIN)
+        dest = os.path.join(dir1, "admin.py")
+        adminGen.generateToFile(dest, replaceDict=replace, script=True)
+        Logger().info("'%s' file generated" % dest)
+
+        configGen = TemplateGenerator(INIT)
+        dest = os.path.join(dir2, "__init__.py")
+        configGen.generateToFile(dest, {}, script=False)
+        Logger().info("'%s' file generated" % dest)
+
+        configGen = TemplateGenerator(CONFIG)
+        dest = os.path.join(dir2, "config.py")
+        configGen.generateToFile(dest, replaceDict=replace, script=False)
+        Logger().info("'%s' file generated" % dest)
+
+        deviceGn = TemplateGenerator(DEVICE)
+        dest = os.path.join(dir2, "device.py")
+        deviceGn.generateToFile(dest, replaceDict=replace, script=False)
+        Logger().info("'%s' file generated" % dest)
+
+        Logger().info("'%s' structure done" % deviceName)
 
     def _checkRunDevice(self, args):
         """
@@ -114,10 +158,10 @@ class AdminUtility(object):
 
         Logger().debug("AdminUtility._checkRunDevice(): args=%s" % repr(args))
 
-        Logger().info("AdminUtility._checkRunDevice(): logger level is '%s'" % config.LOGGER_LEVEL)
-        Logger().info("AdminUtility._checkRunDevice(): config path is '%s'" % PKNYX_DEVICE_PATH)
-        Logger().info("AdminUtility._checkRunDevice(): device name is '%s'" % deviceConfigModule.DEVICE_NAME)
-        Logger().info("AdminUtility._checkRunDevice(): device individual address is '%s'" % deviceConfigModule.DEVICE_IND_ADDR)
+        Logger().info("Logger level is '%s'" % config.LOGGER_LEVEL)
+        Logger().info("Config path is '%s'" % PKNYX_DEVICE_PATH)
+        Logger().info("Device name is '%s'" % deviceConfigModule.DEVICE_NAME)
+        Logger().info("Device Individual Address is '%s'" % deviceConfigModule.DEVICE_IND_ADDR)
 
         deviceIndAddr = deviceConfigModule.DEVICE_IND_ADDR
         if not isinstance(deviceIndAddr, IndividualAddress):
@@ -141,73 +185,37 @@ class AdminUtility(object):
 
         return device
 
-    def _createDevice(self, args):
-        """
-        """
-        print "create '%s' from template..." % args.name  # must be a simple name, not a path
-
-        destDir = os.path.join(args.name, args.name)
-
-        # Create dirs
-        TemplateGenerator.createDir(args.name)
-        TemplateGenerator.createDir(destDir)
-
-        # Create files from templates
-        template = string.Template(ADMIN)
-        fOut = self.createFile("admin.py", script=True)
-        fOut.write(template.safe_substitute(dict(device=args.name)))
-        fOut.close()
-
-        template = string.Template(CONFIG)
-        fOut = self.createFile(os.path.join(destDir, "config.py"))
-        fOut.write(template.safe_substitute(dict(device=args.name)))
-        fOut.close()
-
-        template = string.Template(DEVICE)
-        fOut = self.createFile(os.path.join(destDir, "device.py"))
-        fOut.write(template.safe_substitute(dict(device=args.name)))
-        fOut.close()
-
-        # Load templates
-        fIn = file(os.path.join(srcDir, "admin.py"))
-        fOut = open(os.path.join(args.name, "admin.py"), 'w')
-        template = string.Template(fIn.read())
-        fOut.write(template.safe_substitute(dict(device=args.name)))
-        fIn.close()
-        fOut.close()
-        os.chmod(os.path.join(args.name, "admin.py"), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
-
-        fIn = file(os.path.join(srcDir, "config.py"))
-        fOut = open(os.path.join(destDir, "config.py"), 'w')
-        template = string.Template(fIn.read())
-        fOut.write(template.safe_substitute(dict(device=args.name)))
-        fIn.close()
-        fOut.close()
-
-        print "done"
-
     def _checkDevice(self, args):
         """
         """
         device = self._checkRunDevice(args)
 
-        print "no error found"
+        Logger().info("No error found")
 
     def _runDevice(self, args):
         """
         """
         device = self._checkRunDevice(args)
 
-        Logger().info("AdminUtility._runDevice(): detach is '%s'" % args.detach)
+        Logger().info("detach is '%s'" % args.detach)
 
         device.run()
 
     def execute(self):
 
-        # Main parent parser
+        # Main parser
         mainParser = argparse.ArgumentParser(prog="pknyx-admin.py",
                                              description="This tool is used to manage pKNyX devices.",
                                              epilog="Under developement...")
+
+        # Create device parser
+        createDeviceParser = subparsers.add_parser("createdevice",
+                                                   help="create device from template")
+        createDeviceParser.add_argument("-c", "--class", type=str, dest="className",
+                                        help="name of the device class")
+        createDeviceParser.add_argument("name", type=str,
+                                        help="name of the device")
+        createDeviceParser.set_defaults(func=self._createDevice)
 
         # Check/run device parent parser
         checkRunDeviceParser = argparse.ArgumentParser(add_help=False)
@@ -223,13 +231,6 @@ class AdminUtility(object):
         # Create sub-parsers
         subparsers = mainParser.add_subparsers(title="subcommands", description="valid subcommands",
                                                help="sub-command help")
-
-        # Create device parser
-        createDeviceParser = subparsers.add_parser("createdevice",
-                                                   help="create device from template")
-        createDeviceParser.add_argument("name", type=str,
-                                        help="name of the device")
-        createDeviceParser.set_defaults(func=self._createDevice)
 
         # Check device parser
         checkDeviceParser = subparsers.add_parser("checkdevice",

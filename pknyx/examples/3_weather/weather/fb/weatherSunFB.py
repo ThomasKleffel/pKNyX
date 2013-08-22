@@ -39,7 +39,7 @@ class WeatherSunFB(FunctionalBlock):
                             timeZone = self.dp["time_zone"].value,
                             savingTime = self.dp["saving_time"].value)
 
-    def _update(self, event=None):
+    def _computePosition(self, event=None):
         """ Update sun position
         """
 
@@ -68,7 +68,7 @@ class WeatherSunFB(FunctionalBlock):
     def updateTime(self):
         """ This method will be triggered every 5 minutes
         """
-        self._update()
+        self._computePosition()
 
     @notify.datapoint(dp="latitude", condition="change")
     @notify.datapoint(dp="longitude", condition="change")
@@ -77,4 +77,4 @@ class WeatherSunFB(FunctionalBlock):
     def updateLocation(self, event):
         """ This method will be trigger when some datapoints change.
         """
-        self._update()
+        self._computePosition()

@@ -74,7 +74,7 @@ class WeatherSunFB(FunctionalBlock):
     @notify.datapoint(dp="longitude", condition="change")
     @notify.datapoint(dp="time_zone", condition="change")
     @notify.datapoint(dp="saving_time", condition="change")
-    def updateConditions(self, event):
+    def updateLocation(self, event):
         """ This method will be trigger when some datapoints change.
         """
         self._update()

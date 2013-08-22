@@ -130,3 +130,25 @@ class Device(object):
         self._stack.mainLoop()
 
         self._shutdown()
+
+
+if __name__ == '__main__':
+    import unittest
+
+    # Mute logger
+    Logger().setLevel('error')
+
+
+    class DeviceTestCase(unittest.TestCase):
+
+        def setUp(self):
+            pass
+
+        def tearDown(self):
+            pass
+
+        def test_constructor(self):
+            pass
+
+
+    unittest.main()

@@ -1,2 +1,3 @@
 include CHANGES LICENSE README
-recursive-include docs *.txt
+#recursive-include docs *.txt
+recursive-include pknyx/examples *.py

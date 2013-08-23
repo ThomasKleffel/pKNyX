@@ -12,7 +12,7 @@ class TimerFB(FunctionalBlock):
 
     DESC = "Timer FB"
 
-    def _init(self):
+    def init(self):
         self._timer = 0
 
     @notify.datapoint(dp="state", condition="change")

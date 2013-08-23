@@ -200,7 +200,7 @@ class ETS(object):
         gads = []
         for gad in self._stack.agds.groups.keys():
             gads.append(GroupAddress(gad, outFormatLevel))
-        gads.sort()
+        gads.sort()  #reverse=True)
 
         output = "\n"
 

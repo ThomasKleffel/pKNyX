@@ -31,7 +31,7 @@ class WeatherSunFB(FunctionalBlock):
 
     DESC = "Weather sun FB"
 
-    def _init(self):
+    def init(self):
         """ Additionnal init of our functional block
         """
         self._sun = sun.Sun(latitude=self.dp["latitude"].value,

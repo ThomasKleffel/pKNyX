@@ -53,13 +53,10 @@ __revision__ = "$Id$"
 from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-from pknyx.services.scheduler import Scheduler
-from pknyx.core.ets import ETS
-from pknyx.stack.stack import Stack
 
 # Import device config
 # This loads the 'config' module beside the custom 'device' module under execution
-import config as deviceConfig
+from config import DEVICE_IND_ADDR
 
 
 class DeviceValueError(PKNyXValueError):
@@ -75,27 +72,17 @@ class Device(object):
         """
         super(Device, self).__init__()
 
-        self._stack = None
-        self._ets = None
-        self._stack = Stack(deviceConfig.DEVICE_IND_ADDR)
-        self._ets = ETS(self._stack)
-
-        self._register()
-        self._weave()
-
-        self._init()
-
-    def _init(self):
+    def init(self):
         """ Additionnal user init
         """
         pass
 
-    def _shutdown(self):
+    def shutdown(self):
         """ Additionnal user shutdown
         """
         pass
 
-    def _register(self):
+    def register(self, ets):
         """
         """
         Logger().trace("Device._register()")
@@ -109,9 +96,9 @@ class Device(object):
                 # Use a copy to let original untouched
                 value_ = dict(value)
                 value_.pop('cls')
-                self._ets.register(cls, **value_)
+                ets.register(cls, **value_)
 
-    def _weave(self):
+    def weave(self, ets):
         """
         """
         Logger().trace("Device._weave()")
@@ -119,17 +106,7 @@ class Device(object):
         for key, value in self.__class__.__dict__.iteritems():
             if key.startswith("LNK_"):
                 Logger().debug("Device._weave(): %s=(%s)" % (key, repr(value)))
-                self._ets.weave(**value)
-
-    def run(self):
-        """
-        """
-        Logger().trace("Device.run()")
-
-        Scheduler().start()
-        self._stack.mainLoop()
-
-        self._shutdown()
+                ets.weave(**value)
 
 
 if __name__ == '__main__':

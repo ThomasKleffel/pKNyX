@@ -54,20 +54,16 @@ Should be used from an executable script. See scripts/pknyx-admin.py.
 
 __revision__ = "$Id$"
 
-import shutil
-#import imp
 import sys
-import stat
-import string
 import os.path
 import argparse
 
 from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.tools.deviceRunner import DeviceRunner
 from pknyx.tools.templateGenerator import TemplateGenerator
 from pknyx.tools.templates.deviceTemplate import ADMIN, INIT, CONFIG, DEVICE, FB
-from pknyx.stack.individualAddress import IndividualAddress
 
 
 class AdminUtilityValueError(PKNyXValueError):
@@ -154,84 +150,27 @@ class AdminUtility(object):
 
         Logger().info("'%s' structure done" % deviceName)
 
-    def _checkRunDevice(self, args):
+    def _checkConfig(self, args):
         """
         """
-
-        # Retreive device config path
-        PKNYX_DEVICE_PATH = args.configPath
+        PKNYX_DEVICE_PATH = args.devicePath
         if PKNYX_DEVICE_PATH == "$PKNYX_DEVICE_PATH":
-            raise AdminUtilityValueError("$PKNYX_DEVICE_PATH not set")
-
-        sys.path.insert(0, PKNYX_DEVICE_PATH)
-
-        # Load specific device 'config' module which must exists in PKNYX_DEVICE_PATH dir
-        import config as deviceConfigModule
-        #try:
-            #fp, pathname, description = imp.find_module("config", [PKNYX_DEVICE_PATH])
-        #except ImportError:
-            #raise AdminUtilityValueError("can't find any 'config' module in $PKNYX_DEVICE_PATH path (%s)" % PKNYX_DEVICE_PATH)
-        #try:
-            #deviceConfigModule = imp.load_module("config", fp, pathname, description)
-        #finally:
-            #if fp:
-                #fp.close()
-
-        # Retreive device config
-        if args.deviceIndAddr is not None:
-            deviceConfigModule.DEVICE_IND_ADDR = args.deviceIndAddr
-
-        # Init the logger
-        # DO NOT USE LOGGER BEFORE THIS POINT!
-        if args.loggerLevel is not None:
-            config.LOGGER_LEVEL = args.loggerLevel
-        Logger("%s-%s" % (deviceConfigModule.DEVICE_NAME, deviceConfigModule.DEVICE_IND_ADDR), config.LOGGER_LEVEL)
-
-        Logger().debug("AdminUtility._checkRunDevice(): args=%s" % repr(args))
-
-        Logger().info("Logger level is '%s'" % config.LOGGER_LEVEL)
-        Logger().info("Config path is '%s'" % PKNYX_DEVICE_PATH)
-        Logger().info("Device name is '%s'" % deviceConfigModule.DEVICE_NAME)
-        Logger().info("Device Individual Address is '%s'" % deviceConfigModule.DEVICE_IND_ADDR)
-
-        deviceIndAddr = deviceConfigModule.DEVICE_IND_ADDR
-        if not isinstance(deviceIndAddr, IndividualAddress):
-            deviceIndAddr = IndividualAddress(deviceIndAddr)
-        if deviceIndAddr.isNull:
-            Logger().warning("device individual address is null")
-
-        # Import user device
-        import device as deviceModule
-        #try:
-            #fp, pathname, description = imp.find_module("device", [PKNYX_DEVICE_PATH])
-        #except ImportError:
-            #raise AdminUtilityValueError("can't find any 'device' module in $PKNYX_DEVICE_PATH path (%s)" % PKNYX_DEVICE_PATH)
-        #try:
-            #deviceModule = imp.load_module("device", fp, pathname, description)
-        #finally:
-            #if fp:
-                #fp.close()
-
-        # Instantiate device
-        device = deviceModule.DEVICE()
-
-        return device
+            Logger().critical("$PKNYX_DEVICE_PATH not set")
+            sys.exit(1)
 
     def _checkDevice(self, args):
         """
         """
-        device = self._checkRunDevice(args)
-
-        Logger().info("No error found")
+        self._checkConfig(args)
+        runner = DeviceRunner(args.loggerLevel, args.devicePath, args.mapPath)
+        runner.check(args.printGroat)
 
     def _runDevice(self, args):
         """
         """
-        device = self._checkRunDevice(args)
-
-        Logger().info("Detaching is '%s'" % args.detach)
-
-        device.run()
+        self._checkConfig(args)
+        runner = DeviceRunner(args.loggerLevel, args.devicePath, args.mapPath)
+        runner.run(args.detach)
 
     def execute(self):
 
@@ -254,25 +193,27 @@ class AdminUtility(object):
         createDeviceParser.set_defaults(func=self._createDevice)
 
         # Check/run device parent parser
-        checkRunDeviceParser = argparse.ArgumentParser(add_help=False)
-        checkRunDeviceParser.add_argument("-l", "--logger",
-                                          choices=["trace", "debug", "info", "warning", "error", "exception", "critical"],
-                                          action="store", dest="loggerLevel", metavar="LEVEL",
-                                          help="override logger level")
-        checkRunDeviceParser.add_argument("-i", "--indAddr", action="store", type=str, dest="deviceIndAddr",
-                                          help="override individual address")
-        checkRunDeviceParser.add_argument("-p", "--path", action="store", type=str, dest="configPath", default=os.path.expandvars("$PKNYX_DEVICE_PATH"),
-                                          help="set/override $PKNYX_DEVICE_PATH path")
+        loadDeviceParser = argparse.ArgumentParser(add_help=False)
+        loadDeviceParser.add_argument("-l", "--logger",
+                                      choices=["trace", "debug", "info", "warning", "error", "exception", "critical"],
+                                      action="store", dest="loggerLevel", metavar="LEVEL",
+                                      help="override logger level")
+        loadDeviceParser.add_argument("-p", "--path", action="store", type=str, dest="devicePath", default=os.path.expandvars("$PKNYX_DEVICE_PATH"),
+                                      help="set/override $PKNYX_DEVICE_PATH var")
+        loadDeviceParser.add_argument("-m", "--map", action="store", type=str, dest="mapPath", default=os.path.expandvars("$PKNYX_MAP_PATH"),
+                                      help="set/override $PKNYX_MAP_PATH var")
 
         # Check device parser
         checkDeviceParser = subparsers.add_parser("checkdevice",
-                                                  parents=[checkRunDeviceParser],
+                                                  parents=[loadDeviceParser],
                                                   help="check device (does not launch the stack main loop)")
+        checkDeviceParser.add_argument("-g", "--groat", action="store_true", dest="printGroat", default=False,
+                                       help="print group object association table")
         checkDeviceParser.set_defaults(func=self._checkDevice)
 
         # Run device parser
         runDeviceParser = subparsers.add_parser("rundevice",
-                                                parents=[checkRunDeviceParser],
+                                                parents=[loadDeviceParser],
                                                 help="run device")
         runDeviceParser.add_argument("-d", "--detach", action="store_true", default=False,
                                      help="detach the process (run in background)")

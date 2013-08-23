@@ -141,8 +141,8 @@ class FunctionalBlock(object):
         if desc is not None:
             self._desc = "%s - %s" % (desc, self._desc)
 
-        # Call for additionnal init
-        self._init()
+        # Call for additionnal user init
+        self.init()
 
     def __repr__(self):
         return "<%s(name='%s', desc='%s')>" % (reprStr(self.__class__), self._name, self._desc)
@@ -150,7 +150,7 @@ class FunctionalBlock(object):
     def __str__(self):
         return "<%s('%s')>" % (reprStr(self.__class__), self._name)
 
-    def _init(self):
+    def init(self):
         """ Additionnal user init
         """
         pass

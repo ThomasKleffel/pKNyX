@@ -5,6 +5,10 @@ CHANGES
 x bug fix
 
 0000-00-00 Version SVN
+    + added a DeviceRunner to manage device
+    + added GAD map management
+    - Device uses init()/shutdown instead of _init()/_shutdown()
+    - FunctionalBlock uses init() instead of _init()
 
 2013-08-22 Version 0.9.2 (dev)
     + added Device class

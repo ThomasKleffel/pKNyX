@@ -38,7 +38,7 @@ Implements
 Documentation
 =============
 
-@todo: subclass and add building/GA tree nodes (as class vars).
+@todo: subclass and add buildingMap/GA tree nodes (as class vars).
 
 class MOB(ETS):
 
@@ -124,7 +124,7 @@ class ETS(object):
     def buildingMap(self):
         return self._buildingMap
 
-    def register(self, cls, name, desc=None, building='root'):
+    def register(self, cls, name, desc=None, buildingMap='root'):
         """ Register a functional block
 
         @param cls: class of functional block to register
@@ -189,11 +189,11 @@ class ETS(object):
         if groupObject.group is None:
             groupObject.group = group
 
-    bind = weave  # nice name too!
-    link = weave  # compatibility with old examples
+    bind = weave
+    link = weave  # nice names too!
 
-    def printGroat(self, by="gad", outFormatLevel=3):
-        """ Print the Group Object Association Table
+    def getGrOAT(self, by="gad", outFormatLevel=3):
+        """ Build the Group Object Association Table
         """
 
         # Retreive all bound gad
@@ -202,72 +202,88 @@ class ETS(object):
             gads.append(GroupAddress(gad, outFormatLevel))
         gads.sort()
 
+        output = "\n"
+
         if by == "gad":
-            title = "%-35s %-25s %-30s %-10s %-10s %-10s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
-            print title
-            print len(title) * "-"
+            title = "%-34s %-25s %-30s %-10s %-10s %-10s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
+            output += title
+            output += "\n"
+            output += len(title) * "-"
+            output += "\n"
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
                     index = "%d" % gad.main
                     if self._gadMap.has_key(index):
-                        print u"%2d %-33s" % (gad.main, self._gadMap[index]['desc'].decode("utf-8"))
+                        output +=  u"%2d %-33s" % (gad.main, self._gadMap[index]['desc'].decode("utf-8"))
+                        output += "\n"
                     else:
-                        print u"%2d %-33s" % (gad.main, "")
+                        output +=  u"%2d %-33s" % (gad.main, "")
+                        output += "\n"
                     gadMain = gad.main
                     gadMiddle = gadSub = -1
                 if gadMiddle != gad.middle:
                     index = "%d/%d" % (gad.main, gad.middle)
                     if self._gadMap.has_key(index):
-                        print u" ├── %2d %-27s" % (gad.middle, self._gadMap[index]['desc'].decode("utf-8"))
+                        output +=  u" ├── %2d %-27s" % (gad.middle, self._gadMap[index]['desc'].decode("utf-8"))
+                        output += "\n"
                     else:
-                        print u" ├── %2d %-27s" % (gad.middle, "")
+                        output +=  u" ├── %2d %-27s" % (gad.middle, "")
+                        output += "\n"
                     gadMiddle = gad.middle
                     gadSub = -1
                 if gadSub != gad.sub:
                     index = "%d/%d/%d" % (gad.main, gad.middle, gad.sub)
                     if self._gadMap.has_key(index):
-                        print u" │    ├── %3d %-21s" % (gad.sub, self._gadMap[index]['desc'].decode("utf-8")),
+                        output +=  u" │    ├── %3d %-21s" % (gad.sub, self._gadMap[index]['desc'].decode("utf-8"))
                     else:
-                        print u" │    ├── %3d %-21s" % (gad.sub, ""),
+                        output +=  u" │    ├── %3d %-21s" % (gad.sub, "")
                     gadSub = gad.sub
 
                 for i, go in enumerate(self._stack.agds.groups[gad.address].listeners):
                     dp = go.datapoint
                     fb = dp.owner
                     if not i:
-                        print u"%-25s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
+                        output +=  u"%-25s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
+                        output += "\n"
                     else:
-                        print u" │    │                             %-25s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
+                        output +=  u" │    │                             %-25s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
+                        output += "\n"
 
                 gad_ = gad
 
         elif by == "go":
 
             # Retreive all groupObjects, not only bound ones
-            # @todo: use building presentation
+            # @todo: use buildingMap presentation
             mapByDP = {}
-            title = "%-30s %-25s %-10s %-30s %-10s %-10s" % ("Functional block", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
-            print title
-            print len(title) * "-"
+            title = "%-29s %-25s %-10s %-30s %-10s %-10s" % ("Functional block", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
+            output +=  title
+            output += "\n"
+            output +=  len(title) * "-"
+            output += "\n"
             for fb in self._functionalBlocks:
-                #print "%-30s" % fb.name,
+                #output +=  "%-30s" % fb.name
                 for i, go in enumerate(fb.go.values()):
-                    print "%-30s" % fb.name,
+                    output +=  "%-30s" % fb.name
                     dp = go.datapoint
                     #if i:
-                        #print "%-30s" % "",
+                        #output +=  "%-30s" % ""
                     gads_ = []
                     for gad in gads:
                         if go in self._stack.agds.groups[gad.address].listeners:
                             gads_.append(gad.address)
                     if gads_:
-                        print "%-25s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, ", ".join(gads_), go.flags, go.priority)
+                        output +=  "%-25s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, ", ".join(gads_), go.flags, go.priority)
+                        output += "\n"
                     else:
-                        print "%-25s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, "", go.flags, go.priority)
+                        output +=  "%-25s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, "", go.flags, go.priority)
+                        output += "\n"
 
         else:
             raise ETSValueError("by param. must be in ('gad', 'dp')")
+
+        return output
 
 
 if __name__ == '__main__':

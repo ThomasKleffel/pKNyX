@@ -46,7 +46,10 @@ Usage
 
 __revision__ = "$Id$"
 
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 from pknyx.common import config
 
@@ -89,6 +92,6 @@ setup(name=config.APP_NAME,
       scripts=["pknyx/scripts/pknyx-group.py",
                "pknyx/scripts/pknyx-admin.py"],
 
-    install_requires=["APScheduler",
-                      "argparse"],
+      install_requires=["APScheduler",
+                        "argparse"],
 )

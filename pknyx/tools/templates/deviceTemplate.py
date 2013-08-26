@@ -80,7 +80,7 @@ DEVICE = \
 
 from pknyx.api import Device
 
-from fb.${deviceName}FB import ${deviceClass}FB
+from ${deviceName}FB import ${deviceClass}FB
 
 
 class ${deviceClass}(Device):
@@ -95,7 +95,7 @@ DEVICE = ${deviceClass}
 """
 
 
-CONFIG = \
+SETTINGS = \
 """# -*- coding: utf-8 -*-
 
 from pknyx.common import config

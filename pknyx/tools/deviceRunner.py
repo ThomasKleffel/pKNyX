@@ -91,8 +91,8 @@ class DeviceRunner(object):
 
         sys.path.insert(0, devicePath)
 
-        # Load user 'config' module
-        from config import DEVICE_NAME, DEVICE_IND_ADDR
+        # Load user 'settings' module
+        from settings import DEVICE_NAME, DEVICE_IND_ADDR
 
         # Init the logger
         # DO NOT USE LOGGER BEFORE THIS POINT!

@@ -63,7 +63,7 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.tools.deviceRunner import DeviceRunner
 from pknyx.tools.templateGenerator import TemplateGenerator
-from pknyx.tools.templates.deviceTemplate import ADMIN, INIT, CONFIG, DEVICE, FB
+from pknyx.tools.templates.deviceTemplate import ADMIN, INIT, SETTINGS, DEVICE, FB
 
 
 class AdminUtilityValueError(PKNyXValueError):
@@ -87,7 +87,6 @@ class AdminUtility(object):
 
         topDir = args.name
         deviceDir = os.path.join(topDir, args.name)
-        fbDir = os.path.join(deviceDir, "fb")
         pluginsDir = os.path.join(deviceDir, "plugins")
 
         if args.className is None:
@@ -115,8 +114,8 @@ class AdminUtility(object):
         initGen.generateToFile(dest, {}, script=False)
         Logger().info("'%s' file generated" % dest)
 
-        configGen = TemplateGenerator(CONFIG)
-        dest = os.path.join(deviceDir, "config.py")
+        configGen = TemplateGenerator(SETTINGS)
+        dest = os.path.join(deviceDir, "settings.py")
         configGen.generateToFile(dest, replaceDict=replace, script=False)
         Logger().info("'%s' file generated" % dest)
 
@@ -125,27 +124,9 @@ class AdminUtility(object):
         deviceGen.generateToFile(dest, replaceDict=replace, script=False)
         Logger().info("'%s' file generated" % dest)
 
-        # 'fb' dir
-        TemplateGenerator.createDir(fbDir)
-        Logger().info("'%s' dir created" % fbDir)
-
-        initGen = TemplateGenerator(INIT)
-        dest = os.path.join(fbDir, "__init__.py")
-        initGen.generateToFile(dest, {}, script=False)
-        Logger().info("'%s' file generated" % dest)
-
         fbGen = TemplateGenerator(FB)
-        dest = os.path.join(fbDir, "%sFB.py" % deviceName)
+        dest = os.path.join(deviceDir, "%sFB.py" % deviceName)
         fbGen.generateToFile(dest, replaceDict=replace, script=False)
-        Logger().info("'%s' file generated" % dest)
-
-        # 'plugins' dir
-        TemplateGenerator.createDir(pluginsDir)
-        Logger().info("'%s' dir created" % pluginsDir)
-
-        initGen = TemplateGenerator(INIT)
-        dest = os.path.join(pluginsDir, "__init__.py")
-        initGen.generateToFile(dest, {}, script=False)
         Logger().info("'%s' file generated" % dest)
 
         Logger().info("'%s' structure done" % deviceName)

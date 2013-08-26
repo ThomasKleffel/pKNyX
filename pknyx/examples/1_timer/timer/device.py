@@ -2,7 +2,7 @@
 
 from pknyx.api import Device
 
-from fb.timerFB import TimerFB
+from timerFB import TimerFB
 
 
 class Timer(Device):

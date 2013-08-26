@@ -2,7 +2,7 @@
 
 from pknyx.api import Device
 
-from fb.actuatorFB import ActuatorFB
+from actuatorFB import ActuatorFB
 
 
 class Actuator(Device):

@@ -54,10 +54,6 @@ from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 
-# Import device config
-# This loads the 'config' module beside the custom 'device' module under execution
-from config import DEVICE_IND_ADDR
-
 
 class DeviceValueError(PKNyXValueError):
     """

@@ -78,6 +78,7 @@ class GroupObject(GroupListener):
     @type _group: L{Group<pknyx.core.group>}
 
     @todo: take 'access' into account when managing flags
+    @todo: add lock for user
     """
     def __init__(self, datapoint, flags=Flags(), priority=Priority()):
         """
@@ -131,6 +132,7 @@ class GroupObject(GroupListener):
             if (oldValue != newValue and self._flags.transmit) or self._flags.stateless:
                 frame, size = self._datapoint.frame
                 self._group.write(self._priority, frame, size)
+        # @todo: add a param to set refresh max delay
 
     @property
     def datapoint(self):

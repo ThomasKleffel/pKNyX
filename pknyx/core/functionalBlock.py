@@ -91,7 +91,6 @@ class FunctionalBlock(object):
         self = super(FunctionalBlock, cls).__new__(cls)
 
         # class objects named B{DP_xxx} are treated as Datapoint and added to the B{_datapoints} dict
-        #@todo: make a read-only datapoints dict
         datapoints = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("DP_"):

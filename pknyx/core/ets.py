@@ -205,7 +205,7 @@ class ETS(object):
         output = "\n"
 
         if by == "gad":
-            title = "%-34s %-25s %-30s %-10s %-10s %-10s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
+            title = "%-34s %-30s %-30s %-10s %-10s %-10s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
             output += title
             output += "\n"
             output += len(title) * "-"
@@ -244,10 +244,10 @@ class ETS(object):
                     dp = go.datapoint
                     fb = dp.owner
                     if not i:
-                        output +=  u"%-25s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
+                        output +=  u"%-30s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
                         output += "\n"
                     else:
-                        output +=  u" │    │                             %-25s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
+                        output +=  u" │    │                            %-30s %-30s %-10s %-10s %-10s" % (dp.name, fb.name, dp.dptId, go.flags, go.priority)
                         output += "\n"
 
                 gad_ = gad
@@ -257,7 +257,7 @@ class ETS(object):
             # Retreive all groupObjects, not only bound ones
             # @todo: use buildingMap presentation
             mapByDP = {}
-            title = "%-29s %-25s %-10s %-30s %-10s %-10s" % ("Functional block", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
+            title = "%-29s %-30s %-10s %-30s %-10s %-10s" % ("Functional block", "Datapoint", "DPTID", "GAD", "Flags", "Priority")
             output +=  title
             output += "\n"
             output +=  len(title) * "-"
@@ -274,10 +274,10 @@ class ETS(object):
                         if go in self._stack.agds.groups[gad.address].listeners:
                             gads_.append(gad.address)
                     if gads_:
-                        output +=  "%-25s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, ", ".join(gads_), go.flags, go.priority)
+                        output +=  "%-30s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, ", ".join(gads_), go.flags, go.priority)
                         output += "\n"
                     else:
-                        output +=  "%-25s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, "", go.flags, go.priority)
+                        output +=  "%-30s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, "", go.flags, go.priority)
                         output += "\n"
 
         else:

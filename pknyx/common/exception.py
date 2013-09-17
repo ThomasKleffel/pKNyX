@@ -34,3 +34,7 @@ class PKNyXError(Exception):
 class PKNyXValueError(PKNyXError):
     """ Base class for pKNyX value errors
     """
+
+class PKNyXAttributeError(PKNyXError):
+    """ Base class for pKNyX attribute errors
+    """

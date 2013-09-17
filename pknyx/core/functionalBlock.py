@@ -53,6 +53,7 @@ __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.utils import reprStr
+from pknyx.common.frozenDict import FrozenDict
 from pknyx.services.logger import Logger
 from pknyx.services.notifier import Notifier
 from pknyx.core.datapoint import Datapoint
@@ -90,16 +91,18 @@ class FunctionalBlock(object):
         self = super(FunctionalBlock, cls).__new__(cls)
 
         # class objects named B{DP_xxx} are treated as Datapoint and added to the B{_datapoints} dict
-        self._datapoints = {}
+        #@todo: make a read-only datapoints dict
+        datapoints = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("DP_"):
                 name = value['name']
-                if self._datapoints.has_key(name):
+                if datapoints.has_key(name):
                     raise FunctionalBlockValueError("duplicated Datapoint (%s)" % name)
-                self._datapoints[name] = Datapoint(self, **value)
+                datapoints[name] = Datapoint(self, **value)
+        self._datapoints = FrozenDict(datapoints)
 
         # class objects named B{GO_xxx} are treated as GroupObjects and added to the B{_groupObjects} dict
-        self._groupObjects = {}
+        groupObjects = {}
         for key, value in cls.__dict__.iteritems():
             if key.startswith("GO_"):
                 try:
@@ -107,14 +110,15 @@ class FunctionalBlock(object):
                 except KeyError:
                     raise FunctionalBlockValueError("unknown datapoint (%s)" % value['dp'])
                 name = datapoint.name
-                if self._groupObjects.has_key(name):
+                if groupObjects.has_key(name):
                     raise FunctionalBlockValueError("duplicated GroupObject (%s)" % name)
 
                 # Remove 'dp' key from GO_xxx dict
                 # Use a copy to let original untouched
                 value_ = dict(value)
                 value_.pop('dp')
-                self._groupObjects[name] = GroupObject(datapoint, **value_)
+                groupObjects[name] = GroupObject(datapoint, **value_)
+        self._groupObjects = FrozenDict(groupObjects)
 
         try:
             self._desc = cls.__dict__["DESC"]
@@ -202,12 +206,19 @@ if __name__ == '__main__':
     class FunctionalBlockTestCase(unittest.TestCase):
 
         class TestFunctionalBlock(FunctionalBlock):
-            DP_01 = dict(name="temperature", access="output", dptId="9.001", default=19.)
-            DP_02 = dict(name="humidity", access="output", dptId="9.007", default=50.)
-            DP_03 = dict(name="wind_speed", access="output", dptId="9.005", default=0.)
-            DP_04 = dict(name="wind_alarm",  access="output", dptId="1.005", default="No alarm")
-            DP_05 = dict(name="wind_speed_limit",  access="input", dptId="9.005", default=15.)
-            DP_06 = dict(name="wind_alarm_enable", access="input", dptId="1.003", default="Disable")
+            DP_01 = dict(name="dp_01", access="output", dptId="9.001", default=19.)
+            DP_02 = dict(name="dp_02", access="output", dptId="9.007", default=50.)
+            DP_03 = dict(name="dp_03", access="output", dptId="9.005", default=0.)
+            DP_04 = dict(name="dp_04",  access="output", dptId="1.005", default="No alarm")
+            DP_05 = dict(name="dp_05",  access="input", dptId="9.005", default=15.)
+            DP_06 = dict(name="dp_06", access="input", dptId="1.003", default="Disable")
+
+            GO_01 = dict(dp="dp_01", flags="CRT", priority="low")
+            GO_02 = dict(dp="dp_02", flags="CRT", priority="low")
+            GO_03 = dict(dp="dp_03", flags="CRT", priority="low")
+            GO_04 = dict(dp="dp_04", flags="CRT", priority="low")
+            GO_05 = dict(dp="dp_05", flags="CWU", priority="low")
+            GO_06 = dict(dp="dp_06", flags="CWU", priority="low")
 
             DESC = "Dummy description"
 

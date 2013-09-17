@@ -45,7 +45,7 @@ Usage
 @license: PSF License
 """
 
-__revision__ = "$Id: functionalBlock.py 425 2013-08-23 13:24:49Z fma $"
+__revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXAttributeError
 

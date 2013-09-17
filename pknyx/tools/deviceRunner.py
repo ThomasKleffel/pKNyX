@@ -52,7 +52,7 @@ Should be used from an executable script. See scripts/pknyx-admin.py.
 @license: GPL
 """
 
-__revision__ = "$Id: adminUtility.py 393 2013-08-22 09:43:14Z fma $"
+__revision__ = "$Id$"
 
 import os.path
 import imp

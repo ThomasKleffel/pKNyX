@@ -46,7 +46,7 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id: sun.py 165 2013-07-10 14:18:06Z fma $"
+__revision__ = "$Id$"
 
 import sys
 import math

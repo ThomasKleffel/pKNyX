@@ -136,7 +136,21 @@ class Scheduler(object):
     def apscheduler(self):
         return self._apscheduler
 
-    def addEveryJob(self, func, **kwargs):
+    def every(self, **kwargs):
+        """ Decorator for addEveryJob()
+        """
+        Logger().debug("Scheduler.every(): kwargs=%s" % repr(kwargs))
+
+        def decorated(func):
+            """ We don't wrap the decorated function!
+            """
+            self._pendingFuncs.append((Scheduler.TYPE_EVERY, func, kwargs))
+
+            return func
+
+        return decorated
+
+    def addEvery(self, func, **kwargs):
         """ Add a job which has to be called 'every xxx'
 
         @param func: job to register
@@ -146,30 +160,7 @@ class Scheduler(object):
         @type kwargs: dict
         """
         Logger().debug("Scheduler.addEveryJob(): func=%s" % repr(func))
-        self._pendingFuncs.append((Scheduler.TYPE_EVERY, func, kwargs))
-
-    def every(self, **kwargs):
-        """ Decorator for addEveryJob()
-        """
-        Logger().debug("Scheduler.every(): kwargs=%s" % repr(kwargs))
-
-        def decorated(func):
-            """ We don't wrap the decorated function!
-            """
-            self.addEveryJob(func, **kwargs)
-
-            return func
-
-        return decorated
-
-    def addAtJob(self, func, **kwargs):
-        """ Add a job which has to be called 'at xxx'
-
-        @param func: job to register
-        @type func: callable
-        """
-        Logger().debug("Scheduler.addAtJob(): func=%s" % repr(func))
-        self._pendingFuncs.append((Scheduler.TYPE_AT, func, kwargs))
+        self._apscheduler.add_interval_job(func, **kwargs)
 
     def at(self, **kwargs):
         """ Decorator for addAtJob()
@@ -179,20 +170,20 @@ class Scheduler(object):
         def decorated(func):
             """ We don't wrap the decorated function!
             """
-            self.addAtJob(func, **kwargs)
+            self._pendingFuncs.append((Scheduler.TYPE_AT, func, kwargs))
 
             return func
 
         return decorated
 
-    def addCronJob(self, func, **kwargs):
-        """ Add a job which has to be called with cron
+    def addAt(self, func, **kwargs):
+        """ Add a job which has to be called 'at xxx'
 
         @param func: job to register
         @type func: callable
         """
-        Logger().debug("Scheduler.addCronJob(): func=%s" % repr(func))
-        self._pendingFuncs.append((Scheduler.TYPE_CRON, func, kwargs))
+        Logger().debug("Scheduler.addAtJob(): func=%s" % repr(func))
+        self._apscheduler.add_date_job(func, **kwargs)
 
     def cron(self, **kwargs):
         """ Decorator for addCronJob()
@@ -202,11 +193,20 @@ class Scheduler(object):
         def decorated(func):
             """ We don't wrap the decorated function!
             """
-            self.addCronJob(func, **kwargs)
+            self._pendingFuncs.append((Scheduler.TYPE_CRON, func, kwargs))
 
             return func
 
         return decorated
+
+    def addCron(self, func, **kwargs):
+        """ Add a job which has to be called with cron
+
+        @param func: job to register
+        @type func: callable
+        """
+        Logger().debug("Scheduler.addCronJob(): func=%s" % repr(func))
+        self._apscheduler.add_cron_job(func, **kwargs)
 
     def doRegisterJobs(self, obj):
         """ Really register jobs in APScheduler

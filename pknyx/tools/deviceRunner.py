@@ -164,7 +164,7 @@ class DeviceRunner(object):
         Logger().info("Detaching is '%s'" % detach)
 
         Scheduler().start()
-        self._stack.mainLoop()
+        self._stack.mainLoop()  # blocking call
         Scheduler().stop()
 
         self._device.shutdown()

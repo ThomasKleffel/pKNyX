@@ -127,7 +127,7 @@ class DPTXlatorBoolean(DPTXlatorBase):
 
     def dataToValue(self, data):
         value = self._dpt.limits[data]
-        #Logger().debug("DPTXlatorBoolean._toValue(): value=%d" % value)
+        #Logger().debug("DPTXlatorBoolean.dataToValue(): value=%d" % value)
         return value
 
     def valueToData(self, value):
@@ -184,7 +184,7 @@ if __name__ == '__main__':
                 self.assertEqual(value_, value, "Conversion failed (converted value for %s is %d, should be %d)" %
                                  (hex(data), value_, value))
 
-        def testvalueToData(self):
+        def test_valueToData(self):
             for value, data, frame in self.testTable:
                 data_ = self.dptXlator.valueToData(value)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %d is %s, should be %s)" %
@@ -196,7 +196,7 @@ if __name__ == '__main__':
                 self.assertEqual(frame_, frame, "Conversion failed (converted frame for %s is %r, should be %r)" %
                                  (hex(data), frame_, frame))
 
-        def testframeToData(self):
+        def test_frameToData(self):
             for value, data, frame in self.testTable:
                 data_ = self.dptXlator.frameToData(frame)
                 self.assertEqual(data_, data, "Conversion failed (converted data for %r is %s, should be %s)" %

@@ -93,7 +93,7 @@ class DPTXlator8BitUnsigned(DPTXlatorBase):
             value = value * 360. / 255.
         elif self._dpt is self.DPT_DecimalFactor:
             value = value / 255.
-        #Logger().debug("DPTXlator8BitUnsigned._toValue(): value=%d" % value)
+        #Logger().debug("DPTXlator8BitUnsigned.dataToValue(): value=%d" % value)
         return value
 
     def valueToData(self, value):
@@ -105,7 +105,7 @@ class DPTXlator8BitUnsigned(DPTXlatorBase):
             data = int(round(value * 255))
         else:
             data = value
-        #Logger().debug("DPTXlator8BitUnsigned._valueToData(): data=%s" % hex(data))
+        #Logger().debug("DPTXlator8BitUnsigned.valueToData(): data=%s" % hex(data))
         return data
 
     def dataToFrame(self, data):

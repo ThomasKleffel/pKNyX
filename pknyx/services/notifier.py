@@ -228,7 +228,8 @@ class Notifier(object):
                 if oldValue != newValue and condition == "change" or condition == "always":
                     try:
                         Logger().debug("Notifier.datapointNotify(): trigger method %s() of %s" % (method.im_func.func_name, method.im_self))
-                        method(dict(event="datapoint", dp=dp, oldValue=oldValue, newValue=newValue))
+                        event = dict(name="datapoint", dp=dp, oldValue=oldValue, newValue=newValue, condition=condition)
+                        method(event)
                     except:
                         Logger().exception("Notifier.datapointNotify()")
 

@@ -69,7 +69,7 @@ class DPTXlator2ByteFloat(DPTXlatorBase):
 
     For all Datapoint Types 9.xxx, the encoded value 7FFFh shall always be used to denote invalid data.
     """
-    DPT_Generic = DPT("9.xxx", "Generic", (-670760.96, +670760.96))
+    DPT_Generic = DPT("9.xxx", "Generic", (-671088.64, +670760.96))
 
     DPT_Value_Temp = DPT("9.001", "Temperature", (-273., +670760.), "°C")
     DPT_Value_Tempd = DPT("9.002", "Temperature difference", (-670760., +670760.), "K")

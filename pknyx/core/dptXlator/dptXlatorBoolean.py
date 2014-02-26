@@ -123,7 +123,7 @@ class DPTXlatorBoolean(DPTXlatorBase):
 
     def checkValue(self, value):
         if value not in self._dpt.limits and value not in self.DPT_Generic.limits:
-            raise DPTXlatorValueError("value %d not in %s" % (value, str(self._dpt.limits)))
+            raise DPTXlatorValueError("value %s not in %s" % (value, str(self._dpt.limits)))
 
     def dataToValue(self, data):
         value = self._dpt.limits[data]

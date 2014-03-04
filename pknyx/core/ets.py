@@ -167,7 +167,10 @@ class ETS(object):
             raise ETSValueError("unregistered functional block (%s)" % fb)
 
         # Retreive GroupObject from FunctionalBlock
-        groupObject = fb_.go[dp]
+        try:
+            groupObject = fb_.go[dp]
+        except KeyError:
+            raise ETSValueError("no Group Object associated with this datapoint (%s)" % dp)
 
         # Override GroupObject flags
         if flags is not None:

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import smtplib
-import email.mime.text
-
 from pknyx.api import FunctionalBlock
 from pknyx.api import logger, schedule, notify
+from pknyx.api import MUA
 
 import settings
 
@@ -20,21 +18,8 @@ class AlertFB(FunctionalBlock):
 
     DESC = "Alert FB"
 
-    def _sendEmail(self, msg):
-        """ Send an e-mail
-        """
-
-        # Create a text/plain message
-        message = email.mime.text.MIMEText(msg)
-
-        message['Subject'] = settings.SUBJECT
-        message['From'] = settings.FROM
-        message['To'] = settings.TO
-
-        # Send the message via SMTP server, but don't include the envelope header
-        smtp = smtplib.SMTP(settings.SMTP)
-        smtp.sendmail(message['From'], [message['To']], message.as_string())
-        smtp.quit()
+    def init(self):
+        self._mua = MUA(settings.SMTP, settings.SUBJECT, settings.TO, settings.FROM)
 
     @notify.datapoint(dp="temp_1", condition="change")
     @notify.datapoint(dp="temp_2", condition="change")
@@ -55,7 +40,7 @@ class AlertFB(FunctionalBlock):
 
             # Only send e-mail if old value was inside limits
             if settings.TEMP_LIMITS[dpName][0] <= oldValue <= settings.TEMP_LIMITS[dpName][1]:
-                self._sendEmail(msg)
+                self._mua.send(msg)
 
     @notify.datapoint(dp="door_1", condition="change")
     def doorChanged(self, event):
@@ -72,4 +57,4 @@ class AlertFB(FunctionalBlock):
         if newValue == "Open" and oldValue == "Close":
             msg = "'%s' value is now %s" % (dpName, newValue)
             logger.warning("%s: %s" % (self.name, msg))
-            self._sendEmail(msg)
+            self._mua.send(msg)

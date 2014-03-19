@@ -59,6 +59,7 @@ from pknyx.stack.layer4.t_groupDataService import T_GroupDataService
 from pknyx.stack.layer3.n_groupDataService import N_GroupDataService
 from pknyx.stack.layer2.l_dataService import L_DataService
 from pknyx.stack.transceiver.udpTransceiver import UDPTransceiver
+from pknyx.stack.priority import Priority
 
 
 class StackValueError(PKNyXValueError):
@@ -119,6 +120,19 @@ class Stack(object):
         self._tc.start()
 
         time.sleep(0.25)
+
+        # Iterate over Group to find those which need to send a initial read request
+        # (depending on GroupObject init flag)
+        Logger().debug("Stack.start(): initiate a read request for Group having at least one GroupObject with 'init' flag on")
+        for group in self._agds.groups.itervalues():
+            for listener in group.listeners:
+                try:
+                    if listener.flags.init:
+                        group.read(priority=Priority())
+                        break
+                except AttributeError:
+                    Logger().exception("Stack.start(): listener does not seem to be a GroupObject", debug=True)
+
         Logger().debug("Stack.start(): running")
 
     def stop(self):

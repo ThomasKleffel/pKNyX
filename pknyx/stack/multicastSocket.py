@@ -28,6 +28,8 @@ or see:
 Module purpose
 ==============
 
+UDP Multicast support.
+
 Implements
 ==========
 
@@ -38,6 +40,8 @@ Implements
 
 Documentation
 =============
+
+See U{http://www.tldp.org/HOWTO/Multicast-HOWTO.html}
 
 Usage
 =====
@@ -67,7 +71,24 @@ class MulticastSocketBase(socket.socket):
     """ Multicast socket
     """
     def __init__(self, localAddr, localPort, ttl=32, loop=1):
-        """
+        """ Init the multicast socket base class
+
+        @ivar localAddr:
+        @type: localAddr:
+
+        @ivar localPort:
+        @param: localPort:
+
+        @ivar ttl:    0  Restricted to the same host (won't be output by any interface)
+                      1  Restricted to the same subnet (won't be forwarded by a router)
+                    <32  Restricted to the same site, organization or department
+                    <64 Restricted to the same region
+                   <128 Restricted to the same continent
+                   <255 Unrestricted in scope. Global
+        @param ttl: int
+
+        @ivar loop:
+        @param loop: int
         """
         super(MulticastSocketBase, self).__init__(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 

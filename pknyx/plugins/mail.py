@@ -33,7 +33,7 @@ Mail plugin
 Implements
 ==========
 
- - B{Mail}
+ - B{MUA}
 
 Documentation
 =============
@@ -57,36 +57,107 @@ from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 
 
-class MailValueError(PKNyXValueError):
+class MUAValueError(PKNyXValueError):
     """
     """
 
-class Mail(object):
-    """ Mail class
+class MUA(object):
+    """ Mail User Agent class
 
-    @ivar _:
-    @type _:
+    @ivar _smtp: SMTP server to use to send e-mails
+    @type _smtp: str
 
-    @todo:
-    @todo:
+    @ivar _subject: subject of e-mail
+    @type _subject: str
+
+    @ivar _to: recipient
+    @type _to: str
+
+    @ivar _from: sender
+    @type _from: str
     """
-    def __init__(self, from_, to, subject, msg=""):
+    def __init__(self, smtp="localhost", subject=None, to=None, from_=None):
+        """ create
+
+        @param smtp: SMTP server
+        @type smtp: str
+
+        @param subject: subject of e-mail
+        @type subject: str
+
+        @param to: recipient
+        @type to: str
+
+        @param from_: sender
+        @type from_: str
         """
+        super(MUA, self).__init__()
 
-        @param from_:
-        @type from_:
+        self._smtp = smtp
+
+        self._subject = subject
+        self._to = to
+        self._from = from_
+
+    def send(self, msg, subject=None, to=None, from_=None):
+        """ Send an e-mail
+
+        @param subject: subject of e-mail
+        @type subject: str
+
+        @param to: recipient
+        @type to: str
+
+        @param from_: sender
+        @type from_: str
         """
-        super(Mail, self).__init__()
+        if subject is not None:
+            self._subject = subject
+        if to is not None:
+            self._to = to
+        if from_ is not None:
+            self._from = from_
+
+        if self._to is None:
+            raise MUAValueError("subject must be specified, at least the first time")
+        if self._to is None:
+            raise MUAValueError("recipient must be specified, at least the first time")
+        if self._from is None:
+            raise MUAValueError("sender must be specified, at least the first time")
 
         # Create a text/plain message
         message = email.mime.text.MIMEText(msg)
 
-        msg['Subject'] = subject
-        msg['From'] = from_
-        msg['To'] = to
+        message['Subject'] = self._subject
+        message['From'] = self._from
+        message['To'] = self._to
 
-        # Send the message via our own SMTP server, but don't include the
-        # envelope header.
-        s = smtplib.SMTP('localhost')
-        s.sendmail(me, [you], msg.as_string())
-        s.quit()
+        # Send the message via SMTP server, but don't include the envelope header
+        smtp = smtplib.SMTP(self._smtp)
+        smtp.sendmail(message['From'], [message['To']], message.as_string())
+        smtp.quit()
+
+
+if __name__ == '__main__':
+    import unittest
+
+    # Mute logger
+    Logger().setLevel('error')
+
+
+    class MUATestCase(unittest.TestCase):
+
+        def setUp(self):
+            self.mua = MUA(smtp="localhost", subject="MUATestCase", to="pknyx@pknyx.org", from_="pknyx@pknyx.org")
+
+        def tearDown(self):
+            pass
+
+        def test_send(self):
+            self.mua.send("This is a test")
+            mua = MUA("localhost")
+            with self.assertRaises(MUAValueError):
+                mua.send("Error")
+
+
+    unittest.main()

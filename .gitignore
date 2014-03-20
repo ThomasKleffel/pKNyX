@@ -1,0 +1,6 @@
+*.pyc
+dist
+*.vpp~*
+*.vpp.*
+pKNyX.egg-info
+

@@ -6,7 +6,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013 Frédéric Mantegazza
+  - (C) 2013-2014 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ Usage
 @author: Frédéric Mantegazza
 @author: Bernhard Erb
 @author: B. Malinowsky
-@copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2013-2014 Frédéric Mantegazza
 @copyright: (C) 2005 B. Erb
 @copyright: (C) 2006, 2011 B. Malinowsky
 @license: GPL

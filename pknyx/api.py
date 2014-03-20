@@ -53,6 +53,8 @@ from pknyx.services.logger import Logger
 from pknyx.services.scheduler import Scheduler
 from pknyx.services.notifier import Notifier
 
+from pknyx.plugins.mail import MUA
+
 
 # Instanciate some global objects
 logger = Logger()

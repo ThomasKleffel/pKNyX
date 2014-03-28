@@ -124,7 +124,7 @@ class GroupObject(GroupListener):
         @param newValue: new value of the datapoint
         @type newValue: depends on the datapoint DPT
 
-        @todo: transmit a more generic object, like SignalEvent?
+        @todo: transmit a more generic object, like SignalEvent? Or a dict?
         """
         Logger().debug("GroupObject._slotChanged(): dp=%s, oldValue=%s, newValue=%s" % (self._datapoint.name, repr(oldValue), repr(newValue)))
 

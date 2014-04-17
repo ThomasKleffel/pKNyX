@@ -54,6 +54,7 @@ from pknyx.stack.flags import Flags
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.services.scheduler import Scheduler
 from pknyx.services.notifier import Notifier
+from pknyx.services.groupAddressTableMapper import GroupAddressTableMapper
 
 
 class ETSValueError(PKNyXValueError):
@@ -72,7 +73,7 @@ class ETS(object):
 
     raise ETSValueError:
     """
-    def __init__(self, stack, gadMap={}, buildingMap={}):
+    def __init__(self, stack):
         """
 
         @param stack: KNX stack object
@@ -83,8 +84,6 @@ class ETS(object):
         super(ETS, self).__init__()
 
         self._stack = stack
-        self._gadMap = gadMap
-        self._buildingMap = buildingMap
 
         self._functionalBlocks = set()
 
@@ -196,6 +195,7 @@ class ETS(object):
         output = "\n"
 
         if by == "gad":
+            gadMapTable = GroupAddressTableMapper().table
             title = "%-34s %-30s %-30s %-10s %-10s %-10s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
             output += title
             output += "\n"
@@ -205,8 +205,8 @@ class ETS(object):
             for gad in gads:
                 if gadMain != gad.main:
                     index = "%d" % gad.main
-                    if self._gadMap.has_key(index):
-                        output +=  u"%2d %-33s" % (gad.main, self._gadMap[index]['desc'].decode("utf-8"))
+                    if gadMapTable.has_key(index):
+                        output +=  u"%2d %-33s" % (gad.main, gadMapTable[index]['desc'].decode("utf-8"))
                         output += "\n"
                     else:
                         output +=  u"%2d %-33s" % (gad.main, "")
@@ -215,8 +215,8 @@ class ETS(object):
                     gadMiddle = gadSub = -1
                 if gadMiddle != gad.middle:
                     index = "%d/%d" % (gad.main, gad.middle)
-                    if self._gadMap.has_key(index):
-                        output +=  u" ├── %2d %-27s" % (gad.middle, self._gadMap[index]['desc'].decode("utf-8"))
+                    if gadMapTable.has_key(index):
+                        output +=  u" ├── %2d %-27s" % (gad.middle, gadMapTable[index]['desc'].decode("utf-8"))
                         output += "\n"
                     else:
                         output +=  u" ├── %2d %-27s" % (gad.middle, "")
@@ -225,8 +225,8 @@ class ETS(object):
                     gadSub = -1
                 if gadSub != gad.sub:
                     index = "%d/%d/%d" % (gad.main, gad.middle, gad.sub)
-                    if self._gadMap.has_key(index):
-                        output +=  u" │    ├── %3d %-21s" % (gad.sub, self._gadMap[index]['desc'].decode("utf-8"))
+                    if gadMapTable.has_key(index):
+                        output +=  u" │    ├── %3d %-21s" % (gad.sub, gadMapTable[index]['desc'].decode("utf-8"))
                     else:
                         output +=  u" │    ├── %3d %-21s" % (gad.sub, "")
                     gadSub = gad.sub

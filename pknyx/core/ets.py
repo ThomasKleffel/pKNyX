@@ -38,13 +38,6 @@ Implements
 Documentation
 =============
 
-@todo: subclass and add buildingMap/GA tree nodes (as class vars).
-
-class MOB(ETS):
-
-    BUILDINGS =
-    GADS =
-
 Usage
 =====
 
@@ -76,11 +69,6 @@ class ETS(object):
 
     @ivar _functionalBlocks: registered functional blocks
     @type _functionalBlocks: set of L{FunctionalBlocks<pknyx.core.functionalBlocks>}
-
-    @ivar _gadMap: group address map
-    @type _gadMap: dict
-
-    @ivar _buidlingMap:
 
     raise ETSValueError:
     """

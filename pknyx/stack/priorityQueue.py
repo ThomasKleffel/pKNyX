@@ -56,7 +56,7 @@ remaining 2 objects with pr. 1 and at last the remaining with pr. 2.
 
 The size of this array must be smaller by one than the number of priority steps.
 
-The array is be used internally (it is not cloned)
+The array is used internally (it is not cloned)
 
 A queue inherits threading.Condition object, so can block/notify calling threads
 
@@ -66,6 +66,8 @@ Usage
 @author: Frédéric Mantegazza
 @copyright: (C) 2013-2014 Frédéric Mantegazza
 @license: GPL
+
+@todo: use Queue.PriorityQueue?
 """
 
 __revision__ = "$Id$"

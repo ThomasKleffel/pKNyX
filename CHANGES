@@ -6,6 +6,8 @@ x bug fix
 
 0000-00-00 Version GIT
     + added GAD map table management
+    + added average and replay examples
+    x minor bugs fixes
 
 2014-03-20 Version 0.9.3 (dev)
     + added alert example

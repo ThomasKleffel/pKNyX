@@ -53,7 +53,7 @@ class ReplayFB(FunctionalBlock):
 
         #logger.debug("%s: self._sequence=%s" % (self.name, self._sequence))
 
-    @schedule.every(second=1)
+    @schedule.every(seconds=1)
     def processQueue(self):
         """ Process queue
 

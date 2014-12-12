@@ -81,8 +81,7 @@ class DPTXlator3BitControl(DPTXlatorBase):
     def __init__(self, dptId):
         super(DPTXlator3BitControl, self).__init__(dptId, 0)
 
-        mainId, subId = dptId.split('.')
-        dptId_ = "1.%s" % subId
+        dptId_ = "1.%s" % dptId.sub
         self._dpt2 = DPTXlatorBoolean(dptId_)
 
     def checkData(self, data):

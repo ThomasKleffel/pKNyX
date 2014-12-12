@@ -6,7 +6,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013 Frédéric Mantegazza
+  - (C) 2013-2014 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -38,18 +38,11 @@ Implements
 Documentation
 =============
 
-@todo: subclass and add buildingMap/GA tree nodes (as class vars).
-
-class MOB(ETS):
-
-    BUILDINGS =
-    GADS =
-
 Usage
 =====
 
 @author: Frédéric Mantegazza
-@copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2013-2014 Frédéric Mantegazza
 @license: GPL
 """
 
@@ -61,6 +54,7 @@ from pknyx.stack.flags import Flags
 from pknyx.stack.groupAddress import GroupAddress
 from pknyx.services.scheduler import Scheduler
 from pknyx.services.notifier import Notifier
+from pknyx.services.groupAddressTableMapper import GroupAddressTableMapper
 
 
 class ETSValueError(PKNyXValueError):
@@ -77,14 +71,9 @@ class ETS(object):
     @ivar _functionalBlocks: registered functional blocks
     @type _functionalBlocks: set of L{FunctionalBlocks<pknyx.core.functionalBlocks>}
 
-    @ivar _gadMap: group address map
-    @type _gadMap: dict
-
-    @ivar _buidlingMap:
-
     raise ETSValueError:
     """
-    def __init__(self, stack, gadMap={}, buildingMap={}):
+    def __init__(self, stack):
         """
 
         @param stack: KNX stack object
@@ -95,8 +84,6 @@ class ETS(object):
         super(ETS, self).__init__()
 
         self._stack = stack
-        self._gadMap = gadMap
-        self._buildingMap = buildingMap
 
         self._functionalBlocks = set()
 
@@ -208,6 +195,7 @@ class ETS(object):
         output = "\n"
 
         if by == "gad":
+            gadMapTable = GroupAddressTableMapper().table
             title = "%-34s %-30s %-30s %-10s %-10s %-10s" % ("GAD", "Datapoint", "Functional block", "DPTID", "Flags", "Priority")
             output += title
             output += "\n"
@@ -216,9 +204,9 @@ class ETS(object):
             gadMain = gadMiddle = gadSub = -1
             for gad in gads:
                 if gadMain != gad.main:
-                    index = "%d" % gad.main
-                    if self._gadMap.has_key(index):
-                        output +=  u"%2d %-33s" % (gad.main, self._gadMap[index]['desc'].decode("utf-8"))
+                    index = "%d/-/-" % gad.main
+                    if gadMapTable.has_key(index):
+                        output +=  u"%2d %-33s" % (gad.main, gadMapTable[index]['desc'].decode("utf-8"))
                         output += "\n"
                     else:
                         output +=  u"%2d %-33s" % (gad.main, "")
@@ -226,9 +214,9 @@ class ETS(object):
                     gadMain = gad.main
                     gadMiddle = gadSub = -1
                 if gadMiddle != gad.middle:
-                    index = "%d/%d" % (gad.main, gad.middle)
-                    if self._gadMap.has_key(index):
-                        output +=  u" ├── %2d %-27s" % (gad.middle, self._gadMap[index]['desc'].decode("utf-8"))
+                    index = "%d/%d/-" % (gad.main, gad.middle)
+                    if gadMapTable.has_key(index):
+                        output +=  u" ├── %2d %-27s" % (gad.middle, gadMapTable[index]['desc'].decode("utf-8"))
                         output += "\n"
                     else:
                         output +=  u" ├── %2d %-27s" % (gad.middle, "")
@@ -237,8 +225,8 @@ class ETS(object):
                     gadSub = -1
                 if gadSub != gad.sub:
                     index = "%d/%d/%d" % (gad.main, gad.middle, gad.sub)
-                    if self._gadMap.has_key(index):
-                        output +=  u" │    ├── %3d %-21s" % (gad.sub, self._gadMap[index]['desc'].decode("utf-8"))
+                    if gadMapTable.has_key(index):
+                        output +=  u" │    ├── %3d %-21s" % (gad.sub, gadMapTable[index]['desc'].decode("utf-8"))
                     else:
                         output +=  u" │    ├── %3d %-21s" % (gad.sub, "")
                     gadSub = gad.sub

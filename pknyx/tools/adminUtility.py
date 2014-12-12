@@ -6,7 +6,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013 Frédéric Mantegazza
+  - (C) 2013-2014 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ Usage
 Should be used from an executable script. See scripts/pknyx-admin.py.
 
 @author: Frédéric Mantegazza
-@copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2013-2014 Frédéric Mantegazza
 @license: GPL
 """
 
@@ -143,14 +143,14 @@ class AdminUtility(object):
         """
         """
         self._checkConfig(args)
-        runner = DeviceRunner(args.loggerLevel, args.devicePath, args.mapPath)
+        runner = DeviceRunner(args.loggerLevel, args.devicePath, args.gadMapPath)
         runner.check(args.printGroat)
 
     def _runDevice(self, args):
         """
         """
         self._checkConfig(args)
-        runner = DeviceRunner(args.loggerLevel, args.devicePath, args.mapPath)
+        runner = DeviceRunner(args.loggerLevel, args.devicePath, args.gadMapPath)
         runner.run(args.detach)
 
     def execute(self):
@@ -181,8 +181,8 @@ class AdminUtility(object):
                                       help="override logger level")
         loadDeviceParser.add_argument("-p", "--path", action="store", type=str, dest="devicePath", default=os.path.expandvars("$PKNYX_DEVICE_PATH"),
                                       help="set/override $PKNYX_DEVICE_PATH var")
-        loadDeviceParser.add_argument("-m", "--map", action="store", type=str, dest="mapPath", default=os.path.expandvars("$PKNYX_MAP_PATH"),
-                                      help="set/override $PKNYX_MAP_PATH var")
+        loadDeviceParser.add_argument("-m", "--map", action="store", type=str, dest="gadMapPath", default=os.path.expandvars("$PKNYX_GAD_MAP_PATH"),
+                                      help="set/override $PKNYX_GAD_MAP_PATH var")
 
         # Check device parser
         checkDeviceParser = subparsers.add_parser("checkdevice",

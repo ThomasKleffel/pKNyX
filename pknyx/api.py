@@ -6,7 +6,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013 Frédéric Mantegazza
+  - (C) 2013-2014 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ Usage
 =====
 
 @author: Frédéric Mantegazza
-@copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2013-2014 Frédéric Mantegazza
 @license: GPL
 """
 
@@ -52,6 +52,8 @@ from pknyx.core.functionalBlock import FunctionalBlock
 from pknyx.services.logger import Logger
 from pknyx.services.scheduler import Scheduler
 from pknyx.services.notifier import Notifier
+
+from pknyx.plugins.mail import MUA
 
 
 # Instanciate some global objects

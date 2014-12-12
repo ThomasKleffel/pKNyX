@@ -6,7 +6,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013 Frédéric Mantegazza
+  - (C) 2013-2014 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ Usage
 =====
 
 @author: Frédéric Mantegazza
-@copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2013-2014 Frédéric Mantegazza
 @license: GPL
 """
 
@@ -124,7 +124,7 @@ class GroupObject(GroupListener):
         @param newValue: new value of the datapoint
         @type newValue: depends on the datapoint DPT
 
-        @todo: transmit a more generic object, like SignalEvent?
+        @todo: transmit a more generic object, like SignalEvent? Or a dict?
         """
         Logger().debug("GroupObject._slotChanged(): dp=%s, oldValue=%s, newValue=%s" % (self._datapoint.name, repr(oldValue), repr(newValue)))
 

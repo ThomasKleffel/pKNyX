@@ -4,12 +4,21 @@ CHANGES
 - change
 x bug fix
 
-0000-00-00 Version SVN
+0000-00-00 Version GIT
+    + added GAD map table management
+    + added average and replay examples
+    x minor bugs fixes
+
+2014-03-20 Version 0.9.3 (dev)
+    + added alert example
+    + added MUA plugin for e-mail management
+    + initiate read request when launching stack (if needed, according to GroupObject 'init' Flags)
     + added a DeviceRunner to manage device
     + added GAD map management
     - Device uses init()/shutdown instead of _init()/_shutdown()
     - FunctionalBlock uses init() instead of _init()
     - device template simplified
+    x several bugs fixes
 
 2013-08-22 Version 0.9.2 (dev)
     + added Device class

@@ -7,7 +7,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013 Frédéric Mantegazza
+  - (C) 2013-2014 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ Usage
 pknyx-group.py --help
 
 @author: Frédéric Mantegazza
-@copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2013-2014 Frédéric Mantegazza
 @license: GPL
 """
 
@@ -58,15 +58,18 @@ __revision__ = "$Id$"
 
 import sys
 import time
+import os.path
 import argparse
 import threading
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
+from pknyx.services.groupAddressTableMapper import GroupAddressTableMapper
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.groupListener import GroupListener
 from pknyx.core.groupMonitorListener import GroupMonitorListener
 from pknyx.stack.stack import Stack
+from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
 from pknyx.stack.priority import Priority
 
 
@@ -311,6 +314,8 @@ def main():
                         choices=["trace", "debug", "info", "warning", "error", "exception", "critical"],
                         action="store", dest="loggerLevel", default="info", metavar="LEVEL",
                         help="logger level")
+    parser.add_argument("-m", "--map", action="store", type=str, dest="gadMapPath", default=os.path.expandvars("$PKNYX_GAD_MAP_PATH"),
+                        help="set/override $PKNYX_GAD_MAP_PATH var")
     parser.add_argument("-s", "--srcAddr", action="store", type=str, dest="src",
                         help="source address to use")
 
@@ -369,9 +374,18 @@ def main():
 
     Logger(level=args.loggerLevel)
 
+    # If given GAD is a nick name, try to retreive real GAD from map table
+    try:
+        GroupAddress(args.gad)
+    except GroupAddressValueError:
+        mapper = GroupAddressTableMapper()
+        mapper.loadFrom(args.gadMapPath)
+        args.gad = mapper.toGad(args.gad)
+
     options = dict(vars(args))
     options.pop("func")
     options.pop("loggerLevel")
+    options.pop("gadMapPath")
     if args.src is None:
         options.pop("src")
     args.func(**options)

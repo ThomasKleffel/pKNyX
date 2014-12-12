@@ -6,7 +6,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013 Frédéric Mantegazza
+  - (C) 2013-2014 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ Usage
 Should be used from an executable script. See scripts/pknyx-admin.py.
 
 @author: Frédéric Mantegazza
-@copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2013-2014 Frédéric Mantegazza
 @license: GPL
 """
 
@@ -62,18 +62,11 @@ from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 from pknyx.services.scheduler import Scheduler
+from pknyx.services.groupAddressTableMapper import GroupAddressTableMapper
 from pknyx.core.ets import ETS
 from pknyx.stack.stack import Stack
 from pknyx.stack.individualAddress import IndividualAddress
-
-GAD_MAP = {"1": dict(name="light", desc="Lights"),
-           "1/1": dict(name="light_cmd", desc="Commands"),
-           "1/1/1": dict(name="light_cmd_test", desc="Test"),
-           "1/2": dict(name="light_state", desc="States"),
-           "1/2/1": dict(name="light_state_test", desc="Test"),
-           "1/3": dict(name="light_delay", desc="Delays"),
-           "1/3/1": dict(name="light_delay_test", desc="Test"),
-          }
+from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
 
 
 class DeviceRunnerValueError(PKNyXValueError):
@@ -84,7 +77,7 @@ class DeviceRunnerValueError(PKNyXValueError):
 class DeviceRunner(object):
     """
     """
-    def __init__(self, loggerLevel, devicePath, mapPath):
+    def __init__(self, loggerLevel, devicePath, gadMapPath):
         """
         """
         super(DeviceRunner, self).__init__()
@@ -95,10 +88,10 @@ class DeviceRunner(object):
         from settings import DEVICE_NAME, DEVICE_IND_ADDR
 
         # Init the logger
-        # DO NOT USE LOGGER BEFORE THIS POINT!
         if loggerLevel is not None:
             config.LOGGER_LEVEL = loggerLevel
 
+        # DO NOT USE LOGGER BEFORE THIS POINT!
         Logger("%s-%s" % (DEVICE_NAME, DEVICE_IND_ADDR), config.LOGGER_LEVEL)
         Logger().info("Logger level is '%s'" % config.LOGGER_LEVEL)
 
@@ -113,29 +106,13 @@ class DeviceRunner(object):
         else:
             Logger().info("Device Individual Address is '%s'" % DEVICE_IND_ADDR)
 
-        # Retreive 'map' module
-        GAD_MAP = {}
-        if mapPath != "$PKNYX_MAP_PATH":
-            if os.path.exists(mapPath):
-
-                # Load 'map' module from mapPath
-                try:
-                    fp, pathname, description = imp.find_module('map', mapPath)
-                except ImportError:
-                    Logger().critical("Can't find 'map' module in %s" % mapPath)
-                    sys.exit(1)
-                try:
-                    mapModule = imp.load_module("map", fp, pathname, description)
-                finally:
-                    if fp:
-                        fp.close()
-                GAD_MAP = mapModule.GAD_MAP
-            else:
-                Logger().warning("Specified map path does not exists (%s)" % mapPath)
+        # Load GAD map table
+        mapper = GroupAddressTableMapper()
+        mapper.loadFrom(gadMapPath)
 
         # Create KNX stack
         self._stack = Stack(DEVICE_IND_ADDR)
-        self._ets = ETS(self._stack, gadMap=GAD_MAP)
+        self._ets = ETS(self._stack)
 
     def check(self, printGroat=False):
         """

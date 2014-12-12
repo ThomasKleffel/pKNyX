@@ -6,7 +6,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013 Frédéric Mantegazza
+  - (C) 2013-2014 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ Usage
 <DPTID("1.xxx")>
 
 @author: Frédéric Mantegazza
-@copyright: (C) 2013 Frédéric Mantegazza
+@copyright: (C) 2013-2014 Frédéric Mantegazza
 @license: GPL
 """
 
@@ -88,7 +88,7 @@ class Datapoint(object):
     @ivar _name: name of the Datapoint
     @type _name: str
 
-    @ivar _access: access to Datapoint, in ('input', 'output', 'param') -> set possible GroupObject flags
+    @ivar _access: access to Datapoint, in ('input', 'output', 'param') -> restrict read/write value?
                    - input:
                    - output:
                    - param:
@@ -223,6 +223,7 @@ class Datapoint(object):
         self._dptXlator.checkValue(value)
         data = self._dptXlator.valueToData(value)
         self._setData(data)
+        # @todo: check access
 
     @value.setter
     def value(self, value):
@@ -230,6 +231,7 @@ class Datapoint(object):
         self._dptXlator.checkValue(value)
         data = self._dptXlator.valueToData(value)
         self._setData(data)
+        # @todo: check access
 
         # Notify associated GroupObject (if any)
         self._signalChanged.emit(oldValue, self.value)

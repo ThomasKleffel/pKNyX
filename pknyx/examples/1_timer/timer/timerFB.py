@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from pknyx.api import FunctionalBlock
 from pknyx.api import logger, schedule, notify
 

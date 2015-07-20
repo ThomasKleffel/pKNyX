@@ -55,7 +55,7 @@ from pknyx.common import config
 
 
 setup(name=config.APP_NAME,
-      version="%s-%d" % (config.VERSION, config.VERSION_PACKAGE),
+      version="%s.pkg%d" % (config.VERSION, config.VERSION_PACKAGE),
 
       description="Python KNX framework",
       long_description=open('README').read(),

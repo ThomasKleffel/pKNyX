@@ -72,8 +72,7 @@ __revision__ = "$Id$"
 
 import traceback
 
-import apscheduler.events
-import apscheduler.schedulers.background
+import apscheduler.scheduler
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.singleton import Singleton
@@ -114,8 +113,8 @@ class Scheduler(object):
 
         self._pendingFuncs = []
 
-        self._apscheduler = apscheduler.schedulers.background.BackgroundScheduler()
-        self._apscheduler.add_listener(self._listener, mask=(apscheduler.events.EVENT_JOB_ERROR|apscheduler.events.EVENT_JOB_MISSED))
+        self._apscheduler = apscheduler.scheduler.Scheduler()
+        self._apscheduler.add_listener(self._listener, mask=(apscheduler.scheduler.EVENT_JOB_ERROR|apscheduler.scheduler.EVENT_JOB_MISSED))
 
         if autoStart:
             scheduler.start()
@@ -161,7 +160,7 @@ class Scheduler(object):
         @type kwargs: dict
         """
         Logger().debug("Scheduler.addEveryJob(): func=%s" % repr(func))
-        self._apscheduler.add_job(func, trigger="interval", **kwargs)
+        self._apscheduler.add_interval_job(func, **kwargs)
 
     def at(self, **kwargs):
         """ Decorator for addAtJob()
@@ -184,7 +183,7 @@ class Scheduler(object):
         @type func: callable
         """
         Logger().debug("Scheduler.addAtJob(): func=%s" % repr(func))
-        self._apscheduler.add_job(func, trigger="date", **kwargs)
+        self._apscheduler.add_date_job(func, **kwargs)
 
     def cron(self, **kwargs):
         """ Decorator for addCronJob()
@@ -207,7 +206,7 @@ class Scheduler(object):
         @type func: callable
         """
         Logger().debug("Scheduler.addCronJob(): func=%s" % repr(func))
-        self._apscheduler.add_job(func, trigger="cron", **kwargs)
+        self._apscheduler.add_cron_job(func, **kwargs)
 
     def doRegisterJobs(self, obj):
         """ Really register jobs in APScheduler
@@ -224,11 +223,11 @@ class Scheduler(object):
                 Logger().debug("Scheduler.doRegisterJobs(): add method %s() of %s" % (method.im_func.func_name, method.im_self))
                 if method.im_func is func:
                     if type_ == Scheduler.TYPE_EVERY:
-                        self._apscheduler.add_job(method, trigger="interval", **kwargs)
+                        self._apscheduler.add_interval_job(method, **kwargs)
                     elif type_ == Scheduler.TYPE_AT:
-                        self._apscheduler.add_job(method, trigger="date", **kwargs)
+                        self._apscheduler.add_date_job(method, **kwargs)
                     elif type_ == Scheduler.TYPE_CRON:
-                        self._apscheduler.add_job(method, trigger="cron", **kwargs)
+                        self._apscheduler.add_cron_job(method, **kwargs)
 
     def printJobs(self):
         """ Print pending jobs

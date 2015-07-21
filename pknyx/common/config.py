@@ -41,14 +41,9 @@ import sys
 import os.path
 
 
-# Name and version
+# Name
 APP_NAME = "pKNyX"
-VERSION_MAJOR = 0
-VERSION_MINOR = 9  # Odd means dev. release
-VERSION_UPDATE = 3
-VERSION_PACKAGE = 1
-VERSION = "%d.%d.%d" % (VERSION_MAJOR, VERSION_MINOR, VERSION_UPDATE)
-#VERSION = "rxxx"
+APP_VERSION = "0.9post3"
 
 # Paths
 HOME_DIR = os.path.expanduser("~")

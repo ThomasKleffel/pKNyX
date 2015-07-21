@@ -1,5 +1,7 @@
 *.pyc
 dist
+pKNyX.egg-info
+*.wpu
 *.vpp~*
 *.vpp.*
 pKNyX.egg-info

@@ -6,7 +6,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013-2014 Frédéric Mantegazza
+  - (C) 2013-2015 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ Usage
 =====
 
 @author: Frédéric Mantegazza
-@copyright: (C) 2013-2014 Frédéric Mantegazza
+@copyright: (C) 2013-2015 Frédéric Mantegazza
 @license: GPL
 """
 
@@ -55,7 +55,7 @@ from pknyx.common import config
 
 
 setup(name=config.APP_NAME,
-      version="%s-%d" % (config.VERSION, config.VERSION_PACKAGE),
+      version="%s.pkg%d" % (config.VERSION, config.VERSION_PACKAGE),
 
       description="Python KNX framework",
       long_description=open('README').read(),
@@ -92,6 +92,6 @@ setup(name=config.APP_NAME,
       scripts=["pknyx/scripts/pknyx-group.py",
                "pknyx/scripts/pknyx-admin.py"],
 
-      install_requires=["APScheduler",
+      install_requires=["APScheduler == 2.1.2",
                         "argparse"],
 )

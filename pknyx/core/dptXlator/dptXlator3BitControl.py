@@ -6,7 +6,7 @@ License
 =======
 
  - B{pKNyX} (U{http://www.pknyx.org}) is Copyright:
-  - (C) 2013-2014 Frédéric Mantegazza
+  - (C) 2013-2015 Frédéric Mantegazza
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ see L{DPTXlatorBoolean}
 
 @author: Frédéric Mantegazza
 @author: B. Malinowsky
-@copyright: (C) 2013-2014 Frédéric Mantegazza
+@copyright: (C) 2013-2015 Frédéric Mantegazza
 @copyright: (C) 2006, 2011 B. Malinowsky
 @license: GPL
 """
@@ -81,8 +81,7 @@ class DPTXlator3BitControl(DPTXlatorBase):
     def __init__(self, dptId):
         super(DPTXlator3BitControl, self).__init__(dptId, 0)
 
-        mainId, subId = dptId.split('.')
-        dptId_ = "1.%s" % subId
+        dptId_ = "1.%s" % dptId.sub
         self._dpt2 = DPTXlatorBoolean(dptId_)
 
     def checkData(self, data):

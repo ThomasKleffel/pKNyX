@@ -56,7 +56,4 @@ else:
 
 # Logger
 LOGGER_STREAM_FORMAT = "%(threadName)s::%(message)s"
-LOGGER_FILE_FORMAT = "%(asctime)s::%(threadName)s::%(levelname)s::%(message)s"
-LOGGER_FILE_WHEN = "midnight"
-LOGGER_FILE_COUNT = 0
 LOGGER_LEVEL = "debug"

@@ -75,12 +75,8 @@ class Logger(object):
     """
     __metaclass__ = Singleton
 
-    def __init__(self, name=None, level=config.LOGGER_LEVEL):
+    def __init__(self, level=config.LOGGER_LEVEL):
         """ Init object.
-
-        @param name: name of the file used by the file handler
-                     Use None to disable file handler output
-        @type name: str
 
         @param level: initial logger level
         @type level: str
@@ -102,17 +98,6 @@ class Logger(object):
         streamFormatter = SpaceColorFormatter(config.LOGGER_STREAM_FORMAT)
         self._stdoutStreamHandler.setFormatter(streamFormatter)
         self._logger.addHandler(self._stdoutStreamHandler)
-
-        if name is not None:
-            LOGGER_FILENAME = "%s_%s%slog" % (config.APP_NAME.lower(), name, os.path.extsep)
-            loggerFilename = os.path.join(config.TMP_DIR, LOGGER_FILENAME)
-            fileHandler = logging.handlers.TimedRotatingFileHandler(filename=loggerFilename,
-                                                                    when=config.LOGGER_FILE_WHEN,
-                                                                    backupCount=config.LOGGER_FILE_COUNT)
-            fileFormatter = SpaceFormatter(config.LOGGER_FILE_FORMAT)
-            fileHandler.setFormatter(fileFormatter)
-            self._logger.addHandler(fileHandler)
-            self.debug("Logger.__init__(): loggerFilename='%s'" % loggerFilename)
 
         self.setLevel(level)
 

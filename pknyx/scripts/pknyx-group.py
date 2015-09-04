@@ -381,6 +381,8 @@ def main():
         mapper = GroupAddressTableMapper()
         mapper.loadFrom(args.gadMapPath)
         args.gad = mapper.toGad(args.gad)
+    except AttributeError:
+        pass
 
     options = dict(vars(args))
     options.pop("func")

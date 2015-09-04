@@ -43,7 +43,7 @@ import os.path
 
 # Name
 APP_NAME = "pKNyX"
-APP_VERSION = "0.9post3"
+APP_VERSION = "0.9.post3"
 
 # Paths
 HOME_DIR = os.path.expanduser("~")

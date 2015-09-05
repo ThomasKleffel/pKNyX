@@ -92,10 +92,7 @@ class DeviceRunner(object):
             config.LOGGER_LEVEL = loggerLevel
 
         # DO NOT USE LOGGER BEFORE THIS POINT!
-        if DEVICE_NAME is not None:
-            Logger("%s-%s" % (DEVICE_NAME, DEVICE_IND_ADDR), config.LOGGER_LEVEL)
-        else:
-            Logger(None, config.LOGGER_LEVEL)
+        Logger(config.LOGGER_LEVEL)
         Logger().info("Logger level is '%s'" % config.LOGGER_LEVEL)
 
         Logger().info("Device path is '%s'" % devicePath)

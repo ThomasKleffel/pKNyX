@@ -43,17 +43,12 @@ import os.path
 
 # Name
 APP_NAME = "pKNyX"
-APP_VERSION = "0.9.post3"
-
-# Paths
-HOME_DIR = os.path.expanduser("~")
-if sys.platform == 'win32':
-    DATA_STORAGE_DIR = HOME_DIR  # Find a way to retreive the "My Documents" dir in all languages
-    TMP_DIR = os.path.expandvars("$TEMP")
-else:
-    DATA_STORAGE_DIR = HOME_DIR
-    TMP_DIR = "/tmp"
+APP_VERSION = "0.9post3"
 
 # Logger
 LOGGER_STREAM_FORMAT = "%(threadName)s::%(message)s"
-LOGGER_LEVEL = "debug"
+LOGGER_FILE_FORMAT = "%(asctime)s::%(threadName)s::%(levelname)s::%(message)s"
+LOGGER_LEVEL = "info"
+LOGGER_DIR = "/tmp"
+LOGGER_MAX_BYTES = 4096 * 1024
+LOGGER_BACKUP_COUNT = 4  # set to 0 to disable logging on file

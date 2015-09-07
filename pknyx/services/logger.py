@@ -75,11 +75,11 @@ class Logger(object):
     """
     __metaclass__ = Singleton
 
-    def __init__(self, level=config.LOGGER_LEVEL):
+    def __init__(self, deviceName):
         """ Init object.
 
-        @param level: initial logger level
-        @type level: str
+        @param deviceName: name of the file used by the file handler
+        @type deviceName: str
         """
         super(Logger, self).__init__()
 
@@ -99,7 +99,16 @@ class Logger(object):
         self._stdoutStreamHandler.setFormatter(streamFormatter)
         self._logger.addHandler(self._stdoutStreamHandler)
 
-        self.setLevel(level)
+        if config.LOGGER_BACKUP_COUNT:
+            loggerFilename = os.path.join(config.LOGGER_DIR, "%s_%s.log" % (config.APP_NAME, deviceName))
+            fileHandler = logging.handlers.RotatingFileHandler(loggerFilename, 'w',
+                                                               config.LOGGER_MAX_BYTES,
+                                                               config.LOGGER_BACKUP_COUNT)
+            fileFormatter = SpaceFormatter(config.LOGGER_FILE_FORMAT)
+            fileHandler.setFormatter(fileFormatter)
+            self._logger.addHandler(fileHandler)
+
+        self.setLevel(config.LOGGER_LEVEL)
 
     def addStreamHandler(self, stream, formatter=DefaultFormatter):
         """ Add a new stream handler.

@@ -54,6 +54,7 @@ Should be used from an executable script. See scripts/pknyx-admin.py.
 
 __revision__ = "$Id$"
 
+import os
 import os.path
 import imp
 import sys
@@ -67,6 +68,16 @@ from pknyx.core.ets import ETS
 from pknyx.stack.stack import Stack
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
+
+
+class _NullDevice:
+    """ A substitute for stdout/stderr that writes to nowhere.
+    """
+    def write(self, s):
+        pass
+
+    def flush(self):
+        pass
 
 
 class DeviceRunnerValueError(PKNyXValueError):
@@ -114,6 +125,32 @@ class DeviceRunner(object):
         self._stack = Stack(DEVICE_IND_ADDR)
         self._ets = ETS(self._stack)
 
+    def _doubleFork(self):
+        """ Double fork.
+        """
+        if os.fork() != 0:  # launch child and ...
+            os._exit(0)     # kill off parent
+        os.setsid()
+        os.chdir("/")
+        os.umask(0)
+        if os.fork() != 0:  # fork again so we are not a session leader
+            os._exit(0)
+
+        # Close stdxxx
+        sys.stdin.close()
+        sys.__stdin__ = sys.stdin
+        sys.stdout.close()
+        sys.stdout = sys.__stdout__ = _NullDevice()
+        sys.stderr.close()
+        sys.stderr = sys.__stderr__ = _NullDevice()
+
+        # ??? does not work if enable
+        #for fd in xrange(4, 1024):
+            #try:
+                #os.close(fd)
+            #except OSError:
+                #pass
+
     def check(self, printGroat=False):
         """
         """
@@ -138,7 +175,9 @@ class DeviceRunner(object):
 
         self.check()
 
-        Logger().info("Detaching is '%s'" % detach)
+        if dameon:
+            Logger().info("Run process as daemon...")
+            self._doubleFork()
 
         Scheduler().start()
         self._stack.mainLoop()  # blocking call

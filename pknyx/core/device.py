@@ -54,6 +54,8 @@ from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
 
+import time
+
 
 class DeviceValueError(PKNyXValueError):
     """
@@ -72,6 +74,14 @@ class Device(object):
         """ Additionnal user init
         """
         pass
+
+    def mainLoop(self):
+        """ Main loop of the device
+
+        Can be overriden to launch servers or so.
+        """
+        while True:
+            time.sleep(0.1)
 
     def shutdown(self):
         """ Additionnal user shutdown

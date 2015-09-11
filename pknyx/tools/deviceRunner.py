@@ -180,10 +180,17 @@ class DeviceRunner(object):
             self._doubleFork()
 
         Scheduler().start()
-        self._stack.mainLoop()  # blocking call
-        Scheduler().stop()
-
-        self._device.shutdown()
+        self._stack.start()
+        try:
+            self._device.mainLoop()
+        except KeyboardInterrupt:
+            Logger().warning("Device execution canceled (SIGTERM)")
+        except:
+            Logger().exception("deviceRunner.run()")
+        finally:
+            self._stack.stop()
+            Scheduler().stop()
+            self._device.shutdown()
 
 
 if __name__ == '__main__':

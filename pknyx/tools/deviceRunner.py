@@ -131,7 +131,7 @@ class DeviceRunner(object):
 
         self._device.init()
 
-    def run(self, detach):
+    def run(self, dameon=False):
         """
         """
         Logger().trace("Device.run()")

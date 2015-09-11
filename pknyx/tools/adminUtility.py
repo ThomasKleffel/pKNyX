@@ -150,7 +150,7 @@ class AdminUtility(object):
         """
         self._checkConfig(args)
         runner = DeviceRunner(args.loggerLevel, args.devicePath, args.gadMapPath)
-        runner.run(args.detach)
+        runner.run(args.daemon)
 
     def execute(self):
 
@@ -195,8 +195,8 @@ class AdminUtility(object):
         runDeviceParser = subparsers.add_parser("rundevice",
                                                 parents=[loadDeviceParser],
                                                 help="run device")
-        runDeviceParser.add_argument("-d", "--detach", action="store_true", default=False,
-                                     help="detach the process (run in background)")
+        runDeviceParser.add_argument("-d", "--daemon", action="store_true", default=False,
+                                     help="run process as daemon")
         runDeviceParser.set_defaults(func=self._runDevice)
 
         # Parse args

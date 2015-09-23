@@ -75,7 +75,7 @@ class Logger(object):
     """
     __metaclass__ = Singleton
 
-    def __init__(self, deviceName):
+    def __init__(self, deviceName=None):
         """ Init object.
 
         @param deviceName: name of the file used by the file handler
@@ -137,8 +137,9 @@ class Logger(object):
 
         if self._logger.level >= logging.INFO:
             streamFormatter = SpaceColorFormatter("")
-            self._stdoutStreamHandler.setFormatter(streamFormatter)
-
+        else:
+            streamFormatter = SpaceColorFormatter(config.LOGGER_STREAM_FORMAT)
+        self._stdoutStreamHandler.setFormatter(streamFormatter)
 
     def trace(self, message, *args, **kwargs):
         """ Logs a message with level TRACE.

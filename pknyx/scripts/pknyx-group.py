@@ -372,7 +372,7 @@ def main():
     # Parse
     args = parser.parse_args()
 
-    Logger(level=args.loggerLevel)
+    Logger().setLevel(args.loggerLevel)
 
     # If given GAD is a nick name, try to retreive real GAD from map table
     try:

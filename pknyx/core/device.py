@@ -81,7 +81,7 @@ class Device(object):
         Can be overriden to launch servers or so.
         """
         while True:
-            time.sleep(0.1)
+            time.sleep(0.001)
 
     def shutdown(self):
         """ Additionnal user shutdown

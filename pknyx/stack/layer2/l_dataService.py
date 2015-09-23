@@ -49,6 +49,7 @@ Usage
 
 __revision__ = "$Id$"
 
+import time
 import threading
 
 from pknyx.common.exception import PKNyXValueError
@@ -138,7 +139,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inheri
         self._inQueue.acquire()
         try:
             self._inQueue.add(cEMI, priority)
-            self._inQueue.notify()
+            #self._inQueue.notify()
         finally:
             self._inQueue.release()
 
@@ -202,17 +203,19 @@ class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inheri
                 cEMI = None
 
                 # Test inQueue for frames to handle, else go sleeping
-                self._inQueue.acquire()
-                try:
-                    while cEMI is None and self._running:
-                        self._inQueue.wait()
+                while  cEMI is None and self._running:
+                    self._inQueue.acquire()
+                    try:
                         cEMI = self._inQueue.remove()
-                        Logger().debug("L_DataService.run(): cEMI=%s" % cEMI)
-                finally:
-                    self._inQueue.release()
+                        if cEMI is None:
+                            time.sleep(0.001)
+                        else:
+                            Logger().debug("L_DataService.run(): cEMI=%s" % cEMI)
+                    finally:
+                        self._inQueue.release()
 
                 # Handle cEMI message
-                if cEMI is not None:
+                if cEMI is not None:  # not needed anymore
                     srcAddr = cEMI.sourceAddress
                     if srcAddr != self._individualAddress:  # Avoid loop
                         if cEMI.messageCode == CEMILData.MC_LDATA_IND:  #in (CEMILData.MC_LDATA_CON, CEMILData.MC_LDATA_IND):

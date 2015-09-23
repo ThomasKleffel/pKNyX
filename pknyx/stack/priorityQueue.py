@@ -132,6 +132,8 @@ class PriorityQueue(object):
         """
         self._queue[priority.level].append(obj)
 
+        #Logger().debug("PriorityQueue.add(): _queue=%s" % repr(self._queue))
+
     def remove(self):
         """ Removes and returns the next element from this queue
 
@@ -149,6 +151,8 @@ class PriorityQueue(object):
             if len(self._queue[i]):
                 return self._queue[i].pop(0)
             i -= 1
+
+        #Logger().debug("PriorityQueue.remove(): _queue=%s" % repr(self._queue))
 
         return None
 

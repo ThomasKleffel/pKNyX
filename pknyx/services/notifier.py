@@ -85,6 +85,9 @@ Idem for scheduler.
 
 __revision__ = "$Id$"
 
+
+import thread
+
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.utils import reprStr
 from pknyx.common.singleton import Singleton
@@ -120,7 +123,7 @@ class Notifier(object):
         self._datapointJobs = {}
         #self._groupJobs = {}
 
-    def addDatapointJob(self, func, dp, condition="change"):
+    def addDatapointJob(self, func, dp, condition="change", thread=False):
         """ Add a job for a datapoint change
 
         @param func: job to register
@@ -131,23 +134,26 @@ class Notifier(object):
 
         @param condition: watching condition, in ("change", "always")
         @type condition: str
+
+        @param thread: flag to execute job in a thread
+        @type thread: bool
         """
         Logger().debug("Notifier.addDatapointJob(): func=%s, dp=%s" % (repr(func), repr(dp)))
 
         if condition not in ("change", "always"):
             raise NotifierValueError("invalid condition (%s)" % repr(condition))
 
-        self._pendingFuncs.append(("datapoint", func, (dp, condition)))
+        self._pendingFuncs.append(("datapoint", func, (dp, condition, thread)))
 
-    def datapoint(self, **kwargs):
+    def datapoint(self, dp, *args, **kwargs):
         """ Decorator for addDatapointJob()
         """
-        Logger().debug("Notifier.datapoint(): kwargs=%s" % repr(kwargs))
+        Logger().debug("Notifier.datapoint(): dp=%s, args=%s, kwargs=%s" % (repr(dp), repr(args), repr(kwargs)))
 
         def decorated(func):
             """ We don't wrap the decorated function!
             """
-            self.addDatapointJob(func, **kwargs)
+            self.addDatapointJob(func, dp, *args, **kwargs)
 
             return func
 
@@ -195,11 +201,11 @@ class Notifier(object):
                 Logger().debug("Notifier.doRegisterJobs(): add method %s() of %s" % (method.im_func.func_name, method.im_self))
                 if method.im_func is func:
                     if type_ == "datapoint":
-                        dp, condition = args
+                        dp, condition, thread = args
                         try:
-                            self._datapointJobs[dp].append((method, condition))
+                            self._datapointJobs[dp].append((method, condition, thread))
                         except KeyError:
-                            self._datapointJobs[dp] = [(method, condition)]
+                            self._datapointJobs[dp] = [(method, condition, thread)]
                     #elif type_ == "group":
                         #gad = args
                         #try:
@@ -224,12 +230,16 @@ class Notifier(object):
         Logger().debug("Notifier.datapointNotify(): dp=%s, oldValue=%s, newValue=%s" % (dp, repr(oldValue), repr(newValue)))
 
         if dp in self._datapointJobs.keys():
-            for method, condition in self._datapointJobs[dp]:
+            for method, condition, thread_ in self._datapointJobs[dp]:
                 if oldValue != newValue and condition == "change" or condition == "always":
                     try:
                         Logger().debug("Notifier.datapointNotify(): trigger method %s() of %s" % (method.im_func.func_name, method.im_self))
-                        event = dict(name="datapoint", dp=dp, oldValue=oldValue, newValue=newValue, condition=condition)
-                        method(event)
+                        event = dict(name="datapoint", dp=dp, oldValue=oldValue, newValue=newValue, condition=condition, thread=thread_)
+
+                        if thread_:
+                            thread.start_new_thread(method, (event,))
+                        else:
+                            method(event)
                     except:
                         Logger().exception("Notifier.datapointNotify()")
 

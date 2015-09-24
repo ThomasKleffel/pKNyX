@@ -51,6 +51,7 @@ Usage
 
 __revision__ = "$Id$"
 
+import time
 import threading
 import socket
 
@@ -214,6 +215,9 @@ class UDPTransceiver(Transceiver):
                         finally:
                             transmission.release()
                         Logger().debug("UDPTransceiver._transmitterLoop(): transmission=%s" % repr(transmission))
+
+                else:
+                    time.sleep(0.001)
 
             except:
                 Logger().exception("UDPTransceiver._transmitterLoop()")  #, debug=True)

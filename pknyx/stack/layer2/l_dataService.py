@@ -139,7 +139,6 @@ class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inheri
         self._inQueue.acquire()
         try:
             self._inQueue.add(cEMI, priority)
-            #self._inQueue.notify()
         finally:
             self._inQueue.release()
 
@@ -151,15 +150,9 @@ class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inheri
         @return: pending transmission in outQueue
         @rtype: L{Transmission}
         """
-        transmission = None
-
-        # Test outQueue for frames to transmit, else go sleeping
         self._outQueue.acquire()
         try:
             transmission = self._outQueue.remove()
-            while transmission is None and self._running:
-                self._outQueue.wait()
-                transmission = self._outQueue.remove()
         finally:
             self._outQueue.release()
 
@@ -181,7 +174,6 @@ class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inheri
             self._outQueue.acquire()
             try:
                 self._outQueue.add(transmission, priority)
-                self._outQueue.notifyAll()
             finally:
                 self._outQueue.release()
 
@@ -200,22 +192,18 @@ class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inheri
         self._running = True
         while self._running:
             try:
-                cEMI = None
 
-                # Test inQueue for frames to handle, else go sleeping
-                while  cEMI is None and self._running:
-                    self._inQueue.acquire()
-                    try:
-                        cEMI = self._inQueue.remove()
-                        if cEMI is None:
-                            time.sleep(0.001)
-                        else:
-                            Logger().debug("L_DataService.run(): cEMI=%s" % cEMI)
-                    finally:
-                        self._inQueue.release()
+                # Get incoming frame from inQueue
+                self._inQueue.acquire()
+                try:
+                     cEMI = self._inQueue.remove()
+                finally:
+                    self._inQueue.release()
 
                 # Handle cEMI message
-                if cEMI is not None:  # not needed anymore
+                if cEMI is not None:
+                    Logger().debug("L_DataService.run(): cEMI=%s" % cEMI)
+
                     srcAddr = cEMI.sourceAddress
                     if srcAddr != self._individualAddress:  # Avoid loop
                         if cEMI.messageCode == CEMILData.MC_LDATA_IND:  #in (CEMILData.MC_LDATA_CON, CEMILData.MC_LDATA_IND):
@@ -223,6 +211,9 @@ class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inheri
                                 Logger().warning("L_GroupDataService.run(): not listener defined")
                             else:
                                 self._ldl.dataInd(cEMI)
+
+                else:
+                    time.sleep(0.001)
 
             except:
                 Logger().exception("L_DataService.run()")  #, debug=True)
@@ -235,20 +226,6 @@ class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inheri
         Logger().trace("L_DataService.stop()")
 
         self._running = False
-
-        # Release output queue listeners blocked on wait()
-        self._outQueue.acquire()
-        try:
-            self._outQueue.notifyAll()
-        finally:
-            self._outQueue.release()
-
-        # Release input queue listeners blocked on wait()
-        self._inQueue.acquire()
-        try:
-            self._inQueue.notifyAll()
-        finally:
-            self._inQueue.release()
 
 
 if __name__ == '__main__':

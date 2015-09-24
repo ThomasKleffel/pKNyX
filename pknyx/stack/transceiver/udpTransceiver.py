@@ -189,9 +189,9 @@ class UDPTransceiver(Transceiver):
         while self._running:
             try:
                 transmission = self._tLSAP.getOutFrame()
-                Logger().debug("UDPTransceiver._transmitterLoop(): transmission=%s" % repr(transmission))
 
                 if transmission is not None:
+                    Logger().debug("UDPTransceiver._transmitterLoop(): transmission=%s" % repr(transmission))
 
                     cEMIFrame = transmission.payload
                     cEMIRawFrame = cEMIFrame.raw

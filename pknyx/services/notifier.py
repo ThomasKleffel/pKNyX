@@ -123,6 +123,16 @@ class Notifier(object):
         self._datapointJobs = {}
         #self._groupJobs = {}
 
+    def _executeJob(self, method, event):
+        """ Execute given method
+
+        Used to add the try/except statement when launched in a thread
+        """
+        try:
+            method(event)
+        except:
+            Logger().exception("Notifier._executeJob()")
+
     def addDatapointJob(self, func, dp, condition="change", thread=False):
         """ Add a job for a datapoint change
 
@@ -237,9 +247,9 @@ class Notifier(object):
                         event = dict(name="datapoint", dp=dp, oldValue=oldValue, newValue=newValue, condition=condition, thread=thread_)
 
                         if thread_:
-                            thread.start_new_thread(method, (event,))
+                            thread.start_new_thread(self._execute, (method, event))
                         else:
-                            method(event)
+                            self._execute(method, event)
                     except:
                         Logger().exception("Notifier.datapointNotify()")
 

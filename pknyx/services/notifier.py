@@ -123,15 +123,17 @@ class Notifier(object):
         self._datapointJobs = {}
         #self._groupJobs = {}
 
-    def _executeJob(self, method, event):
+    def _execute(self, method, event):
         """ Execute given method
 
         Used to add the try/except statement when launched in a thread
+
+        @todo: add a more explicite message for enduser?
         """
         try:
             method(event)
         except:
-            Logger().exception("Notifier._executeJob()")
+            Logger().exception("Notifier._execute()")
 
     def addDatapointJob(self, func, dp, condition="change", thread=False):
         """ Add a job for a datapoint change
@@ -248,6 +250,7 @@ class Notifier(object):
 
                         if thread_:
                             thread.start_new_thread(self._execute, (method, event))
+                            #TODO: register threads, so they can be killed (how?) when stopping the device
                         else:
                             self._execute(method, event)
                     except:

@@ -132,7 +132,7 @@ class FunctionalBlock(object):
 
         return self
 
-    def __init__(self, name, desc=None):
+    def __init__(self, name, desc=None, params={}):
         """
 
         @param name: name of the device
@@ -141,6 +141,9 @@ class FunctionalBlock(object):
         @param desc: description of the device
         @type desc: str
 
+        @param params: additionnal user params
+        @type params: dict
+
         raise FunctionalBlockValueError:
         """
         super(FunctionalBlock, self).__init__()
@@ -148,6 +151,7 @@ class FunctionalBlock(object):
         self._name = name
         if desc is not None:
             self._desc = "%s - %s" % (desc, self._desc)
+        self._params = params
 
         # Call for additionnal user init
         self.init()
@@ -170,6 +174,10 @@ class FunctionalBlock(object):
     @property
     def desc(self):
         return self._desc
+
+    @property
+    def params(self):
+        return self._params
 
     @property
     def dp(self):
@@ -204,7 +212,7 @@ if __name__ == '__main__':
     import unittest
 
     # Mute logger
-    Logger().setLevel('error')
+    Logger(None).setLevel('error')
 
 
     class FunctionalBlockTestCase(unittest.TestCase):

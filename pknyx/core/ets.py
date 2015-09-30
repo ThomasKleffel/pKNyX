@@ -111,7 +111,7 @@ class ETS(object):
     def buildingMap(self):
         return self._buildingMap
 
-    def register(self, cls, name, desc=None, buildingMap='root'):
+    def register(self, cls, name, desc=None, params={}, buildingMap='root'):
         """ Register a functional block
 
         @param cls: class of functional block to register
@@ -122,7 +122,7 @@ class ETS(object):
                 raise ETSValueError("functional block already registered (%s)" % fb)
 
         # Instanciate the function block
-        fb = cls(name, desc)
+        fb = cls(name, desc, params)
 
         self._functionalBlocks.add(fb)
 

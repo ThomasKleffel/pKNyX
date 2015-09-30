@@ -79,6 +79,9 @@ class FunctionalBlock(object):
     @ivar _desc: description of the device
     @type _desc:str
 
+    @ivar _params: additionnal user params
+    @type _params: dict
+
     @ivar _datapoints: Datapoints exposed by this FunctionalBlock
     @type _datapoints: dict of L{Datapoint}
 
@@ -212,7 +215,7 @@ if __name__ == '__main__':
     import unittest
 
     # Mute logger
-    Logger(None).setLevel('error')
+    Logger().setLevel('error')
 
 
     class FunctionalBlockTestCase(unittest.TestCase):

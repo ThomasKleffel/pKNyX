@@ -7,6 +7,8 @@ x bug fix
 0000-00-00 Version GIT
     + added GAD map table management
     + added average and replay examples
+    + FunctionBlock objects now support inheritance
+    + FunctionnalBlock constructor now takes an additionnal (and optionnal) 'params' parameter, for user specific use
     x minor bugs fixes
 
 2014-03-20 Version 0.9.3 (dev)

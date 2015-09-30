@@ -79,6 +79,9 @@ class FunctionalBlock(object):
     @ivar _desc: description of the device
     @type _desc:str
 
+    @ivar _params: additionnal user params
+    @type _params: dict
+
     @ivar _datapoints: Datapoints exposed by this FunctionalBlock
     @type _datapoints: dict of L{Datapoint}
 
@@ -90,33 +93,38 @@ class FunctionalBlock(object):
         """
         self = super(FunctionalBlock, cls).__new__(cls)
 
+        # Retreive all parents classes, to get all objects defined there
+        classes = cls.__bases__ + (cls,)
+
         # class objects named B{DP_xxx} are treated as Datapoint and added to the B{_datapoints} dict
         datapoints = {}
-        for key, value in cls.__dict__.iteritems():
-            if key.startswith("DP_"):
-                name = value['name']
-                if datapoints.has_key(name):
-                    raise FunctionalBlockValueError("duplicated Datapoint (%s)" % name)
-                datapoints[name] = Datapoint(self, **value)
+        for cls_ in classes:
+            for key, value in cls_.__dict__.iteritems():
+                if key.startswith("DP_"):
+                    name = value['name']
+                    if datapoints.has_key(name):
+                        raise FunctionalBlockValueError("duplicated Datapoint (%s)" % name)
+                    datapoints[name] = Datapoint(self, **value)
         self._datapoints = FrozenDict(datapoints)
 
         # class objects named B{GO_xxx} are treated as GroupObjects and added to the B{_groupObjects} dict
         groupObjects = {}
-        for key, value in cls.__dict__.iteritems():
-            if key.startswith("GO_"):
-                try:
-                    datapoint = self._datapoints[value['dp']]
-                except KeyError:
-                    raise FunctionalBlockValueError("unknown datapoint (%s)" % value['dp'])
-                name = datapoint.name
-                if groupObjects.has_key(name):
-                    raise FunctionalBlockValueError("duplicated GroupObject (%s)" % name)
+        for cls_ in classes:
+            for key, value in cls_.__dict__.iteritems():
+                if key.startswith("GO_"):
+                    try:
+                        datapoint = self._datapoints[value['dp']]
+                    except KeyError:
+                        raise FunctionalBlockValueError("unknown datapoint (%s)" % value['dp'])
+                    name = datapoint.name
+                    if groupObjects.has_key(name):
+                        raise FunctionalBlockValueError("duplicated GroupObject (%s)" % name)
 
-                # Remove 'dp' key from GO_xxx dict
-                # Use a copy to let original untouched
-                value_ = dict(value)
-                value_.pop('dp')
-                groupObjects[name] = GroupObject(datapoint, **value_)
+                    # Remove 'dp' key from GO_xxx dict
+                    # Use a copy to let original untouched
+                    value_ = dict(value)
+                    value_.pop('dp')
+                    groupObjects[name] = GroupObject(datapoint, **value_)
         self._groupObjects = FrozenDict(groupObjects)
 
         try:
@@ -127,7 +135,7 @@ class FunctionalBlock(object):
 
         return self
 
-    def __init__(self, name, desc=None):
+    def __init__(self, name, desc=None, params={}):
         """
 
         @param name: name of the device
@@ -136,6 +144,9 @@ class FunctionalBlock(object):
         @param desc: description of the device
         @type desc: str
 
+        @param params: additionnal user params
+        @type params: dict
+
         raise FunctionalBlockValueError:
         """
         super(FunctionalBlock, self).__init__()
@@ -143,6 +154,7 @@ class FunctionalBlock(object):
         self._name = name
         if desc is not None:
             self._desc = "%s - %s" % (desc, self._desc)
+        self._params = params
 
         # Call for additionnal user init
         self.init()
@@ -165,6 +177,10 @@ class FunctionalBlock(object):
     @property
     def desc(self):
         return self._desc
+
+    @property
+    def params(self):
+        return self._params
 
     @property
     def dp(self):

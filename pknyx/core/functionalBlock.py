@@ -90,33 +90,38 @@ class FunctionalBlock(object):
         """
         self = super(FunctionalBlock, cls).__new__(cls)
 
+        # Retreive all parents classes, to get all objects defined there
+        classes = cls.__bases__ + (cls,)
+
         # class objects named B{DP_xxx} are treated as Datapoint and added to the B{_datapoints} dict
         datapoints = {}
-        for key, value in cls.__dict__.iteritems():
-            if key.startswith("DP_"):
-                name = value['name']
-                if datapoints.has_key(name):
-                    raise FunctionalBlockValueError("duplicated Datapoint (%s)" % name)
-                datapoints[name] = Datapoint(self, **value)
+        for cls_ in classes:
+            for key, value in cls_.__dict__.iteritems():
+                if key.startswith("DP_"):
+                    name = value['name']
+                    if datapoints.has_key(name):
+                        raise FunctionalBlockValueError("duplicated Datapoint (%s)" % name)
+                    datapoints[name] = Datapoint(self, **value)
         self._datapoints = FrozenDict(datapoints)
 
         # class objects named B{GO_xxx} are treated as GroupObjects and added to the B{_groupObjects} dict
         groupObjects = {}
-        for key, value in cls.__dict__.iteritems():
-            if key.startswith("GO_"):
-                try:
-                    datapoint = self._datapoints[value['dp']]
-                except KeyError:
-                    raise FunctionalBlockValueError("unknown datapoint (%s)" % value['dp'])
-                name = datapoint.name
-                if groupObjects.has_key(name):
-                    raise FunctionalBlockValueError("duplicated GroupObject (%s)" % name)
+        for cls_ in classes:
+            for key, value in cls_.__dict__.iteritems():
+                if key.startswith("GO_"):
+                    try:
+                        datapoint = self._datapoints[value['dp']]
+                    except KeyError:
+                        raise FunctionalBlockValueError("unknown datapoint (%s)" % value['dp'])
+                    name = datapoint.name
+                    if groupObjects.has_key(name):
+                        raise FunctionalBlockValueError("duplicated GroupObject (%s)" % name)
 
-                # Remove 'dp' key from GO_xxx dict
-                # Use a copy to let original untouched
-                value_ = dict(value)
-                value_.pop('dp')
-                groupObjects[name] = GroupObject(datapoint, **value_)
+                    # Remove 'dp' key from GO_xxx dict
+                    # Use a copy to let original untouched
+                    value_ = dict(value)
+                    value_.pop('dp')
+                    groupObjects[name] = GroupObject(datapoint, **value_)
         self._groupObjects = FrozenDict(groupObjects)
 
         try:

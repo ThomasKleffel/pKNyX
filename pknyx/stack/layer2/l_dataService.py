@@ -196,7 +196,7 @@ class L_DataService(threading.Thread, TransceiverLSAP):  # @todo: do not inheri
                 # Get incoming frame from inQueue
                 self._inQueue.acquire()
                 try:
-                     cEMI = self._inQueue.remove()
+                    cEMI = self._inQueue.remove()
                 finally:
                     self._inQueue.release()
 

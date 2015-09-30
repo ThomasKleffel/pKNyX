@@ -2,7 +2,7 @@
 
 from pknyx.api import Device
 
-from timerFB import TimerFB
+from toggle import Toggle
 
 
 class ServerDev(Device, xxx):

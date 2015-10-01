@@ -247,9 +247,9 @@ class Notifier(object):
                         event = dict(name="datapoint", dp=dp, oldValue=oldValue, newValue=newValue, condition=condition, thread=thread_)
 
                         if thread_:
-                            thread.start_new_thread(self._execute, (method, event))
+                            thread.start_new_thread(self._executeJob, (method, event))
                         else:
-                            self._execute(method, event)
+                            self._executeJob(method, event)
                     except:
                         Logger().exception("Notifier.datapointNotify()")
 

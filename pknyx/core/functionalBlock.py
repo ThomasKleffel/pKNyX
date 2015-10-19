@@ -33,8 +33,8 @@ Application management
 Implements
 ==========
 
- - B{FunctionalBlock}
  - B{FunctionalBlockValueError}
+ - B{FunctionalBlock}
 
 Documentation
 =============
@@ -131,7 +131,7 @@ class FunctionalBlock(object):
             self._desc = cls.__dict__["DESC"]
         except KeyError:
             Logger().exception("FunctionalBlock.__new__()", debug=True)
-            self._desc = None
+            self._desc = "FB"
 
         return self
 
@@ -152,8 +152,10 @@ class FunctionalBlock(object):
         super(FunctionalBlock, self).__init__()
 
         self._name = name
+
         if desc is not None:
-            self._desc = "%s - %s" % (desc, self._desc)
+            self._desc = "%s::%s" % (self._desc, desc)
+
         self._params = params
 
         # Call for additionnal user init
@@ -206,9 +208,9 @@ class FunctionalBlock(object):
 
         @todo: use an Event as param
         """
-        Logger().debug("FuntionalBlock.notify(): dp=%s, oldValue=%s, newValue=%s" % (dp, oldValue, newValue))
+        Logger().debug("FunctionalBlock.notify(): dp=%s, oldValue=%s, newValue=%s" % (dp, oldValue, newValue))
 
-        Notifier().datapointNotify(dp, oldValue, newValue)
+        Notifier().datapointNotify(self, dp, oldValue, newValue)
 
 
 if __name__ == '__main__':

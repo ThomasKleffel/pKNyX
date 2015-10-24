@@ -70,6 +70,8 @@ class Device(object):
         """
         super(Device, self).__init__()
 
+        #TODO: call self.init()!!!!
+
     def init(self):
         """ Additionnal user init
         """

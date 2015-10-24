@@ -215,9 +215,12 @@ class Notifier(object):
                     if type_ == "datapoint":
                         dp, condition, thread = args
                         try:
-                            self._datapointJobs[dp].append((method, condition, thread))
+                            self._datapointJobs[obj][dp].append((method, condition, thread))
                         except KeyError:
-                            self._datapointJobs[dp] = [(method, condition, thread)]
+                            try:
+                                self._datapointJobs[obj][dp] = [(method, condition, thread)]
+                            except KeyError:
+                                self._datapointJobs[obj] = {dp: [(method, condition, thread)]}
                     #elif type_ == "group":
                         #gad = args
                         #try:
@@ -225,10 +228,13 @@ class Notifier(object):
                         #except KeyError:
                             #self._groupJobs[gad] = [method]
 
-    def datapointNotify(self, dp, oldValue, newValue):
+    def datapointNotify(self, obj, dp, oldValue, newValue):
         """ Notification of a datapoint change
 
         This method is called when a datapoint value changes.
+
+        @param obj: owner of the datapoint
+        @type obj: <FunctionalBloc>
 
         @param dp: name of the datapoint
         @type dp: str
@@ -239,10 +245,10 @@ class Notifier(object):
         @param newValue: new value of the datapoint
         @type newValue: depends on datapoint type
         """
-        Logger().debug("Notifier.datapointNotify(): dp=%s, oldValue=%s, newValue=%s" % (dp, repr(oldValue), repr(newValue)))
+        Logger().debug("Notifier.datapointNotify(): obj=%s, dp=%s, oldValue=%s, newValue=%s" % (obj.name, dp, repr(oldValue), repr(newValue)))
 
-        if dp in self._datapointJobs.keys():
-            for method, condition, thread_ in self._datapointJobs[dp]:
+        if dp in self._datapointJobs[obj].keys():
+            for method, condition, thread_ in self._datapointJobs[obj][dp]:
                 if oldValue != newValue and condition == "change" or condition == "always":
                     try:
                         Logger().debug("Notifier.datapointNotify(): trigger method %s() of %s" % (method.im_func.func_name, method.im_self))
@@ -252,7 +258,7 @@ class Notifier(object):
                             thread.start_new_thread(self._execute, (method, event))
                             #TODO: register threads, so they can be killed (how?) when stopping the device
                         else:
-                            self._execute(method, event)
+                            self._executeJob(method, event)
                     except:
                         Logger().exception("Notifier.datapointNotify()")
 

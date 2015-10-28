@@ -259,7 +259,7 @@ class Notifier(object):
                                 thread.start_new_thread(self._execute, (method, event))
                                 #TODO: register threads, so they can be killed (how?) when stopping the device
                             else:
-                                self._executeJob(method, event)
+                                self._execute(method, event)
                         except:
                             Logger().exception("Notifier.datapointNotify()")
 

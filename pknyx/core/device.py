@@ -106,8 +106,7 @@ class Device(object):
 
                     links.add(link)
 
-        #self._links = FrozenSet(links)
-        self._links = links
+        self._links = frozenset(links)
 
         #try:
             #self._desc = cls.__dict__["DESC"]

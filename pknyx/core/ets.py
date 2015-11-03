@@ -97,7 +97,7 @@ class ETS(object):
         @param device: device to register
         @type device: L{Device<pknyx.core.device>}
         """
-        for fb in device.fb:
+        for fb in device.fb.values():
 
             # Register pending scheduler/notifier jobs
             Scheduler().doRegisterJobs(fb)

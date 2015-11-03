@@ -49,8 +49,6 @@ Usage
 @license: GPL
 """
 
-__revision__ = "$Id$"
-
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.utils import reprStr
 from pknyx.common.frozenDict import FrozenDict

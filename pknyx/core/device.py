@@ -100,6 +100,7 @@ class Device(object):
             for key, value in cls_.__dict__.iteritems():
                 if key.startswith("LNK_"):
                     Logger().debug("Device.__new__(): %s=(%s)" % (key, repr(value)))
+
                     link = (value['fb'], value['dp'], value['gad'])  # TODO: add flags
                     if link in links:
                         raise FunctionalBlockValueError("duplicated link (%s)" % link)
@@ -108,11 +109,11 @@ class Device(object):
 
         self._links = frozenset(links)
 
-        #try:
-            #self._desc = cls.__dict__["DESC"]
-        #except KeyError:
-            #Logger().exception("Device.__new__()", debug=True)
-            #self._desc = "Device"
+        try:
+            self._desc = cls.__dict__["DESC"]
+        except KeyError:
+            Logger().exception("Device.__new__()", debug=True)
+            self._desc = "Device"
 
         return self
 
@@ -126,6 +127,10 @@ class Device(object):
         self._stack = Stack(self._individualAddress)
 
         self.init()
+
+    @property
+    def desc(self):
+        return self._desc
 
     @property
     def indAddr(self):

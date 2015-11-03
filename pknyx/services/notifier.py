@@ -208,10 +208,13 @@ class Notifier(object):
 
         for type_, func, args in self._pendingFuncs:
             Logger().debug("Notifier.doRegisterJobs(): type_=\"%s\", func=%s, args=%s" % (type_, func.func_name, repr(args)))
+
             method = getattr(obj, func.func_name, None)
             if method is not None:
                 Logger().debug("Notifier.doRegisterJobs(): add method %s() of %s" % (method.im_func.func_name, method.im_self))
-                if method.im_func is func:
+
+                if method.im_func is func:  # avoid name clash between FB methods (Really???!!??? -> TBC)
+
                     if type_ == "datapoint":
                         dp, condition, thread = args
                         try:
@@ -221,6 +224,7 @@ class Notifier(object):
                                 self._datapointJobs[obj][dp] = [(method, condition, thread)]
                             except KeyError:
                                 self._datapointJobs[obj] = {dp: [(method, condition, thread)]}
+
                     #elif type_ == "group":
                         #gad = args
                         #try:

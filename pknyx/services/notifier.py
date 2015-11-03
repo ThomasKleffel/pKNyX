@@ -213,7 +213,7 @@ class Notifier(object):
             if method is not None:
                 Logger().debug("Notifier.doRegisterJobs(): add method %s() of %s" % (method.im_func.func_name, method.im_self))
 
-                if method.im_func is func:  # avoid name clash between FB methods (Really???!!??? -> TBC)
+                if method.im_func is func:  # avoid name clash between FB methods
 
                     if type_ == "datapoint":
                         dp, condition, thread = args

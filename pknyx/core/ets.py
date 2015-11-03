@@ -49,6 +49,7 @@ Usage
 __revision__ = "$Id$"
 
 from pknyx.common.exception import PKNyXValueError
+from pknyx.common.singleton import Singleton
 from pknyx.services.logger import Logger
 from pknyx.stack.flags import Flags
 from pknyx.stack.groupAddress import GroupAddress
@@ -73,35 +74,12 @@ class ETS(object):
 
     raise ETSValueError:
     """
-    def __init__(self, stack):
+    __metaclass__ = Singleton
+
+    def __init__(self):
         """
-
-        @param stack: KNX stack object
-        @type stack: L{Stack<pknyx.stack.stack>}
-
-        raise ETSValueError:
         """
         super(ETS, self).__init__()
-
-        self._stack = stack
-
-        self._functionalBlocks = set()
-
-    @property
-    def stack(self):
-        return self._stack
-
-    @property
-    def functionalBlockNames(self):
-        return [fb.name for fb in self._functionalBlocks]
-
-    @property
-    def datapoints(self):
-        dps = []
-        for fb in self._functionalBlocks:
-            dps.append(fb.dp.values())
-
-        return dps
 
     @property
     def gadMap(self):
@@ -111,84 +89,73 @@ class ETS(object):
     def buildingMap(self):
         return self._buildingMap
 
-    def register(self, cls, name, desc=None, params={}, buildingMap='root'):
-        """ Register a functional block
+    def register(self, device, buildingMap='root'):
+        """ Register a device
 
-        @param cls: class of functional block to register
-        @type cls: subclass of L{FunctionalBlocks<pknyx.core.functionalBlocks>}
+        This method registers pending scheduler/notifier jobs of all FunctionalBlock of the Device.
+
+        @param device: device to register
+        @type device: L{Device<pknyx.core.device>}
         """
-        for fb in self._functionalBlocks:
-            if name == fb.name:
-                raise ETSValueError("functional block already registered (%s)" % fb)
+        for fb in device.fb:
 
-        # Instanciate the function block
-        fb = cls(name, desc, params)
+            # Register pending scheduler/notifier jobs
+            Scheduler().doRegisterJobs(fb)
+            Notifier().doRegisterJobs(fb)
 
-        self._functionalBlocks.add(fb)
+    def weave(self, device):
+        """ Weave (link, bind...) device datapoints
 
-        # Also register pending scheduler/notifier jobs
-        Scheduler().doRegisterJobs(fb)
-        Notifier().doRegisterJobs(fb)
-
-    def weave(self, fb, dp, gad, flags=None):
-        """ Weave (link, bind...) a datapoint to a group address
-
-        @param fb: name of the functional block owning the datapoint
-        @type fb: str
-
-        @param dp: name of the datapoint to link
-        @type dp: str
-
-        @param gad : group address to link to
-        @type gad : str or L{GroupAddress}
-
-        @param flags: overriding flags
-        @type flags: str or L{Flags}
-
-        raise ETSValueError:
+        @param device: device to weave
+        @type device: L{Device<pknyx.core.device>}
         """
-        for fb_ in self._functionalBlocks:
-            if fb == fb_.name:
-                break
-        else:
-            raise ETSValueError("unregistered functional block (%s)" % fb)
+        flags = None
+        for fb_, dp, gad in device.lnk:
 
-        # Retreive GroupObject from FunctionalBlock
-        try:
-            groupObject = fb_.go[dp]
-        except KeyError:
-            raise ETSValueError("no Group Object associated with this datapoint (%s)" % dp)
+            # Retreive FunctionnalBlock from device
+            try:
+                fb = device.fb[fb_]
 
-        # Override GroupObject flags
-        if flags is not None:
-            if not isinstance(flags, Flags):
-                flags = Flags(flags)
-            groupObject.flags = flags
+            except KeyError:
+                raise ETSValueError("unregistered functional block (%s)" % fb)
 
-        # Get GroupAddress
-        if not isinstance(gad, GroupAddress):
-            gad = GroupAddress(gad)
+            # Retreive GroupObject from FunctionalBlock
+            try:
+                groupObject = fb.go[dp]
 
-        # Ask the group data service to subscribe this GroupObject to the given gad
-        # In return, get the created group
-        group = self._stack.agds.subscribe(gad, groupObject)
+            except KeyError:
+                raise ETSValueError("no Group Object associated with this datapoint (%s)" % dp)
 
-        # If not already done, set the GroupObject group. This group will be used when the GroupObject wants to
-        # communicate on the bus. This mimics the S flag of ETS real application.
-        # @todo: find a better way
-        if groupObject.group is None:
-            groupObject.group = group
+            # Override GroupObject flags
+            if flags is not None:
+                if not isinstance(flags, Flags):
+                    flags = Flags(flags)
+                groupObject.flags = flags
+
+            # Get GroupAddress
+            if not isinstance(gad, GroupAddress):
+                gad = GroupAddress(gad)
+
+            # Ask the group data service to subscribe this GroupObject to the given gad
+            # In return, get the created group
+            group = device.stack.agds.subscribe(gad, groupObject)
+
+            # If not already done, set the GroupObject group. This group will be used when the GroupObject wants to
+            # communicate on the bus. This mimics the S flag of ETS real application.
+            # @todo: find a better way
+            if groupObject.group is None:
+                groupObject.group = group
 
     bind = weave
     link = weave  # nice names too!
 
-    def getGrOAT(self, by="gad", outFormatLevel=3):
+    def getGrOAT(self, device, by="gad", outFormatLevel=3):
         """ Build the Group Object Association Table
         """
 
         # Retreive all bound gad
         gads = []
-        for gad in self._stack.agds.groups.keys():
+        for gad in device.stack.agds.groups.keys():
             gads.append(GroupAddress(gad, outFormatLevel))
         gads.sort()  #reverse=True)
 
@@ -231,7 +198,7 @@ class ETS(object):
                         output +=  u" │    ├── %3d %-21s" % (gad.sub, "")
                     gadSub = gad.sub
 
-                for i, go in enumerate(self._stack.agds.groups[gad.address].listeners):
+                for i, go in enumerate(device.stack.agds.groups[gad.address].listeners):
                     dp = go.datapoint
                     fb = dp.owner
                     if not i:
@@ -253,7 +220,7 @@ class ETS(object):
             output += "\n"
             output +=  len(title) * "-"
             output += "\n"
-            for fb in self._functionalBlocks:
+            for fb in device.fb.values():
                 #output +=  "%-30s" % fb.name
                 for i, go in enumerate(fb.go.values()):
                     output +=  "%-30s" % fb.name
@@ -262,7 +229,7 @@ class ETS(object):
                         #output +=  "%-30s" % ""
                     gads_ = []
                     for gad in gads:
-                        if go in self._stack.agds.groups[gad.address].listeners:
+                        if go in device.stack.agds.groups[gad.address].listeners:
                             gads_.append(gad.address)
                     if gads_:
                         output +=  "%-30s %-10s %-30s %-10s %-10s" % (go.name, dp.dptId, ", ".join(gads_), go.flags, go.priority)

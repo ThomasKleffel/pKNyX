@@ -9,6 +9,7 @@ x bug fix
     + added average and replay examples
     + FunctionBlock objects now support inheritance, and can be instanciated several times without Datapoint conflict
     + FunctionnalBlock now takes an additionnal (and optionnal) 'params' argument, for user specific needs
+    - new architecture arround ETS/Device
     x minor bugs fixes
 
 2014-03-20 Version 0.9.3 (dev)

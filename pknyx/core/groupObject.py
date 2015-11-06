@@ -128,7 +128,7 @@ class GroupObject(GroupListener):
         """
         Logger().debug("GroupObject._slotChanged(): dp=%s, oldValue=%s, newValue=%s" % (self._datapoint.name, repr(oldValue), repr(newValue)))
 
-        if self._flags.communicate:
+        if self._group is not None and self._flags.communicate:
             if (oldValue != newValue and self._flags.transmit) or self._flags.stateless:
                 frame, size = self._datapoint.frame
                 self._group.write(self._priority, frame, size)

@@ -380,7 +380,7 @@ def main():
     except GroupAddressValueError:
         mapper = GroupAddressTableMapper()
         mapper.loadFrom(args.gadMapPath)
-        args.gad = mapper.toGad(args.gad)
+        args.gad = mapper.getGad(args.gad)
     except AttributeError:
         pass
 

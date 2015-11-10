@@ -58,6 +58,7 @@ import os
 import os.path
 import imp
 import sys
+import time
 
 from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
@@ -161,8 +162,6 @@ class DeviceRunner(object):
             Logger().info(ETS().getGrOAT(self._device, "gad"))
             Logger().info(ETS().getGrOAT(self._device, "go"))
 
-        #self._device.init()  # moved to Device.__init__()
-
     def run(self, dameon=False):
         """
         """
@@ -176,6 +175,7 @@ class DeviceRunner(object):
 
         self._device.start()
         Scheduler().start()
+        time.sleep(1)  # wait for things to start
         try:
             self._device.mainLoop()
 

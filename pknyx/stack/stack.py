@@ -129,6 +129,7 @@ class Stack(object):
                 try:
                     if listener.flags.init:
                         group.read(priority=Priority())
+                        time.sleep(0.1)  # avoid bus saturation
                         break
                 except AttributeError:
                     Logger().exception("Stack.start(): listener does not seem to be a GroupObject", debug=True)

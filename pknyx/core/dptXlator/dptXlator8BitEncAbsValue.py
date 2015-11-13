@@ -77,18 +77,27 @@ class DPTXlator8BitEncAbsValue(DPTXlatorBase):
             raise DPTXlatorValueError("data %s not in (0x00, 0xff)" % hex(data))
 
     def checkValue(self, value):
-        if value not in self._dpt.limits:
+        if self.dpt is self.DPT_Generic:
+            if not self._dpt.limits[0] <= value <= self._dpt.limits[1]:
+                raise DPTXlatorValueError("value not in range %r" % repr(self._dpt.limits))
+        elif value not in self._dpt.limits:
             raise DPTXlatorValueError("value not in %r" % repr(self._dpt.limits))
 
     def dataToValue(self, data):
-        value = self._dpt.limits[data]
+        if self.dpt is self.DPT_Generic:
+            value = data
+        else:
+            value = self._dpt.limits[data]
         #Logger().debug("DPTXlator8BitEncAbsValue.dataToValue(): value=%d" % value)
         return value
 
     def valueToData(self, value):
         #Logger().debug("DPTXlator8BitEncAbsValue.valueToData(): value=%d" % value)
         self.checkValue(value)
-        data = self._dpt.limits.index(value)
+        if self.dpt is self.DPT_Generic:
+            data = value
+        else:
+            data = self._dpt.limits.index(value)
         #Logger().debug("DPTXlator8BitEncAbsValue.valueToData(): data=%s" % hex(data))
         return data
 

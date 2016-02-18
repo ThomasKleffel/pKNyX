@@ -52,7 +52,9 @@ __revision__ = "$Id$"
 
 from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
+from pknyx.common.frozenDict import FrozenDict
 from pknyx.services.logger import Logger
+from pknyx.stack.stack import Stack
 
 import time
 
@@ -65,17 +67,96 @@ class DeviceValueError(PKNyXValueError):
 class Device(object):
     """ Device class definition.
     """
-    def __init__(self):
+    def __new__(cls, *args, **kwargs):
+        """ Init the class with all available types for this DPT
+        """
+        self = super(Device, cls).__new__(cls)
+
+        # Retreive all parents classes, to get all objects defined there
+        classes = cls.__bases__ + (cls,)  # do we really want that?
+
+        # class objects named B{FB_xxx} are treated as FunctionalBlock and added to the B{_functionalBlocks} dict
+        functionalBlocks = {}
+        for cls_ in classes:
+            for key, value in cls_.__dict__.iteritems():
+                if key.startswith("FB_"):
+                    Logger().debug("Device.__new__(): %s=(%s)" % (key, repr(value)))
+                    name = value['name']
+
+                    # Check if already registered
+                    if functionalBlocks.has_key(name):
+                        raise DeviceValueError("duplicated FB (%s)" % name)
+
+                    cls = value["cls"]
+                    value_ = dict(value)  # use a copy to let original untouched
+                    value_.pop('cls')     # remove 'cls' key from FB_xxx dict
+                    functionalBlocks[name] = cls(**value_)
+
+        self._functionalBlocks = FrozenDict(functionalBlocks)
+
+        # class objects named B{LNK_xxx} are treated as links and added to the B{_links} set
+        links = set()
+        for cls_ in classes:
+            for key, value in cls_.__dict__.iteritems():
+                if key.startswith("LNK_"):
+                    Logger().debug("Device.__new__(): %s=(%s)" % (key, repr(value)))
+
+                    link = (value['fb'], value['dp'], value['gad'])  # TODO: add flags
+                    if link in links:
+                        raise FunctionalBlockValueError("duplicated link (%s)" % link)
+
+                    links.add(link)
+
+        self._links = frozenset(links)
+
+        try:
+            self._desc = cls.__dict__["DESC"]
+        except KeyError:
+            Logger().exception("Device.__new__()", debug=True)
+            self._desc = "Device"
+
+        return self
+
+    def __init__(self, individualAddress):
         """ Init Device object.
         """
         super(Device, self).__init__()
 
-        #TODO: call self.init()!!!!
+        self._individualAddress = individualAddress
+
+        self._stack = Stack(self._individualAddress)
+
+        self.init()
+
+    @property
+    def desc(self):
+        return self._desc
+
+    @property
+    def indAddr(self):
+        return self._individualAddress
+
+    @property
+    def stack(self):
+        return self._stack
+
+    @property
+    def fb(self):
+        return self._functionalBlocks
+
+    @property
+    def lnk(self):
+        return self._links
 
     def init(self):
         """ Additionnal user init
         """
         pass
+
+    def start(self):
+        """ Start device execution
+        """
+        self._stack.start()
 
     def mainLoop(self):
         """ Main loop of the device
@@ -85,36 +166,41 @@ class Device(object):
         while True:
             time.sleep(0.001)
 
+    def stop(self):
+        """ Stop device execution
+        """
+        self._stack.stop()
+
     def shutdown(self):
         """ Additionnal user shutdown
         """
         pass
 
-    def register(self, ets):
-        """
-        """
-        Logger().trace("Device._register()")
+    #def register(self):
+        #"""
+        #"""
+        #Logger().trace("Device._register()")
 
-        for key, value in self.__class__.__dict__.iteritems():
-            if key.startswith("FB_"):
-                Logger().debug("Device._register(): %s=(%s)" % (key, repr(value)))
-                cls = value["cls"]
+        #for key, value in self.__class__.__dict__.iteritems():
+            #if key.startswith("FB_"):
+                #Logger().debug("Device._register(): %s=(%s)" % (key, repr(value)))
+                #cls = value["cls"]
 
-                # Remove 'cls' key from FB_xxx dict
-                # Use a copy to let original untouched
-                value_ = dict(value)
-                value_.pop('cls')
-                ets.register(cls, **value_)
+                ## Remove 'cls' key from FB_xxx dict
+                ## Use a copy to let original untouched
+                #value_ = dict(value)
+                #value_.pop('cls')
+                #ETS().register(cls, **value_)
 
-    def weave(self, ets):
-        """
-        """
-        Logger().trace("Device._weave()")
+    #def weave(self):
+        #"""
+        #"""
+        #Logger().trace("Device._weave()")
 
-        for key, value in self.__class__.__dict__.iteritems():
-            if key.startswith("LNK_"):
-                Logger().debug("Device._weave(): %s=(%s)" % (key, repr(value)))
-                ets.weave(**value)
+        #for key, value in self.__class__.__dict__.iteritems():
+            #if key.startswith("LNK_"):
+                #Logger().debug("Device._weave(): %s=(%s)" % (key, repr(value)))
+                #ETS().weave(**value)
 
 
 if __name__ == '__main__':

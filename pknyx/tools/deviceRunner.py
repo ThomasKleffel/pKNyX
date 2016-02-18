@@ -58,6 +58,7 @@ import os
 import os.path
 import imp
 import sys
+import time
 
 from pknyx.common import config
 from pknyx.common.exception import PKNyXValueError
@@ -65,7 +66,6 @@ from pknyx.services.logger import Logger
 from pknyx.services.scheduler import Scheduler
 from pknyx.services.groupAddressTableMapper import GroupAddressTableMapper
 from pknyx.core.ets import ETS
-from pknyx.stack.stack import Stack
 from pknyx.stack.individualAddress import IndividualAddress
 from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
 
@@ -109,21 +109,17 @@ class DeviceRunner(object):
         Logger().info("Device path is '%s'" % devicePath)
         Logger().info("Device name is '%s'" % DEVICE_NAME)
 
-        deviceIndAddr = DEVICE_IND_ADDR
-        if not isinstance(deviceIndAddr, IndividualAddress):
-            deviceIndAddr = IndividualAddress(deviceIndAddr)
-        if deviceIndAddr.isNull:
+        self._deviceIndAddr = DEVICE_IND_ADDR
+        if not isinstance(self._deviceIndAddr, IndividualAddress):
+            self._deviceIndAddr = IndividualAddress(self._deviceIndAddr)
+        if self._deviceIndAddr.isNull:
             Logger().warning("Device Individual Address is null")
         else:
-            Logger().info("Device Individual Address is '%s'" % DEVICE_IND_ADDR)
+            Logger().info("Device Individual Address is '%s'" % self._deviceIndAddr)
 
         # Load GAD map table
         mapper = GroupAddressTableMapper()
         mapper.loadFrom(gadMapPath)
-
-        # Create KNX stack
-        self._stack = Stack(DEVICE_IND_ADDR)
-        self._ets = ETS(self._stack)
 
     def _doubleFork(self):
         """ Double fork.
@@ -157,16 +153,14 @@ class DeviceRunner(object):
 
         # Create device from user 'device' module
         from device import DEVICE
-        self._device = DEVICE()
+        self._device = DEVICE(self._deviceIndAddr)
 
-        self._device.register(self._ets)
-        self._device.weave(self._ets)
+        ETS().register(self._device)
+        ETS().weave(self._device)
 
         if printGroat:
-            Logger().info(self._ets.getGrOAT("gad"))
-            Logger().info(self._ets.getGrOAT("go"))
-
-        self._device.init()
+            Logger().info(ETS().getGrOAT(self._device, "gad"))
+            Logger().info(ETS().getGrOAT(self._device, "go"))
 
     def run(self, dameon=False):
         """
@@ -179,17 +173,21 @@ class DeviceRunner(object):
             Logger().info("Run process as daemon...")
             self._doubleFork()
 
+        self._device.start()
         Scheduler().start()
-        self._stack.start()
+        time.sleep(1)  # wait for things to start
         try:
             self._device.mainLoop()
+
         except KeyboardInterrupt:
             Logger().warning("Device execution canceled (SIGTERM)")
+
         except:
             Logger().exception("deviceRunner.run()")
+
         finally:
-            self._stack.stop()
             Scheduler().stop()
+            self._device.stop()
             self._device.shutdown()
 
 

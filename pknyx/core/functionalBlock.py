@@ -99,6 +99,7 @@ class FunctionalBlock(object):
         for cls_ in classes:
             for key, value in cls_.__dict__.iteritems():
                 if key.startswith("DP_"):
+                    Logger().debug("FunctionalBlock.__new__(): %s=(%s)" % (key, repr(value)))
                     name = value['name']
                     if datapoints.has_key(name):
                         raise FunctionalBlockValueError("duplicated Datapoint (%s)" % name)
@@ -110,6 +111,7 @@ class FunctionalBlock(object):
         for cls_ in classes:
             for key, value in cls_.__dict__.iteritems():
                 if key.startswith("GO_"):
+                    Logger().debug("FunctionalBlock.__new__(): %s=(%s)" % (key, repr(value)))
                     try:
                         datapoint = self._datapoints[value['dp']]
                     except KeyError:

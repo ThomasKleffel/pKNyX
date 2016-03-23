@@ -89,6 +89,7 @@ import imp
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.common.singleton import Singleton
+from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.services.logger import Logger
 from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
 
@@ -254,6 +255,34 @@ class GroupAddressTableMapper(object):
         except KeyError:
             raise GroupAddressTableMapperValueError("Can't find a description for given GAD/nickname (%s)" % gad)
 
+    def getDptXlator(self, gad):
+        """ Return a datapoint translator for the given GAD/nickname
+
+        @param: GAD/nickname
+        @type: str
+
+        @return: datapoint translator
+        @tpye DPTXlator
+
+        @raise GroupAddressTableMapperValueError:
+        """
+        try:
+            value = self._gadMapTable[gad]
+        except KeyError:
+            try:
+                value = self._gadMapTable[self.getGad(gad)]
+            except KeyError:
+                raise GroupAddressTableMapperValueError("Can't find GAD nor nickname '%s' in GAD map table" % gad)
+
+        try:
+            dptId = value['dptId']
+        except KeyError:
+            raise  GroupAddressTableMapperValueError("Can't find a dataponint id for given GAD/nickname (%s)" % gad)
+
+        if dptId == None:
+            return None
+
+        return DPTXlatorFactory().create(dptId)
 
 if __name__ == '__main__':
     import unittest

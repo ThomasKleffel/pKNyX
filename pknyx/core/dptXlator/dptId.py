@@ -95,7 +95,7 @@ class DPTID(object):
         super(DPTID, self).__init__()
 
         try:
-            if not re.match("^\d{1,3}\.\d{3}$", dptId) and not re.match("^\d{1,3}\.xxx$", dptId):
+            if not re.match("^\d{1,3}\.\d{1,3}$", dptId) and not re.match("^\d{1,3}\.xxx$", dptId):
                 raise DPTIDValueError("invalid Datapoint Type ID (%r)" % repr(dptId))
         except:
             Logger().exception("Flags.__init__()", debug=True)
@@ -128,7 +128,7 @@ class DPTID(object):
         return self._cmp(other) in (0, 1)
 
     def __hash__(self):
-        return hash(self._id)
+        return hash((self.main, self.sub))
 
     def _cmp(self, other):
         """ Make comp on id
@@ -140,9 +140,9 @@ class DPTID(object):
             return cmp(int(self.main), int(other.main))
         elif self.sub == other.sub:
             return 0
-        elif self.sub == "xxx":
+        elif self.sub == None:
             return -1
-        elif other.sub == "xxx":
+        elif other.sub == None:
             return 1
         else:
             return cmp(self.sub, other.sub)
@@ -157,13 +157,16 @@ class DPTID(object):
     def main(self):
         """ Return the main part of the Datapoint Type ID
         """
-        return self._id.split('.')[0]
+        return int(self._id.split('.')[0])
 
     @property
     def sub(self):
         """ Return the sub part of the Datapoint Type ID
         """
-        return self._id.split('.')[1]
+        try:
+            return int(self._id.split('.')[1])
+        except ValueError:
+            return None
 
     @property
     def generic(self):

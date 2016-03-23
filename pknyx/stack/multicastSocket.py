@@ -127,16 +127,18 @@ class MulticastSocketReceive(MulticastSocketBase):
     def __init__(self, localAddr, mcastAddr, mcastPort, timeout=1, ttl=32, loop=1):
         """
         """
-        super(MulticastSocketReceive, self).__init__(localAddr, mcastPort, ttl, loop)
 
         multicast = ord(socket.inet_aton(mcastAddr)[0]) in range(224, 240)
         if not multicast:
             raise McastSockValueError("address is not a multicast destination (%s)" % repr(mcastAddr))
 
-        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(self._localAddr))
-        #value = struct.pack("=4sl", socket.inet_aton(mcastAddr), socket.INADDR_ANY)
-        self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(mcastAddr) + socket.inet_aton(self._localAddr))
+        self._mcastAddr = mcastAddr
 
+        super(MulticastSocketReceive, self).__init__(localAddr, mcastPort, ttl, loop)
+
+        self.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(self._localAddr))
+        value = struct.pack("=4sl", socket.inet_aton(mcastAddr), socket.INADDR_ANY)
+        self.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, value)
         self.settimeout(timeout)
 
     def _bind(self):

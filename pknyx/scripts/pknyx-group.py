@@ -64,7 +64,7 @@ import threading
 
 from pknyx.common.exception import PKNyXValueError
 from pknyx.services.logger import Logger
-from pknyx.services.groupAddressTableMapper import GroupAddressTableMapper
+from pknyx.services.groupAddressTableMapper import GroupAddressTableMapper, GroupAddressTableMapperValueError
 from pknyx.core.dptXlator.dptXlatorFactory import DPTXlatorFactory
 from pknyx.core.groupListener import GroupListener
 from pknyx.core.groupMonitorListener import GroupMonitorListener
@@ -72,6 +72,7 @@ from pknyx.stack.stack import Stack
 from pknyx.stack.groupAddress import GroupAddress, GroupAddressValueError
 from pknyx.stack.priority import Priority
 
+mapper = GroupAddressTableMapper()
 
 class SimpleQueue(list):
     """ Simple condition locked queue
@@ -291,7 +292,23 @@ def monitor(src="0.0.1"):
                     groupMonitorObject.queue.wait(0.1)
                     try:
                         type_, src, gad, priority, data = groupMonitorObject.queue.pop()
-                        Logger().info("Got %-16s from %-8s to %-8s with priority %-6s data=%s" % (type_, src, gad, priority, repr(data)))
+
+                        try:
+                            nickname = mapper.getNickname(str(gad))
+                            dptxlator = mapper.getDptXlator(str(gad))
+                        except GroupAddressTableMapperValueError:
+                            nickname = "???"
+                            dptxlator = None
+
+                        hexdata = ' '.join(["%02X" % (byte) for byte in data])
+                        info = "Got %-16s from %-8s to %-8s (%s) with priority %-6s data=[%s]" % (type_, src, gad, nickname, priority, hexdata)
+
+                        if dptxlator:
+                            value = dptxlator.dataToValue(dptxlator.frameToData(data))
+                            info += " (%s)" % (str(value))
+
+                        Logger().info(info)
+
                     except IndexError:
                         pass
                 finally:
@@ -316,6 +333,7 @@ def main():
                         help="logger level")
     parser.add_argument("-m", "--map", action="store", type=str, dest="gadMapPath", default=os.path.expandvars("$PKNYX_GAD_MAP_PATH"),
                         help="set/override $PKNYX_GAD_MAP_PATH var")
+    parser.add_argument("-x", "--xmlmap", action="store", type=str, dest="xmlMapFile", default=None)
     parser.add_argument("-s", "--srcAddr", action="store", type=str, dest="src",
                         help="source address to use")
 
@@ -374,12 +392,18 @@ def main():
 
     Logger().setLevel(args.loggerLevel)
 
+    # If XML map file name is given, try to load it
+    if args.xmlMapFile:
+        mapper.loadXML(args.xmlMapFile)
+        for gad in mapper.table.keys():
+            print gad, mapper.table[gad]
+    else:
+        mapper.loadFrom(args.gadMapPath)
+
     # If given GAD is a nick name, try to retreive real GAD from map table
     try:
         GroupAddress(args.gad)
     except GroupAddressValueError:
-        mapper = GroupAddressTableMapper()
-        mapper.loadFrom(args.gadMapPath)
         args.gad = mapper.getGad(args.gad)
     except AttributeError:
         pass
@@ -388,6 +412,8 @@ def main():
     options.pop("func")
     options.pop("loggerLevel")
     options.pop("gadMapPath")
+    options.pop("xmlMapFile")
+
     if args.src is None:
         options.pop("src")
     args.func(**options)

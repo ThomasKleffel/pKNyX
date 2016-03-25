@@ -222,7 +222,7 @@ class WindowsSpaceColorFormatter(SpaceFormatter, WindowsColorFormatter):
         return self._toColor(msg, record.levelname)
 
 
-if sys.platform in ('linux2', 'darwin'):
+if sys.platform in ('linux2', 'darwin', 'freebsd9'):
     ColorFormatter = LinuxColorFormatter
     SpaceColorFormatter = LinuxSpaceColorFormatter
 elif sys.platform == 'win32':
